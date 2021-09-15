@@ -1,0 +1,6 @@
+{
+    "files.associations": {
+        "frame_streamer.h": "c",
+        "cnn_ssdinfo.h": "c"
+    }
+}
