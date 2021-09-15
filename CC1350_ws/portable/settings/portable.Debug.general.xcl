@@ -1,0 +1,15 @@
+"F:\IAR Systems\Embedded Workbench For ARM\arm\bin\armproc.dll" 
+
+"F:\IAR Systems\Embedded Workbench For ARM\arm\bin\armxds2.dll" 
+
+"E:\CC1350_ws\portable\Debug\Exe\portable.out" 
+
+--plugin="F:\IAR Systems\Embedded Workbench For ARM\arm\bin\armbat.dll" 
+
+--device_macro="F:\IAR Systems\Embedded Workbench For ARM\arm\config\debugger\TexasInstruments\CC26x0.dmac" 
+
+--flash_loader="F:\IAR Systems\Embedded Workbench For ARM\arm\config\flashloader\TexasInstruments\FlashCC26x0F128RAM20.board" 
+
+
+
+

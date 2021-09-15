@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<workspace>
+    <project>
+        <path>$WS_DIR$\base_nrtos.ewp</path>
+    </project>
+    <project>
+        <path>$WS_DIR$\..\pwmled-lws-20191210\pwmled_lws.ewp</path>
+    </project>
+    <batchBuild />
+</workspace>

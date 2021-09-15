@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project>
+    <fileVersion>4</fileVersion>
+    <fileChecksum>2736039596</fileChecksum>
+    <configuration>
+        <name>Debug</name>
+        <outputs>
+            <file>$PROJ_DIR$\Debug\Obj\CC1350_LAUNCHXL_433.pbi</file>
+            <file>$PROJ_DIR$\temperature.c</file>
+            <file>$PROJ_DIR$\main_tirtos.c</file>
+            <file>$PROJ_DIR$\Debug\Obj\CC1350_LAUNCHXL_433_fxns.pbi</file>
+            <file>$PROJ_DIR$\CC1350_LAUNCHXL_433.c</file>
+            <file>$PROJ_DIR$\Debug\Obj\console.pbi</file>
+            <file>$PROJ_DIR$\Debug\Obj\CC1350_LAUNCHXL_433_fxns.o</file>
+            <file>$PROJ_DIR$\CC1350_LAUNCHXL_433_fxns.c</file>
+            <file>$PROJ_DIR$\Debug\Obj\temperature.pbi</file>
+            <file>$PROJ_DIR$\console.c</file>
+            <file>$PROJ_DIR$\Debug\Obj\temperature.o</file>
+            <file>$PROJ_DIR$\Debug\Obj\console.o</file>
+            <file>$PROJ_DIR$\Debug\Obj\ccfg.pbi</file>
+            <file>$PROJ_DIR$\Debug\Exe\portable.out</file>
+            <file>$PROJ_DIR$\Debug\Obj\main_tirtos.o</file>
+            <file>$PROJ_DIR$\Debug\Obj\CC1350_LAUNCHXL_433.o</file>
+            <file>$PROJ_DIR$\ccfg.c</file>
+            <file>$PROJ_DIR$\Debug\Obj\main_tirtos.pbi</file>
+            <file>$PROJ_DIR$\Debug\Obj\ccfg.o</file>
+            <file>$PROJ_DIR$\Debug\Obj\portable.pbd</file>
+        </outputs>
+        <file>
+            <name>[ROOT_NODE]</name>
+            <outputs>
+                <tool>
+                    <name>ILINK</name>
+                    <file> 13</file>
+                </tool>
+            </outputs>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\temperature.c</name>
+            <outputs>
+                <tool>
+                    <name>ICCARM</name>
+                    <file> 10</file>
+                </tool>
+                <tool>
+                    <name>BICOMP</name>
+                    <file> 8</file>
+                </tool>
+            </outputs>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\main_tirtos.c</name>
+            <outputs>
+                <tool>
+                    <name>ICCARM</name>
+                    <file> 14</file>
+                </tool>
+                <tool>
+                    <name>BICOMP</name>
+                    <file> 17</file>
+                </tool>
+            </outputs>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\CC1350_LAUNCHXL_433.c</name>
+            <outputs>
+                <tool>
+                    <name>ICCARM</name>
+                    <file> 15</file>
+                </tool>
+                <tool>
+                    <name>BICOMP</name>
+                    <file> 0</file>
+                </tool>
+            </outputs>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\CC1350_LAUNCHXL_433_fxns.c</name>
+            <outputs>
+                <tool>
+                    <name>ICCARM</name>
+                    <file> 6</file>
+                </tool>
+                <tool>
+                    <name>BICOMP</name>
+                    <file> 3</file>
+                </tool>
+            </outputs>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\console.c</name>
+            <outputs>
+                <tool>
+                    <name>ICCARM</name>
+                    <file> 11</file>
+                </tool>
+                <tool>
+                    <name>BICOMP</name>
+                    <file> 5</file>
+                </tool>
+            </outputs>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\ccfg.c</name>
+            <outputs>
+                <tool>
+                    <name>ICCARM</name>
+                    <file> 18</file>
+                </tool>
+                <tool>
+                    <name>BICOMP</name>
+                    <file> 12</file>
+                </tool>
+            </outputs>
+        </file>
+        <forcedrebuild>
+            <name>[MULTI_TOOL]</name>
+            <tool>ILINK</tool>
+        </forcedrebuild>
+    </configuration>
+    <configuration>
+        <name>Release</name>
+        <outputs />
+        <forcedrebuild>
+            <name>[MULTI_TOOL]</name>
+            <tool>ILINK</tool>
+        </forcedrebuild>
+    </configuration>
+</project>

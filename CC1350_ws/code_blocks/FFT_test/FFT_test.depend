@@ -1,0 +1,6 @@
+# depslib dependency file v1.0
+1605234376 source:g:\cc1350_ws\code_blocks\fft_test\main.c
+	<stdio.h>
+	<math.h>
+	<stdlib.h>
+

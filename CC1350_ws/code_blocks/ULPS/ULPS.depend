@@ -1,0 +1,18 @@
+# depslib dependency file v1.0
+1598681861 source:g:\cc1350_ws\code_blocks\ulps\matrix.c
+	"matrix.h"
+
+1602893373 g:\cc1350_ws\code_blocks\ulps\matrix.h
+	<stdio.h>
+	<stdlib.h>
+	"state.h"
+
+1581492047 g:\cc1350_ws\code_blocks\ulps\state.h
+
+1602898042 source:g:\cc1350_ws\code_blocks\ulps\main.c
+	<stdio.h>
+	<stdlib.h>
+	<time.h>
+	<math.h>
+	"matrix.h"
+
