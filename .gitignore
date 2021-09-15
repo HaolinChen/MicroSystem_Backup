@@ -1,0 +1,13 @@
+# Repo-specific GitIgnore 
+*.json
+# *.onnx
+*.o
+*.txt
+# *.jpg
+# *.ppm
+# *.png
+
+BUILD*
+BUILD_MODEL*
+gen*
+Gen*
