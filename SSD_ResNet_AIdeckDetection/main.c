@@ -111,27 +111,26 @@ unsigned int W = 160, H = 128;//nn related
 // resnet
 unsigned int W_2 = 160, H_2 = 160;//nn related
 
-void writeDetImg(unsigned char *ImageInChar, uint16_t Img_num, int16_t score){
+void writeDetImg(unsigned char *imageinchar, uint16_t Img_num, int16_t score){
 
     static char imgName[50];
     //Save Images to Local
     float score_fp = FIX2FP(score,15);
-    sprintf(imgName, "../../../OUTPUT/ssd_resnet/%d_%f.ppm", Img_num, score_fp);
+    sprintf(imgName, "../../../OUTPUT/ssd_resnet/backward_%d_%f.ppm", Img_num, score_fp);
     printf("Dumping image %s\n", imgName);
 
-    WriteImageToFile(imgName, W, H, ImageInChar);
+    WriteImageToFile(imgName, W, H, imageinchar);
 }
 
-void writeDetImg_resnet(unsigned char *ImageInChar, int outclass1){
+void writeDetImg_resnet(unsigned char *imageinchar,  uint16_t Img_num, int outclass1){
     //write Detected Bbox to Image and save to imgName
     static char imgName[50];
 
     //Save Images to Local
-    sprintf(imgName, "../../../OUTPUT/ssd_resnet/img_OUT%ld_class%d.ppm", pic_idx, outclass1);
+    sprintf(imgName, "../../../OUTPUT/ssd_resnet/backward_%ld_class%d.ppm", Img_num, outclass1);
     printf("Dumping image %s\n", imgName);
 
-    WriteImageToFile(imgName, W_2, H_2, ImageInChar);
-    pic_idx++;
+    WriteImageToFile(imgName, W_2, H_2, imageinchar);
 }
 
 #ifdef FROM_CAMERA
@@ -528,36 +527,36 @@ void drawBboxes(bboxs_t *boundbxs, uint8_t *img){
     }
 }
 
-int checkResults(bboxs_t *boundbxs){
-    int totAliveBB=0;
-    int x,y,w,h;
+void cropTargets(bboxs_t *boundbxs, unsigned char *img_in, unsigned char *img_out){
 
-    for (int counter=0;counter< boundbxs->num_bb;counter++){
-        if(boundbxs->bbs[counter].alive){
-            totAliveBB++;
-            x = boundbxs->bbs[counter].x;
-            y = boundbxs->bbs[counter].y;
-            w = boundbxs->bbs[counter].w;
-            h = boundbxs->bbs[counter].h;
+    int box_num = 0;
+    while(!boundbxs->bbs[box_num].alive)
+    {
+        box_num++;
+    }
+    int X1 = (W_2 - boundbxs->bbs[box_num].w)/2;
+    int X2 = (W_2 + boundbxs->bbs[box_num].w)/2;
+    int Y1 = (H_2 - boundbxs->bbs[box_num].h)/2;
+    int Y2 = (H_2 + boundbxs->bbs[box_num].h)/2;
+    for(int y=0;y<H_2;y++){
+        for(int x=0;x<W_2;x++){
+            if(y>=Y1 && y<=Y2 && x>=X1 && x<=X2)
+            {
+                img_out[y*W_2+x] = img_in[(y-Y1+boundbxs->bbs[box_num].y)*W + (x-X1+boundbxs->bbs[box_num].x)];
+            }
+            else
+            {
+                img_out[y*W_2+x] = 0;
+            }
+            
         }
     }
-
-    //Cabled check of result (not nice but effective) with +/- 3 px tollerance
-    if(totAliveBB!=1) return -1;
-    if( x > 74 + 2 || x < 74 - 2 )         return -1;
-    if( y > 28 + 2 || y < 28 - 2 )         return -1;
-    if( w > 24 + 2 || w < 24 - 2 )         return -1;
-    if( h > 71 + 2 || h < 71 - 2 )         return -1;
-
-    return 0;
-
 }
 
 int start()
 {
 
     char *ImageName;
-    char *ImageName_2;
 
     int ret_state;
     int ret_state_2;
@@ -598,13 +597,13 @@ int start()
 
 #else //reading image from host pc
 
-    unsigned char *ImageInChar = (unsigned char *) pmsis_l2_malloc( W * H * sizeof(MNIST_IMAGE_IN_T));
-    unsigned char *ImageInChar_2 = (unsigned char *) pmsis_l2_malloc( W_2 * H_2 * sizeof(short int));
-    if (ImageInChar == 0 || ImageInChar_2 == 0)
-    {
-        printf("Failed to allocate Memory for Image (%d bytes)\n", W * H * sizeof(MNIST_IMAGE_IN_T));
-        pmsis_exit(-6);
-    }
+    // unsigned char *ImageInChar = (unsigned char *) pmsis_l2_malloc( W * H * sizeof(unsigned char));
+    // unsigned char *ImageInChar_2 = (unsigned char *) pmsis_l2_malloc( W_2 * H_2 * sizeof(unsigned char));
+    // if (ImageInChar == 0 || ImageInChar_2 == 0)
+    // {
+    //     printf("Failed to allocate Memory for Image (%d bytes)\n", W * H * sizeof(MNIST_IMAGE_IN_T));
+    //     pmsis_exit(-6);
+    // }
 
 #endif
 
@@ -707,29 +706,25 @@ int start()
     while(iter){
 
         #ifndef FROM_CAMERA
-        
+
             switch (count)
             {
             case 0:
-                pic_num = 21; 
-                ImageName = "../../../samples_ssd/21.pgm";
-                ImageName_2 ="../../../samples_resnet/test01.pgm";
-                iter = 0; break;
+                pic_num = 0; ImageName = "../../../samples_codetest/backward_0.pgm";break;
+            case 1:
+                pic_num = 39; ImageName = "../../../samples_codetest/backward_39.pgm";break;
+            case 2:
+                pic_num = 81; ImageName = "../../../samples_codetest/backward_81.pgm";iter = 0;break;
             default:
                 break;
             }
             count = count + 1;
-            // sprintf(ImageName, "../../../test_samples/%d.pgm", pic_num);
             //Reading Image from Bridge
             PRINTF("Loading Image from File\n");
+            unsigned char *ImageInChar = (unsigned char *) pmsis_l2_malloc( W * H * sizeof(short int));
             if ((ReadImageFromFile(ImageName, &Wi, &Hi, ImageInChar, W * H * sizeof(unsigned char)) == 0) || (Wi != W) || (Hi != H))
             {
                 printf("Failed to load image %s or dimension mismatch Expects [%dx%d], Got [%dx%d]\n", ImageName, W, H, Wi, Hi);
-                pmsis_exit(-6);
-            }
-            if(ReadImageFromFile(ImageName_2, &Wi, &Hi, ImageInChar_2, W_2 * H_2 * sizeof(unsigned char))==0 ||(Wi!=W_2)||(Hi!=H_2))
-            {
-                printf("Failed to load image %s or dimension mismatch Expects [%dx%d], Got [%dx%d]\n", ImageName_2, W_2, H_2, Wi, Hi);
                 pmsis_exit(-6);
             }
 
@@ -737,11 +732,6 @@ int start()
             for (int i = W * H - 1; i >= 0; i--)
             {
                 ImageIn[i] = (int16_t)ImageInChar[i] << INPUT_1_Q-8; //Input is naturally Q8
-            }
-            ImageIn_2=(short int *)ImageInChar_2;   
-            for (int i = W_2 * H_2 - 1; i >= 0; i--)
-            {
-                ImageIn_2[i] = (int16_t)ImageInChar_2[i] << INPUT_1_Q-8; //Input is naturally Q8
             }
         #else
             pi_camera_control(&device, PI_CAMERA_CMD_START, 0);
@@ -810,7 +800,6 @@ int start()
         task->slave_stack_size = (uint32_t) CLUSTER_SLAVE_STACK_SIZE;
         pi_cluster_send_task_to_cl(&cluster_dev, task);
 
-        // #ifdef FROM_CAMERA
         for(int y=0;y<H;y++){
             for(int x=0;x<W;x++){
                 ImageInChar[y*W+x] = (unsigned char)(ImageIn[(y*W)+(x)] >> INPUT_1_Q-8);
@@ -822,10 +811,23 @@ int start()
             writeDetImg(ImageInChar, pic_num, bbxs.bbs[0].score);
         }
 
+        //Crop Targets
+        printf("\n-------- STRAT CROP TARGETS ----------\n");
+        unsigned char *ImageInChar_2 = (unsigned char *) pmsis_l2_malloc( W_2 * H_2 * sizeof(short int));
+        
+        cropTargets(&bbxs, ImageInChar, ImageInChar_2);
+        
+        // Adjust float to fix
+        ImageIn_2 = (short int *)ImageInChar_2;
+        for (int i = W_2 * H_2 - 1; i >= 0; i--)
+        {
+            ImageIn_2[i] = (int16_t)ImageInChar_2[i] << INPUT_1_Q-8;
+        }
+
         pmsis_l1_malloc_free(SSDKernels_L1_Memory,_SSDKernels_L1_Memory_SIZE);
         pmsis_l2_malloc_free(SSDKernels_L2_Memory,_SSDKernels_L2_Memory_SIZE);
+        pmsis_l2_malloc_free(ImageInChar, W * H * sizeof(short int));
         // pmsis_l2_malloc_free(bbxs.bbs,sizeof(bbox_t)*MAX_BB);
-        pmsis_l2_malloc_free(task, sizeof(struct pi_cluster_task));
 
         printf("\n-------- STRAT RUN RESNET ----------\n");
         
@@ -854,22 +856,21 @@ int start()
         }
         switch(outclass)
         {
-            case 0: strcpy(dirction,"backward");
-            case 1: strcpy(dirction, "down");
-            case 2: strcpy(dirction,"forward");
-            case 3: strcpy(dirction,"left");
-            case 4: strcpy(dirction,"right");
-            case 5: strcpy(dirction,"up");
-            case 6: strcpy(dirction,"no_gesture");
+            case 0: strcpy(dirction,"backward");break;
+            case 1: strcpy(dirction, "down");break;
+            case 2: strcpy(dirction,"forward");break;
+            case 3: strcpy(dirction,"left");break;
+            case 4: strcpy(dirction,"right");break;
+            case 5: strcpy(dirction,"up");break;
+            case 6: strcpy(dirction,"no_gesture");break;
         }
 	    printf("Predicted class:\t%d\n", outclass);
         printf("Predicted direction:\t%s\n", dirction);
 	    printf("With confidence:\t%d\n", MaxPrediction);
         printf("=== Task ended \n ");
         resnetCNN_Destruct();
-        pmsis_l2_malloc_free(task_classfication, sizeof(struct pi_cluster_task));
+        pmsis_l2_malloc_free(ImageInChar_2, W_2 * H_2 * sizeof(short int));
 
-        // #ifdef FROM_CAMERA
         for(int y=0;y<H_2;y++){
             for(int x=0;x<W_2;x++){
                 ImageInChar_2[y*W_2+x] = (unsigned char)(ImageIn_2[(y*W_2)+(x)] >> INPUT_1_Q-8);
@@ -882,7 +883,7 @@ int start()
         #endif
 
         if(SAVE_DET==1) {
-            writeDetImg_resnet(ImageInChar_2, outclass);
+            writeDetImg_resnet(ImageInChar_2, pic_num, outclass);
         }
         //Send to Screen
         // pi_display_write(&ili, &buffer, 40, 60, 160, 120);
