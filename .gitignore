@@ -7,6 +7,7 @@
 # *.ppm
 # *.png
 
+BUILD
 BUILD*
 BUILD_MODEL*
 gen*
