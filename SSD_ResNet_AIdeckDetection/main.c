@@ -415,13 +415,13 @@ static void RunNN()
 static void Resize(KerResizeBilinear_ArgT *KerArg)
 {
     printf("Resizing...\n");
-    // unsigned int ti,ti_nn;
-    // gap_cl_starttimer();
-    // gap_cl_resethwtimer();
-    // ti = gap_cl_readhwtimer();
+    unsigned int ti,ti_nn;
+    gap_cl_starttimer();
+    gap_cl_resethwtimer();
+    ti = gap_cl_readhwtimer();
     AT_FORK(gap_ncore(), (void *) KerResizeBilinear, (void *) KerArg);
-    // ti_nn = gap_cl_readhwtimer()-ti;
-    // printf("Cycles resize : %10d\n",ti_nn);
+    ti_nn = gap_cl_readhwtimer()-ti;
+    printf("Cycles resize : %10d\n",ti_nn);
 }
 
 
@@ -543,26 +543,21 @@ void drawBboxes(bboxs_t *boundbxs, uint8_t *img){
     }
 }
 
-void cropTargets(bboxs_t *boundbxs, unsigned char *img_in, unsigned char *img_out){
+void cropTargets(bboxs_t *boundbxs, int box_number,  unsigned char *img_in, unsigned char *img_out){
 
-    int box_num = 0;
-    while(!boundbxs->bbs[box_num].alive)
-    {
-        box_num++;
-    }
-    int X1 = (W_2 - boundbxs->bbs[box_num].w)/2;
-    int X2 = (W_2 + boundbxs->bbs[box_num].w)/2;
-    int Y1 = (H_2 - boundbxs->bbs[box_num].h)/2;
-    int Y2 = (H_2 + boundbxs->bbs[box_num].h)/2;
+    int crop_X1 = (W_2 - boundbxs->bbs[box_number].w)/2;
+    int crop_X2 = (W_2 + boundbxs->bbs[box_number].w)/2;
+    int crop_Y1 = (H_2 - boundbxs->bbs[box_number].h)/2;
+    int crop_Y2 = (H_2 + boundbxs->bbs[box_number].h)/2;
     for(int y=0;y<H_2;y++){
         for(int x=0;x<W_2;x++){
-            if(y>=Y1 && y<=Y2 && x>=X1 && x<=X2)
+            if(y>=crop_Y1 && y<=crop_Y2 && x>=crop_X1 && x<=crop_X2)
             {
-                img_out[y*W_2+x] = img_in[(y-Y1+boundbxs->bbs[box_num].y)*W + (x-X1+boundbxs->bbs[box_num].x)];
+                img_out[y*W_2+x] = img_in[(y-crop_Y1+boundbxs->bbs[box_number].y)*W + (x-crop_X1+boundbxs->bbs[box_number].x)];
             }
             else
             {
-                img_out[y*W_2+x] = 0;
+                img_out[y*W_2+x] = 128;
             }
             
         }
@@ -821,36 +816,29 @@ int start()
                 ImageInChar[y*W+x] = (unsigned char)(ImageIn[(y*W)+(x)] >> INPUT_1_Q-8);
             }
         }
-        //Draw BBs
-        drawBboxes(&bbxs,ImageInChar);
-        if(SAVE_DET==1) {
-            writeDetImg(ImageInChar, pic_num, bbxs.bbs[0].score);
-        }
 
         pmsis_l1_malloc_free(SSDKernels_L1_Memory,_SSDKernels_L1_Memory_SIZE);
         pmsis_l2_malloc_free(SSDKernels_L2_Memory,_SSDKernels_L2_Memory_SIZE);
 
         unsigned char *ImageInChar_2 = (unsigned char *) pmsis_l2_malloc( W_2 * H_2 * sizeof(short int));
+        int box_num = 0;
+        while(!bbxs.bbs[box_num].alive)
+        {
+            box_num++;
+        }
         if(RESIZE)
         {
             //Resize Targets
             printf("\n-------- STRAT RESIZE TARGETS ----------\n");
-            int box_num = 0;
-            while(!bbxs.bbs[box_num].alive)
-            {
-                box_num++;
-            }
-            int targets_W = bbxs.bbs[box_num].w;
-            int targets_H = bbxs.bbs[box_num].h;
-            int X1 = (W_2 - targets_W)/2;
-            int X2 = (W_2 + targets_W)/2;
-            int Y1 = (H_2 - targets_H)/2;
-            int Y2 = (H_2 + targets_H)/2;
+            int resize_W = bbxs.bbs[box_num].w;
+            int resize_H = bbxs.bbs[box_num].h;
+            int resize_X = bbxs.bbs[box_num].x;
+            int resize_Y = bbxs.bbs[box_num].y;
             
-            unsigned char *ImageTemp = (unsigned char *) pmsis_l2_malloc( targets_W * targets_H * sizeof(short int));
-            for(int y=0;y<targets_H;y++){
-                for(int x=0;x<targets_W;x++){
-                    ImageTemp[y*targets_W+x] = ImageInChar[(y+Y1)*W + (x+X1)];
+            unsigned char *ImageTemp = (unsigned char *) pmsis_l2_malloc( resize_W * resize_H * sizeof(short int));
+            for(int y=0;y<resize_H;y++){
+                for(int x=0;x<resize_W;x++){
+                    ImageTemp[y*resize_W+x] = ImageInChar[(y+resize_Y)*W + (x+resize_X)];
                 }
             }
             memset(task, 0, sizeof(struct pi_cluster_task));
@@ -860,8 +848,8 @@ int start()
 
             KerResizeBilinear_ArgT ResizeArg;
             ResizeArg.In             = ImageTemp;
-            ResizeArg.Win            = targets_W;
-            ResizeArg.Hin            = targets_H;
+            ResizeArg.Win            = resize_W;
+            ResizeArg.Hin            = resize_H;
             ResizeArg.Out            = ImageInChar_2;
             ResizeArg.Wout           = W_2;
             ResizeArg.Hout           = H_2;
@@ -869,13 +857,13 @@ int start()
             ResizeArg.FirstLineIndex = 0;
             task->arg = &ResizeArg;
             pi_cluster_send_task_to_cl(&cluster_dev, task);
-            pmsis_l2_malloc_free(ImageTemp,  targets_W * targets_H * sizeof(short int));
+            pmsis_l2_malloc_free(ImageTemp,  resize_W * resize_H * sizeof(short int));
         }
         else
         {
             //Crop Targets
             printf("\n-------- STRAT CROP TARGETS ----------\n");       
-            cropTargets(&bbxs, ImageInChar, ImageInChar_2);
+            cropTargets(&bbxs, box_num, ImageInChar, ImageInChar_2);
         }
         
         // Adjust float to fix
@@ -883,6 +871,12 @@ int start()
         for (int i = W_2 * H_2 - 1; i >= 0; i--)
         {
             ImageIn_2[i] = (int16_t)ImageInChar_2[i] << INPUT_1_Q-8;
+        }
+
+        //Draw BBs
+        drawBboxes(&bbxs,ImageInChar);
+        if(SAVE_DET==1) {
+            writeDetImg(ImageInChar, pic_num, bbxs.bbs[box_num].score);
         }
         pmsis_l2_malloc_free(ImageInChar, W * H * sizeof(short int));
         // pmsis_l2_malloc_free(bbxs.bbs,sizeof(bbox_t)*MAX_BB);
