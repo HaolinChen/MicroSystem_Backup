@@ -16,7 +16,7 @@ include model_decl.mk
 
 APP = SSD_ResNet
 
-APP_SRCS += $(MAIN) ImgIO.c ImageDraw.c $(CNN_LIB) 
+APP_SRCS += $(MAIN) ImgIO.c ImageDraw.c $(CNN_LIB)
 APP_SRCS += BUILD_MODEL_SSD/cnn_ssdKernels.c SSDKernels.c SSDBasicKernels.c SSDParams.c BUILD_MODEL_RESNET/resnetKernels.c
 
 

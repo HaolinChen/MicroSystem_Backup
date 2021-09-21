@@ -7,8 +7,11 @@
  *
  */
 
-#ifndef __IIBASICKERNELS_H__
-#define __IIBASICKERNELS_H__
+// #ifndef __IIBASICKERNELS_H__
+// #define __IIBASICKERNELS_H__
+
+#ifndef __BASICKERNELS_H__
+#define __BASICKERNELS_H__
 
 #include "Gap.h"
 

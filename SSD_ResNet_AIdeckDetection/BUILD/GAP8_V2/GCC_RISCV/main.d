@@ -248,7 +248,7 @@
  /home/chl/AI_deck/gap_sdk/tools/autotiler_v3/CNN_Libraries/../CNN_Libraries_SQ8/CNN_AT_Misc.h \
  cnn_ssd.h SSDKernels.h SSDBasicKernels.h SSDParams.h \
  BUILD_MODEL_SSD/cnn_ssdInfo.h BUILD_MODEL_RESNET/resnetKernels.h \
- resnet.h BUILD_MODEL_RESNET/resnetInfo.h
+ resnet.h BUILD_MODEL_RESNET/resnetInfo.h ResizeBasicKernels.h
 
 /home/chl/AI_deck/gap_sdk/install/GAP8_V2/include/rt/chips/gap_rev1/config.h:
 
@@ -759,3 +759,5 @@ BUILD_MODEL_RESNET/resnetKernels.h:
 resnet.h:
 
 BUILD_MODEL_RESNET/resnetInfo.h:
+
+ResizeBasicKernels.h:

@@ -36,6 +36,7 @@
 // All includes for classification
 #include "resnetKernels.h"
 #include "resnetInfo.h"
+#include "ResizeBasicKernels.h"
 
 #if SILENT
 #define PRINTF(...) ((void) 0)
@@ -53,6 +54,7 @@ static pi_buffer_t buffer;
 #define CID             0
 #define SAVE_DET        1
 #define TARGET_NUM      1
+#define RESIZE          1
 
 struct pi_device HyperRam;
 static struct pi_hyperram_conf conf;
@@ -116,7 +118,7 @@ void writeDetImg(unsigned char *imageinchar, uint16_t Img_num, int16_t score){
     static char imgName[50];
     //Save Images to Local
     float score_fp = FIX2FP(score,15);
-    sprintf(imgName, "../../../OUTPUT/ssd_resnet/backward_%d_%f.ppm", Img_num, score_fp);
+    sprintf(imgName, "../../../OUTPUT/ssd_resnet_resize/backward_%d_%f.ppm", Img_num, score_fp);
     printf("Dumping image %s\n", imgName);
 
     WriteImageToFile(imgName, W, H, imageinchar);
@@ -127,7 +129,7 @@ void writeDetImg_resnet(unsigned char *imageinchar,  uint16_t Img_num, int outcl
     static char imgName[50];
 
     //Save Images to Local
-    sprintf(imgName, "../../../OUTPUT/ssd_resnet/backward_%ld_class%d.ppm", Img_num, outclass1);
+    sprintf(imgName, "../../../OUTPUT/ssd_resnet_resize/backward_%ld_class%d.ppm", Img_num, outclass1);
     printf("Dumping image %s\n", imgName);
 
     WriteImageToFile(imgName, W_2, H_2, imageinchar);
@@ -408,6 +410,20 @@ static void RunNN()
     // test_l2(Output_8, 7, 8);
     // test_hyper_ram();
 }
+
+
+static void Resize(KerResizeBilinear_ArgT *KerArg)
+{
+    printf("Resizing...\n");
+    // unsigned int ti,ti_nn;
+    // gap_cl_starttimer();
+    // gap_cl_resethwtimer();
+    // ti = gap_cl_readhwtimer();
+    AT_FORK(gap_ncore(), (void *) KerResizeBilinear, (void *) KerArg);
+    // ti_nn = gap_cl_readhwtimer()-ti;
+    // printf("Cycles resize : %10d\n",ti_nn);
+}
+
 
 static void RunRESNET()
 {
@@ -692,11 +708,11 @@ int start()
         printf("Alloc Error! \n");
         pmsis_exit(-5);
     }
-    struct pi_cluster_task *task_classfication = pmsis_l2_malloc(sizeof(struct pi_cluster_task));
-    if(task_classfication==NULL) {
-        printf("Alloc Error! \n");
-        pmsis_exit(-5);
-    }
+    // struct pi_cluster_task *task_classfication = pmsis_l2_malloc(sizeof(struct pi_cluster_task));
+    // if(task_classfication==NULL) {
+    //     printf("Alloc Error! \n");
+    //     pmsis_exit(-5);
+    // }
     
     short iter=1;
     uint16_t count=0;
@@ -811,11 +827,56 @@ int start()
             writeDetImg(ImageInChar, pic_num, bbxs.bbs[0].score);
         }
 
-        //Crop Targets
-        printf("\n-------- STRAT CROP TARGETS ----------\n");
+        pmsis_l1_malloc_free(SSDKernels_L1_Memory,_SSDKernels_L1_Memory_SIZE);
+        pmsis_l2_malloc_free(SSDKernels_L2_Memory,_SSDKernels_L2_Memory_SIZE);
+
         unsigned char *ImageInChar_2 = (unsigned char *) pmsis_l2_malloc( W_2 * H_2 * sizeof(short int));
-        
-        cropTargets(&bbxs, ImageInChar, ImageInChar_2);
+        if(RESIZE)
+        {
+            //Resize Targets
+            printf("\n-------- STRAT RESIZE TARGETS ----------\n");
+            int box_num = 0;
+            while(!bbxs.bbs[box_num].alive)
+            {
+                box_num++;
+            }
+            int targets_W = bbxs.bbs[box_num].w;
+            int targets_H = bbxs.bbs[box_num].h;
+            int X1 = (W_2 - targets_W)/2;
+            int X2 = (W_2 + targets_W)/2;
+            int Y1 = (H_2 - targets_H)/2;
+            int Y2 = (H_2 + targets_H)/2;
+            
+            unsigned char *ImageTemp = (unsigned char *) pmsis_l2_malloc( targets_W * targets_H * sizeof(short int));
+            for(int y=0;y<targets_H;y++){
+                for(int x=0;x<targets_W;x++){
+                    ImageTemp[y*targets_W+x] = ImageInChar[(y+Y1)*W + (x+X1)];
+                }
+            }
+            memset(task, 0, sizeof(struct pi_cluster_task));
+            task->entry = &Resize;
+            task->stack_size = (uint32_t) CLUSTER_STACK_SIZE;
+            task->slave_stack_size = (uint32_t) CLUSTER_SLAVE_STACK_SIZE;
+
+            KerResizeBilinear_ArgT ResizeArg;
+            ResizeArg.In             = ImageTemp;
+            ResizeArg.Win            = targets_W;
+            ResizeArg.Hin            = targets_H;
+            ResizeArg.Out            = ImageInChar_2;
+            ResizeArg.Wout           = W_2;
+            ResizeArg.Hout           = H_2;
+            ResizeArg.HTileOut       = H_2;
+            ResizeArg.FirstLineIndex = 0;
+            task->arg = &ResizeArg;
+            pi_cluster_send_task_to_cl(&cluster_dev, task);
+            pmsis_l2_malloc_free(ImageTemp,  targets_W * targets_H * sizeof(short int));
+        }
+        else
+        {
+            //Crop Targets
+            printf("\n-------- STRAT CROP TARGETS ----------\n");       
+            cropTargets(&bbxs, ImageInChar, ImageInChar_2);
+        }
         
         // Adjust float to fix
         ImageIn_2 = (short int *)ImageInChar_2;
@@ -823,9 +884,6 @@ int start()
         {
             ImageIn_2[i] = (int16_t)ImageInChar_2[i] << INPUT_1_Q-8;
         }
-
-        pmsis_l1_malloc_free(SSDKernels_L1_Memory,_SSDKernels_L1_Memory_SIZE);
-        pmsis_l2_malloc_free(SSDKernels_L2_Memory,_SSDKernels_L2_Memory_SIZE);
         pmsis_l2_malloc_free(ImageInChar, W * H * sizeof(short int));
         // pmsis_l2_malloc_free(bbxs.bbs,sizeof(bbox_t)*MAX_BB);
 
@@ -838,13 +896,13 @@ int start()
         }
 	    printf("ResNet Constructor was OK!\n");
 
-        memset(task_classfication, 0, sizeof(struct pi_cluster_task));
-        task_classfication->entry = RunRESNET;
-        task_classfication->arg = (void *) NULL;
-        task_classfication->stack_size = (uint32_t) CLUSTER_STACK_SIZE;
-        task_classfication->slave_stack_size = (uint32_t) CLUSTER_SLAVE_STACK_SIZE;
+        memset(task, 0, sizeof(struct pi_cluster_task));
+        task->entry = RunRESNET;
+        task->arg = (void *) NULL;
+        task->stack_size = (uint32_t) CLUSTER_STACK_SIZE;
+        task->slave_stack_size = (uint32_t) CLUSTER_SLAVE_STACK_SIZE;
         //Dispatch task on cluster
-        pi_cluster_send_task_to_cl(&cluster_dev, task_classfication);
+        pi_cluster_send_task_to_cl(&cluster_dev, task);
         //Check Results
 	    int outclass, MaxPrediction = 0;
 	    for(int i=0; i<NUM_CLASSES; i++){
