@@ -53,7 +53,7 @@ static pi_buffer_t buffer;
 #define UNMOUNT         0
 #define CID             0
 #define SAVE_DET        1
-#define TARGET_NUM      1
+// #define TARGET_NUM      2
 #define RESIZE          1
 
 struct pi_device HyperRam;
@@ -118,7 +118,7 @@ void writeDetImg(unsigned char *imageinchar, uint16_t Img_num, int16_t score){
     static char imgName[50];
     //Save Images to Local
     float score_fp = FIX2FP(score,15);
-    sprintf(imgName, "../../../OUTPUT/ssd_resnet_resize/backward_%d_%f.ppm", Img_num, score_fp);
+    sprintf(imgName, "../../../OUTPUT/ssd_resnet_gvsoc/backward_%d_%f.ppm", Img_num, score_fp);
     printf("Dumping image %s\n", imgName);
 
     WriteImageToFile(imgName, W, H, imageinchar);
@@ -129,7 +129,7 @@ void writeDetImg_resnet(unsigned char *imageinchar,  uint16_t Img_num, int outcl
     static char imgName[50];
 
     //Save Images to Local
-    sprintf(imgName, "../../../OUTPUT/ssd_resnet_resize/backward_%ld_class%d.ppm", Img_num, outclass1);
+    sprintf(imgName, "../../../OUTPUT/ssd_resnet_gvsoc/backward_%ld_class%d.ppm", Img_num, outclass1);
     printf("Dumping image %s\n", imgName);
 
     WriteImageToFile(imgName, W_2, H_2, imageinchar);
@@ -352,16 +352,17 @@ int rect_intersect_area( short a_x, short a_y, short a_w, short a_h,
 void non_max_suppress(bboxs_t * boundbxs){
 
     int idx,idx_int;
-
     //Non-max supression
+    // printf("Box num: %d \n", boundbxs->num_bb);
      for(idx=0;idx<boundbxs->num_bb;idx++){
         //check if rect has been removed (-1)
         if(boundbxs->bbs[idx].alive==0)
             continue;
- 
+        
         for(idx_int=0;idx_int<boundbxs->num_bb;idx_int++){
-
             if(boundbxs->bbs[idx_int].alive==0 || idx_int==idx)
+                continue;
+            if(boundbxs->bbs[idx_int].class != boundbxs->bbs[idx].class)
                 continue;
 
             //check the intersection between rects
@@ -376,16 +377,16 @@ void non_max_suppress(bboxs_t * boundbxs){
     }
 
     // filter the boxes nums again
-    for(idx=0;idx<boundbxs->num_bb;idx++){
-        if(idx < TARGET_NUM)
-        {
-            boundbxs->bbs[idx].alive=1;
-        }
-        else
-        {
-            boundbxs->bbs[idx].alive=0;
-        }
-    }
+    // for(idx=0;idx<boundbxs->num_bb;idx++){
+    //     if(idx < TARGET_NUM)
+    //     {
+    //         boundbxs->bbs[idx].alive=1;
+    //     }
+    //     else
+    //     {
+    //         boundbxs->bbs[idx].alive=0;
+    //     }
+    // }
 }
 
 
@@ -490,11 +491,13 @@ static void RunSSD()
     }while(changed);
 
     convertCoordBboxes(&bbxs,160,128); 
+    // printBboxes(&bbxs);
     non_max_suppress(&bbxs);
+    // printBboxes(&bbxs);
 
     ti_ssd = gap_cl_readhwtimer()-ti;
 
-    // printBboxes(&bbxs);
+    
     // printBboxes_forPython(&bbxs);
     
     PRINTF("Cycles SSD: %10d\n",ti_ssd);
@@ -721,12 +724,19 @@ int start()
             switch (count)
             {
             case 0:
-                pic_num = 0; ImageName = "../../../samples_codetest/backward_0.pgm";break;
+                pic_num = 81; ImageName = "../../../samples_codetest/backward_81.pgm";break;
             case 1:
-                pic_num = 39; ImageName = "../../../samples_codetest/backward_39.pgm";break;
+                pic_num = 49; ImageName = "../../../samples_codetest/lb_left_49.pgm";break;
             case 2:
-                pic_num = 81; ImageName = "../../../samples_codetest/backward_81.pgm";iter = 0;break;
+                pic_num = 487; ImageName = "../../../samples_codetest/zyq_forward_487.pgm";break;
+            case 3:
+                pic_num = 37; ImageName = "../../../samples_codetest/lb_right_4.pgm";break;
+            case 4:
+                pic_num = 94; ImageName = "../../../samples_codetest/lb_down_94.pgm";break;
+            case 5:
+                pic_num = 4; ImageName = "../../../samples_codetest/lb_left_37.pgm";break;
             default:
+                iter = 0;
                 break;
             }
             count = count + 1;
@@ -822,7 +832,7 @@ int start()
 
         unsigned char *ImageInChar_2 = (unsigned char *) pmsis_l2_malloc( W_2 * H_2 * sizeof(short int));
         int box_num = 0;
-        while(!bbxs.bbs[box_num].alive)
+        while((bbxs.bbs[box_num].alive==0 || bbxs.bbs[box_num].class!=2) && box_num<bbxs.num_bb) //Only want gesture box
         {
             box_num++;
         }
