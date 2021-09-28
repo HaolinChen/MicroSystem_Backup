@@ -53,8 +53,10 @@ static pi_buffer_t buffer;
 #define UNMOUNT         0
 #define CID             0
 #define SAVE_DET        1
+#define SAVE_GESTURE_DET   1
 // #define TARGET_NUM      2
 #define RESIZE          1
+
 
 struct pi_device HyperRam;
 static struct pi_hyperram_conf conf;
@@ -109,16 +111,18 @@ static  short int *out_buff;
 static uint32_t pic_idx=0;
 
 unsigned int Wi = 324, Hi = 244;
+// unsigned int Wi = 160, Hi = 128;
 unsigned int W = 160, H = 128;//nn related
 // resnet
 unsigned int W_2 = 160, H_2 = 160;//nn related
+short GESTURE_FLAG = 0;
 
 void writeDetImg(unsigned char *imageinchar, uint16_t Img_num, int16_t score){
 
     static char imgName[50];
     //Save Images to Local
     float score_fp = FIX2FP(score,15);
-    sprintf(imgName, "../../../OUTPUT/ssd_resnet_gvsoc/backward_%d_%f.ppm", Img_num, score_fp);
+    sprintf(imgName, "../../../OUTPUT/ssd_resnet_camera/%d_%f.ppm", Img_num, score_fp);
     printf("Dumping image %s\n", imgName);
 
     WriteImageToFile(imgName, W, H, imageinchar);
@@ -129,7 +133,7 @@ void writeDetImg_resnet(unsigned char *imageinchar,  uint16_t Img_num, int outcl
     static char imgName[50];
 
     //Save Images to Local
-    sprintf(imgName, "../../../OUTPUT/ssd_resnet_gvsoc/backward_%ld_class%d.ppm", Img_num, outclass1);
+    sprintf(imgName, "../../../OUTPUT/ssd_resnet_camera/%ld_class%d.ppm", Img_num, outclass1);
     printf("Dumping image %s\n", imgName);
 
     WriteImageToFile(imgName, W_2, H_2, imageinchar);
@@ -585,22 +589,22 @@ int start()
 
 #ifdef FROM_CAMERA
 
-    unsigned char *ImageInChar = (unsigned char *) pmsis_l2_malloc( Wi * Hi * sizeof(unsigned char));
-    if (ImageInChar == 0)
-    {
-        printf("Failed to allocate Memory for Image (%d bytes)\n", Wi * Hi * sizeof(MNIST_IMAGE_IN_T));
-        pmsis_exit(-6);
-    }
-    ImageIn = (MNIST_IMAGE_IN_T *)ImageInChar;
+    // unsigned char *ImageInChar = (unsigned char *) pmsis_l2_malloc( Wi * Hi * sizeof(unsigned char));
+    // if (ImageInChar == 0)
+    // {
+    //     printf("Failed to allocate Memory for Image (%d bytes)\n", Wi * Hi * sizeof(MNIST_IMAGE_IN_T));
+    //     pmsis_exit(-6);
+    // }
+    // ImageIn = (MNIST_IMAGE_IN_T *)ImageInChar;
 
 
-    buffer.data = ImageInChar;
-    buffer.stride = 0;
+    // buffer.data = ImageInChar;
+    // buffer.stride = 0;
 
-    // WIth Himax, propertly configure the buffer to skip boarder pixels
-    pi_buffer_init(&buffer, PI_BUFFER_TYPE_L2, ImageInChar);
-    pi_buffer_set_stride(&buffer, 0);
-    pi_buffer_set_format(&buffer, W, H, 1, PI_BUFFER_FORMAT_GRAY);
+    // // WIth Himax, propertly configure the buffer to skip boarder pixels
+    // pi_buffer_init(&buffer, PI_BUFFER_TYPE_L2, ImageInChar);
+    // pi_buffer_set_stride(&buffer, 0);
+    // pi_buffer_set_format(&buffer, W, H, 1, PI_BUFFER_FORMAT_GRAY);
 
 
     if (open_camera_himax(&device))
@@ -730,13 +734,12 @@ int start()
             case 2:
                 pic_num = 487; ImageName = "../../../samples_codetest/zyq_forward_487.pgm";break;
             case 3:
-                pic_num = 37; ImageName = "../../../samples_codetest/lb_right_4.pgm";break;
+                pic_num = 4; ImageName = "../../../samples_codetest/lb_right_4.pgm";break;
             case 4:
                 pic_num = 94; ImageName = "../../../samples_codetest/lb_down_94.pgm";break;
             case 5:
-                pic_num = 4; ImageName = "../../../samples_codetest/lb_left_37.pgm";break;
+                pic_num = 37; ImageName = "../../../samples_codetest/lb_left_37.pgm";iter = 0;break;
             default:
-                iter = 0;
                 break;
             }
             count = count + 1;
@@ -755,6 +758,14 @@ int start()
                 ImageIn[i] = (int16_t)ImageInChar[i] << INPUT_1_Q-8; //Input is naturally Q8
             }
         #else
+            pic_num ++;
+            unsigned char *ImageInChar = (unsigned char *) pmsis_l2_malloc( Wi * Hi * sizeof(unsigned char));
+            if (ImageInChar == 0)
+            {
+                printf("Failed to allocate Memory for Image (%d bytes)\n", Wi * Hi * sizeof(MNIST_IMAGE_IN_T));
+                pmsis_exit(-6);
+            }
+            ImageIn = (MNIST_IMAGE_IN_T *)ImageInChar;
             pi_camera_control(&device, PI_CAMERA_CMD_START, 0);
             pi_camera_capture(&device, ImageInChar, Wi*Hi);
             pi_camera_control(&device, PI_CAMERA_CMD_STOP, 0);
@@ -830,113 +841,146 @@ int start()
         pmsis_l1_malloc_free(SSDKernels_L1_Memory,_SSDKernels_L1_Memory_SIZE);
         pmsis_l2_malloc_free(SSDKernels_L2_Memory,_SSDKernels_L2_Memory_SIZE);
 
-        unsigned char *ImageInChar_2 = (unsigned char *) pmsis_l2_malloc( W_2 * H_2 * sizeof(short int));
+        //Draw BBs
         int box_num = 0;
-        while((bbxs.bbs[box_num].alive==0 || bbxs.bbs[box_num].class!=2) && box_num<bbxs.num_bb) //Only want gesture box
+        while((bbxs.bbs[box_num].alive==0 || bbxs.bbs[box_num].class!=1) && box_num<bbxs.num_bb) //Only want person confidence
         {
             box_num++;
         }
-        if(RESIZE)
-        {
-            //Resize Targets
-            printf("\n-------- STRAT RESIZE TARGETS ----------\n");
-            int resize_W = bbxs.bbs[box_num].w;
-            int resize_H = bbxs.bbs[box_num].h;
-            int resize_X = bbxs.bbs[box_num].x;
-            int resize_Y = bbxs.bbs[box_num].y;
-            
-            unsigned char *ImageTemp = (unsigned char *) pmsis_l2_malloc( resize_W * resize_H * sizeof(short int));
-            for(int y=0;y<resize_H;y++){
-                for(int x=0;x<resize_W;x++){
-                    ImageTemp[y*resize_W+x] = ImageInChar[(y+resize_Y)*W + (x+resize_X)];
-                }
-            }
-            memset(task, 0, sizeof(struct pi_cluster_task));
-            task->entry = &Resize;
-            task->stack_size = (uint32_t) CLUSTER_STACK_SIZE;
-            task->slave_stack_size = (uint32_t) CLUSTER_SLAVE_STACK_SIZE;
-
-            KerResizeBilinear_ArgT ResizeArg;
-            ResizeArg.In             = ImageTemp;
-            ResizeArg.Win            = resize_W;
-            ResizeArg.Hin            = resize_H;
-            ResizeArg.Out            = ImageInChar_2;
-            ResizeArg.Wout           = W_2;
-            ResizeArg.Hout           = H_2;
-            ResizeArg.HTileOut       = H_2;
-            ResizeArg.FirstLineIndex = 0;
-            task->arg = &ResizeArg;
-            pi_cluster_send_task_to_cl(&cluster_dev, task);
-            pmsis_l2_malloc_free(ImageTemp,  resize_W * resize_H * sizeof(short int));
-        }
-        else
-        {
-            //Crop Targets
-            printf("\n-------- STRAT CROP TARGETS ----------\n");       
-            cropTargets(&bbxs, box_num, ImageInChar, ImageInChar_2);
-        }
-        
-        // Adjust float to fix
-        ImageIn_2 = (short int *)ImageInChar_2;
-        for (int i = W_2 * H_2 - 1; i >= 0; i--)
-        {
-            ImageIn_2[i] = (int16_t)ImageInChar_2[i] << INPUT_1_Q-8;
-        }
-
-        //Draw BBs
         drawBboxes(&bbxs,ImageInChar);
         if(SAVE_DET==1) {
             writeDetImg(ImageInChar, pic_num, bbxs.bbs[box_num].score);
         }
-        pmsis_l2_malloc_free(ImageInChar, W * H * sizeof(short int));
-        // pmsis_l2_malloc_free(bbxs.bbs,sizeof(bbox_t)*MAX_BB);
 
-        printf("\n-------- STRAT RUN RESNET ----------\n");
-        
-        if (ret_state_2 = resnetCNN_Construct())
+        box_num = 0;
+        while((bbxs.bbs[box_num].alive==0 || bbxs.bbs[box_num].class!=2) && box_num<bbxs.num_bb) //Only want gesture box
         {
-            printf("Graph constructor exited with error: %d\n", ret_state_2);
-            pmsis_exit(-4);
+            box_num++;
         }
-	    printf("ResNet Constructor was OK!\n");
-
-        memset(task, 0, sizeof(struct pi_cluster_task));
-        task->entry = RunRESNET;
-        task->arg = (void *) NULL;
-        task->stack_size = (uint32_t) CLUSTER_STACK_SIZE;
-        task->slave_stack_size = (uint32_t) CLUSTER_SLAVE_STACK_SIZE;
-        //Dispatch task on cluster
-        pi_cluster_send_task_to_cl(&cluster_dev, task);
-        //Check Results
-	    int outclass, MaxPrediction = 0;
-	    for(int i=0; i<NUM_CLASSES; i++){
-        printf("Class%d confidence:\t%d\n", i,Output[i]);
-		if (Output[i] > MaxPrediction){
-			outclass = i;
-			MaxPrediction = Output[i];
-		}
-        }
-        switch(outclass)
+        if(box_num < bbxs.num_bb)
         {
-            case 0: strcpy(dirction,"backward");break;
-            case 1: strcpy(dirction, "down");break;
-            case 2: strcpy(dirction,"forward");break;
-            case 3: strcpy(dirction,"left");break;
-            case 4: strcpy(dirction,"right");break;
-            case 5: strcpy(dirction,"up");break;
-            case 6: strcpy(dirction,"no_gesture");break;
+            GESTURE_FLAG = 1;
         }
-	    printf("Predicted class:\t%d\n", outclass);
-        printf("Predicted direction:\t%s\n", dirction);
-	    printf("With confidence:\t%d\n", MaxPrediction);
-        printf("=== Task ended \n ");
-        resnetCNN_Destruct();
-        pmsis_l2_malloc_free(ImageInChar_2, W_2 * H_2 * sizeof(short int));
 
-        for(int y=0;y<H_2;y++){
-            for(int x=0;x<W_2;x++){
-                ImageInChar_2[y*W_2+x] = (unsigned char)(ImageIn_2[(y*W_2)+(x)] >> INPUT_1_Q-8);
+        if(GESTURE_FLAG ==1)
+        {
+            unsigned char *ImageInChar_2 = (unsigned char *) pmsis_l2_malloc( W_2 * H_2 * sizeof(short int));
+            if(RESIZE)
+            {
+                //Resize Targets
+                printf("\n-------- STRAT RESIZE TARGETS ----------\n");
+                int resize_W = bbxs.bbs[box_num].w;
+                int resize_H = bbxs.bbs[box_num].h;
+                int resize_X = bbxs.bbs[box_num].x;
+                int resize_Y = bbxs.bbs[box_num].y;
+                
+                unsigned char *ImageTemp = (unsigned char *) pmsis_l2_malloc( resize_W * resize_H * sizeof(short int));
+                for(int y=0;y<resize_H;y++){
+                    for(int x=0;x<resize_W;x++){
+                        ImageTemp[y*resize_W+x] = ImageInChar[(y+resize_Y)*W + (x+resize_X)];
+                    }
+                }
+                memset(task, 0, sizeof(struct pi_cluster_task));
+                task->entry = &Resize;
+                task->stack_size = (uint32_t) CLUSTER_STACK_SIZE;
+                task->slave_stack_size = (uint32_t) CLUSTER_SLAVE_STACK_SIZE;
+
+                KerResizeBilinear_ArgT ResizeArg;
+                ResizeArg.In             = ImageTemp;
+                ResizeArg.Win            = resize_W;
+                ResizeArg.Hin            = resize_H;
+                ResizeArg.Out            = ImageInChar_2;
+                ResizeArg.Wout           = W_2;
+                ResizeArg.Hout           = H_2;
+                ResizeArg.HTileOut       = H_2;
+                ResizeArg.FirstLineIndex = 0;
+                task->arg = &ResizeArg;
+                pi_cluster_send_task_to_cl(&cluster_dev, task);
+                pmsis_l2_malloc_free(ImageTemp,  resize_W * resize_H * sizeof(short int));
             }
+            else
+            {
+                //Crop Targets
+                printf("\n-------- STRAT CROP TARGETS ----------\n");       
+                cropTargets(&bbxs, box_num, ImageInChar, ImageInChar_2);
+            }
+            
+            // Adjust float to fix
+            ImageIn_2 = (short int *)ImageInChar_2;
+            for (int i = W_2 * H_2 - 1; i >= 0; i--)
+            {
+                ImageIn_2[i] = (int16_t)ImageInChar_2[i] << INPUT_1_Q-8;
+            }
+        
+            #ifndef FROM_CAMERA
+                pmsis_l2_malloc_free(ImageInChar, W * H * sizeof(short int));
+            #else
+                pmsis_l2_malloc_free(ImageInChar, Wi * Hi * sizeof(short int));
+            #endif
+
+            printf("\n-------- STRAT RUN RESNET ----------\n");
+            
+            if (ret_state_2 = resnetCNN_Construct())
+            {
+                printf("Graph constructor exited with error: %d\n", ret_state_2);
+                pmsis_exit(-4);
+            }
+            printf("ResNet Constructor was OK!\n");
+
+            memset(task, 0, sizeof(struct pi_cluster_task));
+            task->entry = RunRESNET;
+            task->arg = (void *) NULL;
+            task->stack_size = (uint32_t) CLUSTER_STACK_SIZE;
+            task->slave_stack_size = (uint32_t) CLUSTER_SLAVE_STACK_SIZE;
+            //Dispatch task on cluster
+            pi_cluster_send_task_to_cl(&cluster_dev, task);
+            //Check Results
+            int outclass, MaxPrediction = 0;
+            for(int i=0; i<NUM_CLASSES; i++){
+            printf("Class%d confidence:\t%d\n", i,Output[i]);
+            if (Output[i] > MaxPrediction){
+                outclass = i;
+                MaxPrediction = Output[i];
+            }
+            }
+            switch(outclass)
+            {
+                case 0: strcpy(dirction,"backward");break;
+                case 1: strcpy(dirction, "down");break;
+                case 2: strcpy(dirction,"forward");break;
+                case 3: strcpy(dirction,"left");break;
+                case 4: strcpy(dirction,"right");break;
+                case 5: strcpy(dirction,"up");break;
+                case 6: strcpy(dirction,"no_gesture");break;
+            }
+            printf("Predicted class:\t%d\n", outclass);
+            printf("Predicted direction:\t%s\n", dirction);
+            printf("With confidence:\t%d\n", MaxPrediction);
+            printf("=== Task ended \n ");
+            resnetCNN_Destruct();
+            
+
+            for(int y=0;y<H_2;y++){
+                for(int x=0;x<W_2;x++){
+                    ImageInChar_2[y*W_2+x] = (unsigned char)(ImageIn_2[(y*W_2)+(x)] >> INPUT_1_Q-8);
+                }
+            }
+
+            if(SAVE_GESTURE_DET==1) {
+                writeDetImg_resnet(ImageInChar_2, pic_num, outclass);
+            }
+
+            pmsis_l2_malloc_free(ImageInChar_2, W_2 * H_2 * sizeof(short int));
+
+            GESTURE_FLAG = 0;
+        }
+        else
+        {
+            #ifndef FROM_CAMERA
+                pmsis_l2_malloc_free(ImageInChar, W * H * sizeof(short int));
+            #else
+                pmsis_l2_malloc_free(ImageInChar, Wi * Hi * sizeof(short int));
+            #endif
         }
 
         #if defined(USE_STREAMER)
@@ -944,9 +988,7 @@ int start()
         frame_streamer_send_async(streamer1, &buffer, pi_task_callback(&task1, streamer_handler, (void *)&stream1_done));
         #endif
 
-        if(SAVE_DET==1) {
-            writeDetImg_resnet(ImageInChar_2, pic_num, outclass);
-        }
+        
         //Send to Screen
         // pi_display_write(&ili, &buffer, 40, 60, 160, 120);
         // #endif

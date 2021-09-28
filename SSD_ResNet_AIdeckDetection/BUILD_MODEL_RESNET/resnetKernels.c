@@ -354,6 +354,7 @@ void S10_Conv2d_8x8x3x3(
 	AT_L2_EVENT DmaR_Evt2;
 	AT_L2_EVENT DmaR_Evt3;
 	AT_L2_EVENT DmaW_Evt1;
+	AT_HYPERRAM_CL_EVENT UchanHR1;
 	KerSetBias_fpd_fp_T S_KerArg0, *KerArg0 = &S_KerArg0;
 	KerConv_DP_fp_T S_KerArg1, *KerArg1 = &S_KerArg1;
 	KerDP_fp_T S_KerArg2, *KerArg2 = &S_KerArg2;
@@ -366,9 +367,9 @@ void S10_Conv2d_8x8x3x3(
 	unsigned int _N_In;
 	unsigned int _SN_In;
 	unsigned int _LN_In;
-	unsigned int _C_Out;
-	unsigned int _SP_Out, _SC_Out;
-	unsigned int _LP_Out, _LC_Out;
+	unsigned int _P_Out, _C_Out;
+	unsigned int _SPP_Out, _SP_Out, _SC_Out;
+	unsigned int _LPP_Out, _LP_Out, _LC_Out;
 	/*============================= Ker Arg Iter Spaces =========================================
 	User Kernel Iteration Space:
 		[D1 Dim: Init: 8, Tiled: 1][Tile0 Dim: 3][D0 Dim: Init: 8, Tiled: 2]
@@ -394,7 +395,7 @@ void S10_Conv2d_8x8x3x3(
 			[D1, [0 x 1152, 1152]][D0, [1 x 72, 72]]
 		Tile0: [0, 1152, 1152], Tile1: [0, 1152, 1152], Tile2; [0, 1152, 1152]
 	Ker Arg: Out, Tiled Space: Tile0
-		Min Pipe Depth: -1, Max Pipe Depth: 0
+		Min Pipe Depth: -2, Max Pipe Depth: 0
 		KerArgItSpace: 3 logical tiles, 3 physical tiles
 			Total Size: 24336 [D1, [0 x 24336, 24336]][Tile0, 3:[39x14, 1:39x14, 39x11], 2]
 		KerArgItSpace (User Kernel Iter Order):
@@ -437,7 +438,7 @@ void S10_Conv2d_8x8x3x3(
 	AT_L2_COPY(0, ((AT_L2_EXT_ADDR_TYPE) Filter+0), ((AT_L2_INT_ADDR_TYPE) resnet_L1_Memory+10000), 1152, 0, &DmaR_Evt3);
 	AT_L2_WAIT(0, &DmaR_Evt3); /* Wait previous DMA read Filter */
 	_C_Out=0; _SC_Out=8736; _LC_Out=1092;
-	_SP_Out=0;
+	_SPP_Out=0; _SP_Out=0;
 	/*============================= End Read Tiles Prolog ===============================*/
 	{ /* Single iteration on D1 */
 		int D1Ind_Last = 1;
@@ -484,11 +485,15 @@ void S10_Conv2d_8x8x3x3(
 			__CALL(KerDP_fp, KerArg2);
 			/*================================= Write Tiles =====================================*/
 			if (_SP_Out) AT_L2_WAIT(0, &DmaW_Evt1); /* Wait previous DMA write Out */
-			AT_L2_COPY2D(0, ((AT_L2_EXT_ADDR_TYPE) Out+_C_Out), ((AT_L2_INT_ADDR_TYPE) resnet_L1_Memory+11152+8736*((T0Ind_Total)%2)),
-					_SC_Out, 3042, _LC_Out, 1, &DmaW_Evt1);
+			if (_SPP_Out) AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR1); /* Wait previous uDMA write Out */
+			if (_SP_Out) AT_HYPERRAM_CL_COPY2D(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) Out+_P_Out), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory+58944+8736*((T0Ind_Total+-1)%2)),
+						_SP_Out, 3042, _LP_Out, 1, &UchanHR1);
+			AT_L2_COPY(0, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L2_Memory+58944+8736*((T0Ind_Total)%2)), ((AT_L2_INT_ADDR_TYPE) resnet_L1_Memory+11152+8736*((T0Ind_Total)%2)),
+					_SC_Out, 1, &DmaW_Evt1);
 			/*============================= End Write Tiles =====================================*/
 			/*================================= Update Arg Pipeline =============================*/
-			_SP_Out = _SC_Out;_LP_Out = _LC_Out;
+			_SPP_Out = _SP_Out;_LPP_Out = _LP_Out;
+			_P_Out = _C_Out;_SP_Out = _SC_Out;_LP_Out = _LC_Out;
 			/*============================= End Update Arg Pipeline =============================*/
 			/*================================= Prepare Tiles ===================================*/
 			_SC_Out = 0;
@@ -500,6 +505,9 @@ void S10_Conv2d_8x8x3x3(
 	} /* End iteration on D1 */
 	/*================================ Write Tiles Epilog ===============================*/
 	AT_L2_WAIT(0, &DmaW_Evt1); /* Wait previous DMA write Out */
+	if (_SPP_Out) AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR1); /* Wait previous uDMA write Out */
+	AT_HYPERRAM_CL_COPY2D(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) Out+_P_Out), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory+58944+8736*((T0Ind_Total+-1)%2)), _SP_Out, 3042, _LP_Out, 1, &UchanHR1);
+	AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR1); /* Wait current uDMA write Out */
 	/*============================ End Write Tiles Epilog ===============================*/
 }
 void S11_MatAdd_8x39x39(
@@ -513,15 +521,16 @@ void S11_MatAdd_8x39x39(
 	AT_L2_EVENT DmaR_Evt1;
 	AT_L2_EVENT DmaR_Evt2;
 	AT_L2_EVENT DmaW_Evt1;
+	AT_HYPERRAM_CL_EVENT UchanHR1;
 	KerMat3_fp_T S_KerArg0, *KerArg0 = &S_KerArg0;
 
 	/* Iteration space related variables */
-	int D0Ind, D0Ind_Last, D0Ind_NextLast;
-	int T0Ind, T0Ind_Total=0, T0Ind_Last, T0Ind_NextLast;
+	int D0Ind, D0Ind_Last, D0Ind_NextLast, D0Ind_NextNextLast;
+	int T0Ind, T0Ind_Total=0, T0Ind_Last, T0Ind_NextLast, T0Ind_NextNextLast;
 	/* User kernel arguments related variables */
-	unsigned int _N_In1;
-	unsigned int _SN_In1;
-	unsigned int _LN_In1;
+	unsigned int _NN_In1;
+	unsigned int _SN_In1, _SNN_In1;
+	unsigned int _LN_In1, _LNN_In1;
 	unsigned int _N_In2;
 	unsigned int _SN_In2;
 	unsigned int _LN_In2;
@@ -532,7 +541,7 @@ void S11_MatAdd_8x39x39(
 	User Kernel Iteration Space:
 		[D0 Dim: Init: 8, Tiled: 1][Tile0 Dim: 4]
 	Ker Arg: In1, Tiled Space: Tile0
-		Min Pipe Depth: 0, Max Pipe Depth: 1
+		Min Pipe Depth: 0, Max Pipe Depth: 2
 		KerArgItSpace: 4 logical tiles, 4 physical tiles
 			Total Size: 24336 [D0, [0 x 24336, 24336]][Tile0, 4:[39x12, 2:39x12, 39x3], 2]
 		KerArgItSpace (User Kernel Iter Order):
@@ -562,21 +571,26 @@ void S11_MatAdd_8x39x39(
 	KerArg0->In2_Q = (unsigned char) (11);
 	KerArg0->Out_Q = (unsigned char) (11);
 	/*================================= Read Tiles Prolog ===============================*/
-	AT_L2_COPY2D(0, ((AT_L2_EXT_ADDR_TYPE) In1+0), ((AT_L2_INT_ADDR_TYPE) resnet_L1_Memory+0+0), 7488, 3042, 936, 0, &DmaR_Evt1);
-	_N_In1=0;
+	AT_HYPERRAM_CL_COPY2D(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) In1+0), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory+58944+0), 7488, 3042, 936, 0, &UchanHR1);
+	AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR1); /* Wait previous uDMA read In1 */
+	AT_HYPERRAM_CL_COPY2D(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) In1+936), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory+58944+7488), 7488, 3042, 936, 0, &UchanHR1);
+	AT_L2_COPY(0, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L2_Memory+58944+0), ((AT_L2_INT_ADDR_TYPE) resnet_L1_Memory+0+0), 7488, 0, &DmaR_Evt1);
+	_NN_In1=936; _SN_In1=7488;
 	AT_L2_COPY2D(0, ((AT_L2_EXT_ADDR_TYPE) In2+0), ((AT_L2_INT_ADDR_TYPE) resnet_L1_Memory+14976+0), 7488, 3042, 936, 0, &DmaR_Evt2);
 	_N_In2=0;
 	_C_Out=0; _SC_Out=7488; _LC_Out=936;
 	_SP_Out=0;
 	/*============================= End Read Tiles Prolog ===============================*/
 	{ /* Single iteration on D0 */
-		int D0Ind_Last = 1, D0Ind_NextLast = 1;
+		int D0Ind_Last = 1, D0Ind_NextLast = 1, D0Ind_NextNextLast = 1;
 		for (T0Ind=0; T0Ind<4; T0Ind++, T0Ind_Total++) { /* Iteration on Tile0 */
-			int T0Ind_Last = (T0Ind==3), T0Ind_NextLast = ((T0Ind+1)==3);
+			int T0Ind_Last = (T0Ind==3), T0Ind_NextLast = ((T0Ind+1)==3), T0Ind_NextNextLast = ((T0Ind+2)==3);
 			/*================================= Prepare Tiles ===================================*/
-			_SN_In1 = 0;
+			_SNN_In1 = 0;
 			if (!(T0Ind_Last)) {
-				_N_In1 = _N_In1 + (936); _LN_In1 = ((T0Ind_NextLast)?234:936); _SN_In1 = (8*_LN_In1); 
+				if (!(T0Ind_NextLast)) {
+					_NN_In1 = _NN_In1 + (936); _LNN_In1 = ((T0Ind_NextNextLast)?234:936); _SNN_In1 = (8*_LNN_In1); 
+				}
 			}
 			_SN_In2 = 0;
 			if (!(T0Ind_Last)) {
@@ -584,10 +598,15 @@ void S11_MatAdd_8x39x39(
 			}
 			/*============================= End Prepare Tiles ===================================*/
 			/*================================= Read Tiles ======================================*/
+			AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR1); /* Wait previous uDMA read In1 */
+			if (_SNN_In1) {
+				AT_HYPERRAM_CL_COPY2D(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) In1+_NN_In1), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory+58944+7488*((T0Ind_Total)%2)),
+						_SNN_In1, 3042, _LNN_In1, 0, &UchanHR1);
+			}
 			AT_L2_WAIT(0, &DmaR_Evt1); /* Wait previous DMA read In1 */
 			if (_SN_In1) {
-				AT_L2_COPY2D(0, ((AT_L2_EXT_ADDR_TYPE) In1+_N_In1), ((AT_L2_INT_ADDR_TYPE) resnet_L1_Memory+0+7488*((T0Ind_Total+1)%2)),
-						_SN_In1, 3042, _LN_In1, 0, &DmaR_Evt1);
+				AT_L2_COPY(0, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L2_Memory+58944+7488*((T0Ind_Total+1)%2)), ((AT_L2_INT_ADDR_TYPE) resnet_L1_Memory+0+7488*((T0Ind_Total+1)%2)),
+						_SN_In1, 0, &DmaR_Evt1);
 			}
 			AT_L2_WAIT(0, &DmaR_Evt2); /* Wait previous DMA read In2 */
 			if (_SN_In2) {
@@ -608,6 +627,7 @@ void S11_MatAdd_8x39x39(
 					_SC_Out, 3042, _LC_Out, 1, &DmaW_Evt1);
 			/*============================= End Write Tiles =====================================*/
 			/*================================= Update Arg Pipeline =============================*/
+			_SN_In1 = _SNN_In1;_LN_In1 = _LNN_In1;
 			_SP_Out = _SC_Out;_LP_Out = _LC_Out;
 			/*============================= End Update Arg Pipeline =============================*/
 			/*================================= Prepare Tiles ===================================*/
@@ -796,6 +816,7 @@ void S17_Conv2d_8x8x3x3(
 	AT_L2_EVENT DmaR_Evt2;
 	AT_L2_EVENT DmaR_Evt3;
 	AT_L2_EVENT DmaW_Evt1;
+	AT_HYPERRAM_CL_EVENT UchanHR1;
 	KerSetBias_fpd_fp_T S_KerArg0, *KerArg0 = &S_KerArg0;
 	KerConv_DP_fp_T S_KerArg1, *KerArg1 = &S_KerArg1;
 	KerDP_fp_T S_KerArg2, *KerArg2 = &S_KerArg2;
@@ -808,9 +829,9 @@ void S17_Conv2d_8x8x3x3(
 	unsigned int _N_In;
 	unsigned int _SN_In;
 	unsigned int _LN_In;
-	unsigned int _C_Out;
-	unsigned int _SP_Out, _SC_Out;
-	unsigned int _LP_Out, _LC_Out;
+	unsigned int _P_Out, _C_Out;
+	unsigned int _SPP_Out, _SP_Out, _SC_Out;
+	unsigned int _LPP_Out, _LP_Out, _LC_Out;
 	/*============================= Ker Arg Iter Spaces =========================================
 	User Kernel Iteration Space:
 		[D1 Dim: Init: 8, Tiled: 1][Tile0 Dim: 3][D0 Dim: Init: 8, Tiled: 2]
@@ -836,7 +857,7 @@ void S17_Conv2d_8x8x3x3(
 			[D1, [0 x 1152, 1152]][D0, [1 x 72, 72]]
 		Tile0: [0, 1152, 1152], Tile1: [0, 1152, 1152], Tile2; [0, 1152, 1152]
 	Ker Arg: Out, Tiled Space: Tile0
-		Min Pipe Depth: -1, Max Pipe Depth: 0
+		Min Pipe Depth: -2, Max Pipe Depth: 0
 		KerArgItSpace: 3 logical tiles, 3 physical tiles
 			Total Size: 24336 [D1, [0 x 24336, 24336]][Tile0, 3:[39x14, 1:39x14, 39x11], 2]
 		KerArgItSpace (User Kernel Iter Order):
@@ -879,7 +900,7 @@ void S17_Conv2d_8x8x3x3(
 	AT_L2_COPY(0, ((AT_L2_EXT_ADDR_TYPE) Filter+0), ((AT_L2_INT_ADDR_TYPE) resnet_L1_Memory+10000), 1152, 0, &DmaR_Evt3);
 	AT_L2_WAIT(0, &DmaR_Evt3); /* Wait previous DMA read Filter */
 	_C_Out=0; _SC_Out=8736; _LC_Out=1092;
-	_SP_Out=0;
+	_SPP_Out=0; _SP_Out=0;
 	/*============================= End Read Tiles Prolog ===============================*/
 	{ /* Single iteration on D1 */
 		int D1Ind_Last = 1;
@@ -926,11 +947,15 @@ void S17_Conv2d_8x8x3x3(
 			__CALL(KerDP_fp, KerArg2);
 			/*================================= Write Tiles =====================================*/
 			if (_SP_Out) AT_L2_WAIT(0, &DmaW_Evt1); /* Wait previous DMA write Out */
-			AT_L2_COPY2D(0, ((AT_L2_EXT_ADDR_TYPE) Out+_C_Out), ((AT_L2_INT_ADDR_TYPE) resnet_L1_Memory+11152+8736*((T0Ind_Total)%2)),
-					_SC_Out, 3042, _LC_Out, 1, &DmaW_Evt1);
+			if (_SPP_Out) AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR1); /* Wait previous uDMA write Out */
+			if (_SP_Out) AT_HYPERRAM_CL_COPY2D(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) Out+_P_Out), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory+58944+8736*((T0Ind_Total+-1)%2)),
+						_SP_Out, 3042, _LP_Out, 1, &UchanHR1);
+			AT_L2_COPY(0, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L2_Memory+58944+8736*((T0Ind_Total)%2)), ((AT_L2_INT_ADDR_TYPE) resnet_L1_Memory+11152+8736*((T0Ind_Total)%2)),
+					_SC_Out, 1, &DmaW_Evt1);
 			/*============================= End Write Tiles =====================================*/
 			/*================================= Update Arg Pipeline =============================*/
-			_SP_Out = _SC_Out;_LP_Out = _LC_Out;
+			_SPP_Out = _SP_Out;_LPP_Out = _LP_Out;
+			_P_Out = _C_Out;_SP_Out = _SC_Out;_LP_Out = _LC_Out;
 			/*============================= End Update Arg Pipeline =============================*/
 			/*================================= Prepare Tiles ===================================*/
 			_SC_Out = 0;
@@ -942,6 +967,9 @@ void S17_Conv2d_8x8x3x3(
 	} /* End iteration on D1 */
 	/*================================ Write Tiles Epilog ===============================*/
 	AT_L2_WAIT(0, &DmaW_Evt1); /* Wait previous DMA write Out */
+	if (_SPP_Out) AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR1); /* Wait previous uDMA write Out */
+	AT_HYPERRAM_CL_COPY2D(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) Out+_P_Out), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory+58944+8736*((T0Ind_Total+-1)%2)), _SP_Out, 3042, _LP_Out, 1, &UchanHR1);
+	AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR1); /* Wait current uDMA write Out */
 	/*============================ End Write Tiles Epilog ===============================*/
 }
 void S18_MatAdd_8x39x39(
@@ -955,15 +983,16 @@ void S18_MatAdd_8x39x39(
 	AT_L2_EVENT DmaR_Evt1;
 	AT_L2_EVENT DmaR_Evt2;
 	AT_L2_EVENT DmaW_Evt1;
+	AT_HYPERRAM_CL_EVENT UchanHR1;
 	KerMat3_fp_T S_KerArg0, *KerArg0 = &S_KerArg0;
 
 	/* Iteration space related variables */
-	int D0Ind, D0Ind_Last, D0Ind_NextLast;
-	int T0Ind, T0Ind_Total=0, T0Ind_Last, T0Ind_NextLast;
+	int D0Ind, D0Ind_Last, D0Ind_NextLast, D0Ind_NextNextLast;
+	int T0Ind, T0Ind_Total=0, T0Ind_Last, T0Ind_NextLast, T0Ind_NextNextLast;
 	/* User kernel arguments related variables */
-	unsigned int _N_In1;
-	unsigned int _SN_In1;
-	unsigned int _LN_In1;
+	unsigned int _NN_In1;
+	unsigned int _SN_In1, _SNN_In1;
+	unsigned int _LN_In1, _LNN_In1;
 	unsigned int _N_In2;
 	unsigned int _SN_In2;
 	unsigned int _LN_In2;
@@ -974,7 +1003,7 @@ void S18_MatAdd_8x39x39(
 	User Kernel Iteration Space:
 		[D0 Dim: Init: 8, Tiled: 1][Tile0 Dim: 4]
 	Ker Arg: In1, Tiled Space: Tile0
-		Min Pipe Depth: 0, Max Pipe Depth: 1
+		Min Pipe Depth: 0, Max Pipe Depth: 2
 		KerArgItSpace: 4 logical tiles, 4 physical tiles
 			Total Size: 24336 [D0, [0 x 24336, 24336]][Tile0, 4:[39x12, 2:39x12, 39x3], 2]
 		KerArgItSpace (User Kernel Iter Order):
@@ -1001,21 +1030,26 @@ void S18_MatAdd_8x39x39(
 	KerArg0->LB = (int) (-32768);
 	KerArg0->UB = (int) (32767);
 	/*================================= Read Tiles Prolog ===============================*/
-	AT_L2_COPY2D(0, ((AT_L2_EXT_ADDR_TYPE) In1+0), ((AT_L2_INT_ADDR_TYPE) resnet_L1_Memory+0+0), 7488, 3042, 936, 0, &DmaR_Evt1);
-	_N_In1=0;
+	AT_HYPERRAM_CL_COPY2D(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) In1+0), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory+58944+0), 7488, 3042, 936, 0, &UchanHR1);
+	AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR1); /* Wait previous uDMA read In1 */
+	AT_HYPERRAM_CL_COPY2D(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) In1+936), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory+58944+7488), 7488, 3042, 936, 0, &UchanHR1);
+	AT_L2_COPY(0, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L2_Memory+58944+0), ((AT_L2_INT_ADDR_TYPE) resnet_L1_Memory+0+0), 7488, 0, &DmaR_Evt1);
+	_NN_In1=936; _SN_In1=7488;
 	AT_L2_COPY2D(0, ((AT_L2_EXT_ADDR_TYPE) In2+0), ((AT_L2_INT_ADDR_TYPE) resnet_L1_Memory+14976+0), 7488, 3042, 936, 0, &DmaR_Evt2);
 	_N_In2=0;
 	_C_Out=0; _SC_Out=7488; _LC_Out=936;
 	_SP_Out=0;
 	/*============================= End Read Tiles Prolog ===============================*/
 	{ /* Single iteration on D0 */
-		int D0Ind_Last = 1, D0Ind_NextLast = 1;
+		int D0Ind_Last = 1, D0Ind_NextLast = 1, D0Ind_NextNextLast = 1;
 		for (T0Ind=0; T0Ind<4; T0Ind++, T0Ind_Total++) { /* Iteration on Tile0 */
-			int T0Ind_Last = (T0Ind==3), T0Ind_NextLast = ((T0Ind+1)==3);
+			int T0Ind_Last = (T0Ind==3), T0Ind_NextLast = ((T0Ind+1)==3), T0Ind_NextNextLast = ((T0Ind+2)==3);
 			/*================================= Prepare Tiles ===================================*/
-			_SN_In1 = 0;
+			_SNN_In1 = 0;
 			if (!(T0Ind_Last)) {
-				_N_In1 = _N_In1 + (936); _LN_In1 = ((T0Ind_NextLast)?234:936); _SN_In1 = (8*_LN_In1); 
+				if (!(T0Ind_NextLast)) {
+					_NN_In1 = _NN_In1 + (936); _LNN_In1 = ((T0Ind_NextNextLast)?234:936); _SNN_In1 = (8*_LNN_In1); 
+				}
 			}
 			_SN_In2 = 0;
 			if (!(T0Ind_Last)) {
@@ -1023,10 +1057,15 @@ void S18_MatAdd_8x39x39(
 			}
 			/*============================= End Prepare Tiles ===================================*/
 			/*================================= Read Tiles ======================================*/
+			AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR1); /* Wait previous uDMA read In1 */
+			if (_SNN_In1) {
+				AT_HYPERRAM_CL_COPY2D(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) In1+_NN_In1), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory+58944+7488*((T0Ind_Total)%2)),
+						_SNN_In1, 3042, _LNN_In1, 0, &UchanHR1);
+			}
 			AT_L2_WAIT(0, &DmaR_Evt1); /* Wait previous DMA read In1 */
 			if (_SN_In1) {
-				AT_L2_COPY2D(0, ((AT_L2_EXT_ADDR_TYPE) In1+_N_In1), ((AT_L2_INT_ADDR_TYPE) resnet_L1_Memory+0+7488*((T0Ind_Total+1)%2)),
-						_SN_In1, 3042, _LN_In1, 0, &DmaR_Evt1);
+				AT_L2_COPY(0, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L2_Memory+58944+7488*((T0Ind_Total+1)%2)), ((AT_L2_INT_ADDR_TYPE) resnet_L1_Memory+0+7488*((T0Ind_Total+1)%2)),
+						_SN_In1, 0, &DmaR_Evt1);
 			}
 			AT_L2_WAIT(0, &DmaR_Evt2); /* Wait previous DMA read In2 */
 			if (_SN_In2) {
@@ -1047,6 +1086,7 @@ void S18_MatAdd_8x39x39(
 					_SC_Out, 3042, _LC_Out, 1, &DmaW_Evt1);
 			/*============================= End Write Tiles =====================================*/
 			/*================================= Update Arg Pipeline =============================*/
+			_SN_In1 = _SNN_In1;_LN_In1 = _LNN_In1;
 			_SP_Out = _SC_Out;_LP_Out = _LC_Out;
 			/*============================= End Update Arg Pipeline =============================*/
 			/*================================= Prepare Tiles ===================================*/
@@ -3708,6 +3748,7 @@ void S73_Linear_7x64x2x2(
 	AT_L2_EVENT DmaR_Evt2;
 	AT_L2_EVENT DmaR_Evt3;
 	AT_L2_EVENT DmaW_Evt1;
+	AT_HYPERRAM_CL_EVENT UchanHR1;
 	KerLinearLayerReLU_fp_T S_KerArg0, *KerArg0 = &S_KerArg0;
 
 	/* Iteration space related variables */
@@ -3761,7 +3802,9 @@ void S73_Linear_7x64x2x2(
 	/*================================= Read Tiles Prolog ===============================*/
 	AT_L2_COPY(0, ((AT_L2_EXT_ADDR_TYPE) In+0), ((AT_L2_INT_ADDR_TYPE) resnet_L1_Memory+0), 512, 0, &DmaR_Evt1);
 	AT_L2_WAIT(0, &DmaR_Evt1); /* Wait previous DMA read In */
-	AT_L2_COPY(0, ((AT_L2_EXT_ADDR_TYPE) Filter+0), ((AT_L2_INT_ADDR_TYPE) resnet_L1_Memory+512), 3584, 0, &DmaR_Evt2);
+	AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) Filter+0), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory+10800+0), 3584, 0, &UchanHR1);
+	AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR1); /* Wait previous uDMA read Filter */
+	AT_L2_COPY(0, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L2_Memory+10800+0), ((AT_L2_INT_ADDR_TYPE) resnet_L1_Memory+512), 3584, 0, &DmaR_Evt2);
 	AT_L2_WAIT(0, &DmaR_Evt2); /* Wait previous DMA read Filter */
 	AT_L2_COPY(0, ((AT_L2_EXT_ADDR_TYPE) Bias+0), ((AT_L2_INT_ADDR_TYPE) resnet_L1_Memory+4096), 14, 0, &DmaR_Evt3);
 	AT_L2_WAIT(0, &DmaR_Evt3); /* Wait previous DMA read Bias */
@@ -3842,163 +3885,306 @@ int resnetCNN_Construct()
 	AT_HYPERFLASH_FS_CONF_INIT(&HyperFlashConf, AT_MEM_L3_HFLASH, 0);
 	AT_HYPERFLASH_FS_OPEN(&HyperFlash, &HyperFlashConf, "resnet_L3_Flash_Const.dat", &Error);
 	if (Error) return 1;
-	resnet_L3_Memory = (AT_HYPERRAM_POINTER) AT_HYPERRAM_ALLOC(&HyperRam, 323470);
+	resnet_L3_Memory = (AT_HYPERRAM_POINTER) AT_HYPERRAM_ALLOC(&HyperRam, 378590);
 	if (resnet_L3_Memory == 0) return 2;
-	resnet_L2_Memory = (AT_L2_POINTER) AT_L2_ALLOC(0, 200000);
+	resnet_L2_Memory = (AT_L2_POINTER) AT_L2_ALLOC(0, 100000);
 	if (resnet_L2_Memory == 0) return 3;
 	resnet_L1_Memory = (AT_L1_POINTER) AT_L1_ALLOC(0, 46096);
 	if (resnet_L1_Memory == 0) return 4;
-	/* Moving Model_1res2cbranch2aconv2d_bia, size 16 from HyperFlash at 354208 to (size 16) HyperRam at 323424..323439 */
+	/* Moving Conv1kernel, size 784 from HyperFlash at 352000 to (size 784) HyperRam at 352000..352783 */
+	{
+		int Size = 784, Base = 0;
+		while (Size) {
+			int Chunk = Min(Size, 1024);
+			AT_HYPERFLASH_FS_FC_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) resnet_L3_Flash + 352000+Base), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) resnet_L2_Memory + 0), Chunk, 0, &UchanHF1);
+			AT_HYPERFLASH_FS_FC_WAIT(&HyperFlash, &UchanHF1);
+			AT_HYPERRAM_FC_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 352000+Base), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 0), Chunk, 1, &UchanHR2);
+			AT_HYPERRAM_FC_WAIT(&HyperRam, &UchanHR2);
+			Base += Chunk;
+			Size -= Chunk;
+		}
+	}
+	/* Moving Model_1conv1conv2d_bias, size 16 from HyperFlash at 354160 to (size 16) HyperRam at 354160..354175 */
+	{
+		int Size = 16, Base = 0;
+		while (Size) {
+			int Chunk = Min(Size, 1024);
+			AT_HYPERFLASH_FS_FC_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) resnet_L3_Flash + 354160+Base), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) resnet_L2_Memory + 0), Chunk, 0, &UchanHF1);
+			AT_HYPERFLASH_FS_FC_WAIT(&HyperFlash, &UchanHF1);
+			AT_HYPERRAM_FC_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 354160+Base), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 0), Chunk, 1, &UchanHR2);
+			AT_HYPERRAM_FC_WAIT(&HyperRam, &UchanHR2);
+			Base += Chunk;
+			Size -= Chunk;
+		}
+	}
+	/* Moving Res2bbranch2akernel, size 1152 from HyperFlash at 346368 to (size 1152) HyperRam at 346368..347519 */
+	{
+		int Size = 1152, Base = 0;
+		while (Size) {
+			int Chunk = Min(Size, 1024);
+			AT_HYPERFLASH_FS_FC_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) resnet_L3_Flash + 346368+Base), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) resnet_L2_Memory + 0), Chunk, 0, &UchanHF1);
+			AT_HYPERFLASH_FS_FC_WAIT(&HyperFlash, &UchanHF1);
+			AT_HYPERRAM_FC_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 346368+Base), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 0), Chunk, 1, &UchanHR2);
+			AT_HYPERRAM_FC_WAIT(&HyperRam, &UchanHR2);
+			Base += Chunk;
+			Size -= Chunk;
+		}
+	}
+	/* Moving Model_1res2bbranch2aconv2d_bia, size 16 from HyperFlash at 354176 to (size 16) HyperRam at 354176..354191 */
+	{
+		int Size = 16, Base = 0;
+		while (Size) {
+			int Chunk = Min(Size, 1024);
+			AT_HYPERFLASH_FS_FC_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) resnet_L3_Flash + 354176+Base), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) resnet_L2_Memory + 0), Chunk, 0, &UchanHF1);
+			AT_HYPERFLASH_FS_FC_WAIT(&HyperFlash, &UchanHF1);
+			AT_HYPERRAM_FC_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 354176+Base), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 0), Chunk, 1, &UchanHR2);
+			AT_HYPERRAM_FC_WAIT(&HyperRam, &UchanHR2);
+			Base += Chunk;
+			Size -= Chunk;
+		}
+	}
+	/* Moving Res2bbranch2bkernel, size 1152 from HyperFlash at 347520 to (size 1152) HyperRam at 347520..348671 */
+	{
+		int Size = 1152, Base = 0;
+		while (Size) {
+			int Chunk = Min(Size, 1024);
+			AT_HYPERFLASH_FS_FC_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) resnet_L3_Flash + 347520+Base), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) resnet_L2_Memory + 0), Chunk, 0, &UchanHF1);
+			AT_HYPERFLASH_FS_FC_WAIT(&HyperFlash, &UchanHF1);
+			AT_HYPERRAM_FC_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 347520+Base), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 0), Chunk, 1, &UchanHR2);
+			AT_HYPERRAM_FC_WAIT(&HyperRam, &UchanHR2);
+			Base += Chunk;
+			Size -= Chunk;
+		}
+	}
+	/* Moving Model_1res2bbranch2bconv2d_bia, size 16 from HyperFlash at 354192 to (size 16) HyperRam at 354192..354207 */
+	{
+		int Size = 16, Base = 0;
+		while (Size) {
+			int Chunk = Min(Size, 1024);
+			AT_HYPERFLASH_FS_FC_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) resnet_L3_Flash + 354192+Base), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) resnet_L2_Memory + 0), Chunk, 0, &UchanHF1);
+			AT_HYPERFLASH_FS_FC_WAIT(&HyperFlash, &UchanHF1);
+			AT_HYPERRAM_FC_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 354192+Base), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 0), Chunk, 1, &UchanHR2);
+			AT_HYPERRAM_FC_WAIT(&HyperRam, &UchanHR2);
+			Base += Chunk;
+			Size -= Chunk;
+		}
+	}
+	/* Moving Res2cbranch2akernel, size 1152 from HyperFlash at 348672 to (size 1152) HyperRam at 348672..349823 */
+	{
+		int Size = 1152, Base = 0;
+		while (Size) {
+			int Chunk = Min(Size, 1024);
+			AT_HYPERFLASH_FS_FC_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) resnet_L3_Flash + 348672+Base), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) resnet_L2_Memory + 0), Chunk, 0, &UchanHF1);
+			AT_HYPERFLASH_FS_FC_WAIT(&HyperFlash, &UchanHF1);
+			AT_HYPERRAM_FC_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 348672+Base), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 0), Chunk, 1, &UchanHR2);
+			AT_HYPERRAM_FC_WAIT(&HyperRam, &UchanHR2);
+			Base += Chunk;
+			Size -= Chunk;
+		}
+	}
+	/* Moving Model_1res2cbranch2aconv2d_bia, size 16 from HyperFlash at 354208 to (size 16) HyperRam at 354208..354223 */
 	{
 		int Size = 16, Base = 0;
 		while (Size) {
 			int Chunk = Min(Size, 1024);
 			AT_HYPERFLASH_FS_FC_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) resnet_L3_Flash + 354208+Base), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) resnet_L2_Memory + 0), Chunk, 0, &UchanHF1);
 			AT_HYPERFLASH_FS_FC_WAIT(&HyperFlash, &UchanHF1);
-			AT_HYPERRAM_FC_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 323424+Base), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 0), Chunk, 1, &UchanHR2);
+			AT_HYPERRAM_FC_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 354208+Base), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 0), Chunk, 1, &UchanHR2);
 			AT_HYPERRAM_FC_WAIT(&HyperRam, &UchanHR2);
 			Base += Chunk;
 			Size -= Chunk;
 		}
 	}
-	/* Moving Res2cbranch2bkernel, size 1152 from HyperFlash at 349824 to (size 1152) HyperRam at 319872..321023 */
+	/* Moving Res2cbranch2bkernel, size 1152 from HyperFlash at 349824 to (size 1152) HyperRam at 349824..350975 */
 	{
 		int Size = 1152, Base = 0;
 		while (Size) {
 			int Chunk = Min(Size, 1024);
 			AT_HYPERFLASH_FS_FC_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) resnet_L3_Flash + 349824+Base), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) resnet_L2_Memory + 0), Chunk, 0, &UchanHF1);
 			AT_HYPERFLASH_FS_FC_WAIT(&HyperFlash, &UchanHF1);
-			AT_HYPERRAM_FC_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 319872+Base), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 0), Chunk, 1, &UchanHR2);
+			AT_HYPERRAM_FC_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 349824+Base), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 0), Chunk, 1, &UchanHR2);
 			AT_HYPERRAM_FC_WAIT(&HyperRam, &UchanHR2);
 			Base += Chunk;
 			Size -= Chunk;
 		}
 	}
-	/* Moving Model_1res2cbranch2bconv2d_bia, size 16 from HyperFlash at 354224 to (size 16) HyperRam at 323440..323455 */
+	/* Moving Model_1res2cbranch2bconv2d_bia, size 16 from HyperFlash at 354224 to (size 16) HyperRam at 354224..354239 */
 	{
 		int Size = 16, Base = 0;
 		while (Size) {
 			int Chunk = Min(Size, 1024);
 			AT_HYPERFLASH_FS_FC_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) resnet_L3_Flash + 354224+Base), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) resnet_L2_Memory + 0), Chunk, 0, &UchanHF1);
 			AT_HYPERFLASH_FS_FC_WAIT(&HyperFlash, &UchanHF1);
-			AT_HYPERRAM_FC_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 323440+Base), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 0), Chunk, 1, &UchanHR2);
+			AT_HYPERRAM_FC_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 354224+Base), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 0), Chunk, 1, &UchanHR2);
 			AT_HYPERRAM_FC_WAIT(&HyperRam, &UchanHR2);
 			Base += Chunk;
 			Size -= Chunk;
 		}
 	}
-	/* Moving Res3a_branch2akernel, size 2304 from HyperFlash at 344064 to (size 2304) HyperRam at 316416..318719 */
+	/* Moving Res3a_branch2akernel, size 2304 from HyperFlash at 344064 to (size 2304) HyperRam at 344064..346367 */
 	{
 		int Size = 2304, Base = 0;
 		while (Size) {
 			int Chunk = Min(Size, 1024);
 			AT_HYPERFLASH_FS_FC_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) resnet_L3_Flash + 344064+Base), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) resnet_L2_Memory + 0), Chunk, 0, &UchanHF1);
 			AT_HYPERFLASH_FS_FC_WAIT(&HyperFlash, &UchanHF1);
-			AT_HYPERRAM_FC_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 316416+Base), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 0), Chunk, 1, &UchanHR2);
+			AT_HYPERRAM_FC_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 344064+Base), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 0), Chunk, 1, &UchanHR2);
 			AT_HYPERRAM_FC_WAIT(&HyperRam, &UchanHR2);
 			Base += Chunk;
 			Size -= Chunk;
 		}
 	}
-	/* Moving Model_1res3a_branch2aconv2d_bi, size 32 from HyperFlash at 354000 to (size 32) HyperRam at 323264..323295 */
+	/* Moving Res3a_branch1kernel, size 256 from HyperFlash at 352784 to (size 256) HyperRam at 352784..353039 */
 	{
-		int Size = 32, Base = 0;
+		int Size = 256, Base = 0;
 		while (Size) {
 			int Chunk = Min(Size, 1024);
-			AT_HYPERFLASH_FS_FC_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) resnet_L3_Flash + 354000+Base), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) resnet_L2_Memory + 0), Chunk, 0, &UchanHF1);
+			AT_HYPERFLASH_FS_FC_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) resnet_L3_Flash + 352784+Base), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) resnet_L2_Memory + 0), Chunk, 0, &UchanHF1);
 			AT_HYPERFLASH_FS_FC_WAIT(&HyperFlash, &UchanHF1);
-			AT_HYPERRAM_FC_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 323264+Base), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 0), Chunk, 1, &UchanHR2);
+			AT_HYPERRAM_FC_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 352784+Base), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 0), Chunk, 1, &UchanHR2);
 			AT_HYPERRAM_FC_WAIT(&HyperRam, &UchanHR2);
 			Base += Chunk;
 			Size -= Chunk;
 		}
 	}
-	/* Moving Model_1res3a_branch1conv2d_bia, size 32 from HyperFlash at 354032 to (size 32) HyperRam at 323296..323327 */
+	/* Moving Model_1res3a_branch1conv2d_bia, size 32 from HyperFlash at 354032 to (size 32) HyperRam at 354032..354063 */
 	{
 		int Size = 32, Base = 0;
 		while (Size) {
 			int Chunk = Min(Size, 1024);
 			AT_HYPERFLASH_FS_FC_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) resnet_L3_Flash + 354032+Base), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) resnet_L2_Memory + 0), Chunk, 0, &UchanHF1);
 			AT_HYPERFLASH_FS_FC_WAIT(&HyperFlash, &UchanHF1);
-			AT_HYPERRAM_FC_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 323296+Base), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 0), Chunk, 1, &UchanHR2);
+			AT_HYPERRAM_FC_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 354032+Base), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 0), Chunk, 1, &UchanHR2);
 			AT_HYPERRAM_FC_WAIT(&HyperRam, &UchanHR2);
 			Base += Chunk;
 			Size -= Chunk;
 		}
 	}
-	/* Moving Model_1res3a_branch2bconv2d_bi, size 32 from HyperFlash at 354064 to (size 32) HyperRam at 323328..323359 */
+	/* Moving Res3a_branch2bkernel, size 4608 from HyperFlash at 322560 to (size 4608) HyperRam at 322560..327167 */
+	{
+		int Size = 4608, Base = 0;
+		while (Size) {
+			int Chunk = Min(Size, 1024);
+			AT_HYPERFLASH_FS_FC_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) resnet_L3_Flash + 322560+Base), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) resnet_L2_Memory + 0), Chunk, 0, &UchanHF1);
+			AT_HYPERFLASH_FS_FC_WAIT(&HyperFlash, &UchanHF1);
+			AT_HYPERRAM_FC_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 322560+Base), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 0), Chunk, 1, &UchanHR2);
+			AT_HYPERRAM_FC_WAIT(&HyperRam, &UchanHR2);
+			Base += Chunk;
+			Size -= Chunk;
+		}
+	}
+	/* Moving Model_1res3a_branch2bconv2d_bi, size 32 from HyperFlash at 354064 to (size 32) HyperRam at 354064..354095 */
 	{
 		int Size = 32, Base = 0;
 		while (Size) {
 			int Chunk = Min(Size, 1024);
 			AT_HYPERFLASH_FS_FC_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) resnet_L3_Flash + 354064+Base), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) resnet_L2_Memory + 0), Chunk, 0, &UchanHF1);
 			AT_HYPERFLASH_FS_FC_WAIT(&HyperFlash, &UchanHF1);
-			AT_HYPERRAM_FC_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 323328+Base), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 0), Chunk, 1, &UchanHR2);
+			AT_HYPERRAM_FC_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 354064+Base), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 0), Chunk, 1, &UchanHR2);
 			AT_HYPERRAM_FC_WAIT(&HyperRam, &UchanHR2);
 			Base += Chunk;
 			Size -= Chunk;
 		}
 	}
-	/* Moving Model_1res3bbranch2aconv2d_bia, size 32 from HyperFlash at 354096 to (size 32) HyperRam at 323360..323391 */
+	/* Moving Res3bbranch2akernel, size 4608 from HyperFlash at 327168 to (size 4608) HyperRam at 327168..331775 */
+	{
+		int Size = 4608, Base = 0;
+		while (Size) {
+			int Chunk = Min(Size, 1024);
+			AT_HYPERFLASH_FS_FC_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) resnet_L3_Flash + 327168+Base), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) resnet_L2_Memory + 0), Chunk, 0, &UchanHF1);
+			AT_HYPERFLASH_FS_FC_WAIT(&HyperFlash, &UchanHF1);
+			AT_HYPERRAM_FC_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 327168+Base), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 0), Chunk, 1, &UchanHR2);
+			AT_HYPERRAM_FC_WAIT(&HyperRam, &UchanHR2);
+			Base += Chunk;
+			Size -= Chunk;
+		}
+	}
+	/* Moving Model_1res3bbranch2aconv2d_bia, size 32 from HyperFlash at 354096 to (size 32) HyperRam at 354096..354127 */
 	{
 		int Size = 32, Base = 0;
 		while (Size) {
 			int Chunk = Min(Size, 1024);
 			AT_HYPERFLASH_FS_FC_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) resnet_L3_Flash + 354096+Base), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) resnet_L2_Memory + 0), Chunk, 0, &UchanHF1);
 			AT_HYPERFLASH_FS_FC_WAIT(&HyperFlash, &UchanHF1);
-			AT_HYPERRAM_FC_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 323360+Base), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 0), Chunk, 1, &UchanHR2);
+			AT_HYPERRAM_FC_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 354096+Base), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 0), Chunk, 1, &UchanHR2);
 			AT_HYPERRAM_FC_WAIT(&HyperRam, &UchanHR2);
 			Base += Chunk;
 			Size -= Chunk;
 		}
 	}
-	/* Moving Model_1res3bbranch2bconv2d_bia, size 32 from HyperFlash at 354128 to (size 32) HyperRam at 323392..323423 */
+	/* Moving Res3bbranch2bkernel, size 4608 from HyperFlash at 331776 to (size 4608) HyperRam at 331776..336383 */
+	{
+		int Size = 4608, Base = 0;
+		while (Size) {
+			int Chunk = Min(Size, 1024);
+			AT_HYPERFLASH_FS_FC_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) resnet_L3_Flash + 331776+Base), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) resnet_L2_Memory + 0), Chunk, 0, &UchanHF1);
+			AT_HYPERFLASH_FS_FC_WAIT(&HyperFlash, &UchanHF1);
+			AT_HYPERRAM_FC_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 331776+Base), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 0), Chunk, 1, &UchanHR2);
+			AT_HYPERRAM_FC_WAIT(&HyperRam, &UchanHR2);
+			Base += Chunk;
+			Size -= Chunk;
+		}
+	}
+	/* Moving Model_1res3bbranch2bconv2d_bia, size 32 from HyperFlash at 354128 to (size 32) HyperRam at 354128..354159 */
 	{
 		int Size = 32, Base = 0;
 		while (Size) {
 			int Chunk = Min(Size, 1024);
 			AT_HYPERFLASH_FS_FC_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) resnet_L3_Flash + 354128+Base), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) resnet_L2_Memory + 0), Chunk, 0, &UchanHF1);
 			AT_HYPERFLASH_FS_FC_WAIT(&HyperFlash, &UchanHF1);
-			AT_HYPERRAM_FC_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 323392+Base), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 0), Chunk, 1, &UchanHR2);
+			AT_HYPERRAM_FC_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 354128+Base), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 0), Chunk, 1, &UchanHR2);
 			AT_HYPERRAM_FC_WAIT(&HyperRam, &UchanHR2);
 			Base += Chunk;
 			Size -= Chunk;
 		}
 	}
-	/* Moving Model_1res4a_branch2aconv2d_bi, size 64 from HyperFlash at 353680 to (size 64) HyperRam at 322944..323007 */
+	/* Moving Model_1res4a_branch2aconv2d_bi, size 64 from HyperFlash at 353680 to (size 64) HyperRam at 353680..353743 */
 	{
 		int Size = 64, Base = 0;
 		while (Size) {
 			int Chunk = Min(Size, 1024);
 			AT_HYPERFLASH_FS_FC_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) resnet_L3_Flash + 353680+Base), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) resnet_L2_Memory + 0), Chunk, 0, &UchanHF1);
 			AT_HYPERFLASH_FS_FC_WAIT(&HyperFlash, &UchanHF1);
-			AT_HYPERRAM_FC_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 322944+Base), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 0), Chunk, 1, &UchanHR2);
+			AT_HYPERRAM_FC_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 353680+Base), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 0), Chunk, 1, &UchanHR2);
 			AT_HYPERRAM_FC_WAIT(&HyperRam, &UchanHR2);
 			Base += Chunk;
 			Size -= Chunk;
 		}
 	}
-	/* Moving Model_1res4a_branch1conv2d_bia, size 64 from HyperFlash at 353744 to (size 64) HyperRam at 323008..323071 */
+	/* Moving Model_1res4a_branch1conv2d_bia, size 64 from HyperFlash at 353744 to (size 64) HyperRam at 353744..353807 */
 	{
 		int Size = 64, Base = 0;
 		while (Size) {
 			int Chunk = Min(Size, 1024);
 			AT_HYPERFLASH_FS_FC_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) resnet_L3_Flash + 353744+Base), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) resnet_L2_Memory + 0), Chunk, 0, &UchanHF1);
 			AT_HYPERFLASH_FS_FC_WAIT(&HyperFlash, &UchanHF1);
-			AT_HYPERRAM_FC_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 323008+Base), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 0), Chunk, 1, &UchanHR2);
+			AT_HYPERRAM_FC_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 353744+Base), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 0), Chunk, 1, &UchanHR2);
 			AT_HYPERRAM_FC_WAIT(&HyperRam, &UchanHR2);
 			Base += Chunk;
 			Size -= Chunk;
 		}
 	}
-	/* Moving Model_1res4a_branch2bconv2d_bi, size 64 from HyperFlash at 353808 to (size 64) HyperRam at 323072..323135 */
+	/* Moving Res4a_branch2bkernel, size 18432 from HyperFlash at 258048 to (size 18432) HyperRam at 258048..276479 */
+	{
+		int Size = 18432, Base = 0;
+		while (Size) {
+			int Chunk = Min(Size, 1024);
+			AT_HYPERFLASH_FS_FC_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) resnet_L3_Flash + 258048+Base), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) resnet_L2_Memory + 0), Chunk, 0, &UchanHF1);
+			AT_HYPERFLASH_FS_FC_WAIT(&HyperFlash, &UchanHF1);
+			AT_HYPERRAM_FC_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 258048+Base), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 0), Chunk, 1, &UchanHR2);
+			AT_HYPERRAM_FC_WAIT(&HyperRam, &UchanHR2);
+			Base += Chunk;
+			Size -= Chunk;
+		}
+	}
+	/* Moving Model_1res4a_branch2bconv2d_bi, size 64 from HyperFlash at 353808 to (size 64) HyperRam at 353808..353871 */
 	{
 		int Size = 64, Base = 0;
 		while (Size) {
 			int Chunk = Min(Size, 1024);
 			AT_HYPERFLASH_FS_FC_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) resnet_L3_Flash + 353808+Base), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) resnet_L2_Memory + 0), Chunk, 0, &UchanHF1);
 			AT_HYPERFLASH_FS_FC_WAIT(&HyperFlash, &UchanHF1);
-			AT_HYPERRAM_FC_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 323072+Base), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 0), Chunk, 1, &UchanHR2);
+			AT_HYPERRAM_FC_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 353808+Base), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 0), Chunk, 1, &UchanHR2);
 			AT_HYPERRAM_FC_WAIT(&HyperRam, &UchanHR2);
 			Base += Chunk;
 			Size -= Chunk;
@@ -4017,27 +4203,92 @@ int resnetCNN_Construct()
 			Size -= Chunk;
 		}
 	}
-	/* Moving Model_1res4bbranch2aconv2d_bia, size 64 from HyperFlash at 353872 to (size 64) HyperRam at 323136..323199 */
+	/* Moving Model_1res4bbranch2aconv2d_bia, size 64 from HyperFlash at 353872 to (size 64) HyperRam at 353872..353935 */
 	{
 		int Size = 64, Base = 0;
 		while (Size) {
 			int Chunk = Min(Size, 1024);
 			AT_HYPERFLASH_FS_FC_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) resnet_L3_Flash + 353872+Base), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) resnet_L2_Memory + 0), Chunk, 0, &UchanHF1);
 			AT_HYPERFLASH_FS_FC_WAIT(&HyperFlash, &UchanHF1);
-			AT_HYPERRAM_FC_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 323136+Base), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 0), Chunk, 1, &UchanHR2);
+			AT_HYPERRAM_FC_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 353872+Base), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 0), Chunk, 1, &UchanHR2);
 			AT_HYPERRAM_FC_WAIT(&HyperRam, &UchanHR2);
 			Base += Chunk;
 			Size -= Chunk;
 		}
 	}
-	/* Moving Model_1res4bbranch2bconv2d_bia, size 64 from HyperFlash at 353936 to (size 64) HyperRam at 323200..323263 */
+	/* Moving Res4bbranch2bkernel, size 18432 from HyperFlash at 294912 to (size 18432) HyperRam at 294912..313343 */
+	{
+		int Size = 18432, Base = 0;
+		while (Size) {
+			int Chunk = Min(Size, 1024);
+			AT_HYPERFLASH_FS_FC_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) resnet_L3_Flash + 294912+Base), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) resnet_L2_Memory + 0), Chunk, 0, &UchanHF1);
+			AT_HYPERFLASH_FS_FC_WAIT(&HyperFlash, &UchanHF1);
+			AT_HYPERRAM_FC_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 294912+Base), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 0), Chunk, 1, &UchanHR2);
+			AT_HYPERRAM_FC_WAIT(&HyperRam, &UchanHR2);
+			Base += Chunk;
+			Size -= Chunk;
+		}
+	}
+	/* Moving Model_1res4bbranch2bconv2d_bia, size 64 from HyperFlash at 353936 to (size 64) HyperRam at 353936..353999 */
 	{
 		int Size = 64, Base = 0;
 		while (Size) {
 			int Chunk = Min(Size, 1024);
 			AT_HYPERFLASH_FS_FC_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) resnet_L3_Flash + 353936+Base), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) resnet_L2_Memory + 0), Chunk, 0, &UchanHF1);
 			AT_HYPERFLASH_FS_FC_WAIT(&HyperFlash, &UchanHF1);
-			AT_HYPERRAM_FC_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 323200+Base), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 0), Chunk, 1, &UchanHR2);
+			AT_HYPERRAM_FC_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 353936+Base), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 0), Chunk, 1, &UchanHR2);
+			AT_HYPERRAM_FC_WAIT(&HyperRam, &UchanHR2);
+			Base += Chunk;
+			Size -= Chunk;
+		}
+	}
+	/* Moving Res5a_branch2akernel, size 36864 from HyperFlash at 221184 to (size 36864) HyperRam at 221184..258047 */
+	{
+		int Size = 36864, Base = 0;
+		while (Size) {
+			int Chunk = Min(Size, 1024);
+			AT_HYPERFLASH_FS_FC_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) resnet_L3_Flash + 221184+Base), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) resnet_L2_Memory + 0), Chunk, 0, &UchanHF1);
+			AT_HYPERFLASH_FS_FC_WAIT(&HyperFlash, &UchanHF1);
+			AT_HYPERRAM_FC_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 221184+Base), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 0), Chunk, 1, &UchanHR2);
+			AT_HYPERRAM_FC_WAIT(&HyperRam, &UchanHR2);
+			Base += Chunk;
+			Size -= Chunk;
+		}
+	}
+	/* Moving Model_1res5a_branch2aconv2d_bi, size 128 from HyperFlash at 353040 to (size 128) HyperRam at 353040..353167 */
+	{
+		int Size = 128, Base = 0;
+		while (Size) {
+			int Chunk = Min(Size, 1024);
+			AT_HYPERFLASH_FS_FC_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) resnet_L3_Flash + 353040+Base), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) resnet_L2_Memory + 0), Chunk, 0, &UchanHF1);
+			AT_HYPERFLASH_FS_FC_WAIT(&HyperFlash, &UchanHF1);
+			AT_HYPERRAM_FC_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 353040+Base), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 0), Chunk, 1, &UchanHR2);
+			AT_HYPERRAM_FC_WAIT(&HyperRam, &UchanHR2);
+			Base += Chunk;
+			Size -= Chunk;
+		}
+	}
+	/* Moving Res5a_branch1kernel, size 4096 from HyperFlash at 336384 to (size 4096) HyperRam at 336384..340479 */
+	{
+		int Size = 4096, Base = 0;
+		while (Size) {
+			int Chunk = Min(Size, 1024);
+			AT_HYPERFLASH_FS_FC_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) resnet_L3_Flash + 336384+Base), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) resnet_L2_Memory + 0), Chunk, 0, &UchanHF1);
+			AT_HYPERFLASH_FS_FC_WAIT(&HyperFlash, &UchanHF1);
+			AT_HYPERRAM_FC_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 336384+Base), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 0), Chunk, 1, &UchanHR2);
+			AT_HYPERRAM_FC_WAIT(&HyperRam, &UchanHR2);
+			Base += Chunk;
+			Size -= Chunk;
+		}
+	}
+	/* Moving Model_1res5a_branch1conv2d_bia, size 128 from HyperFlash at 353168 to (size 128) HyperRam at 353168..353295 */
+	{
+		int Size = 128, Base = 0;
+		while (Size) {
+			int Chunk = Min(Size, 1024);
+			AT_HYPERFLASH_FS_FC_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) resnet_L3_Flash + 353168+Base), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) resnet_L2_Memory + 0), Chunk, 0, &UchanHF1);
+			AT_HYPERFLASH_FS_FC_WAIT(&HyperFlash, &UchanHF1);
+			AT_HYPERRAM_FC_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 353168+Base), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 0), Chunk, 1, &UchanHR2);
 			AT_HYPERRAM_FC_WAIT(&HyperRam, &UchanHR2);
 			Base += Chunk;
 			Size -= Chunk;
@@ -4056,14 +4307,14 @@ int resnetCNN_Construct()
 			Size -= Chunk;
 		}
 	}
-	/* Moving Model_1res5a_branch2bconv2d_bi, size 128 from HyperFlash at 353296 to (size 128) HyperRam at 322560..322687 */
+	/* Moving Model_1res5a_branch2bconv2d_bi, size 128 from HyperFlash at 353296 to (size 128) HyperRam at 353296..353423 */
 	{
 		int Size = 128, Base = 0;
 		while (Size) {
 			int Chunk = Min(Size, 1024);
 			AT_HYPERFLASH_FS_FC_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) resnet_L3_Flash + 353296+Base), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) resnet_L2_Memory + 0), Chunk, 0, &UchanHF1);
 			AT_HYPERFLASH_FS_FC_WAIT(&HyperFlash, &UchanHF1);
-			AT_HYPERRAM_FC_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 322560+Base), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 0), Chunk, 1, &UchanHR2);
+			AT_HYPERRAM_FC_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 353296+Base), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 0), Chunk, 1, &UchanHR2);
 			AT_HYPERRAM_FC_WAIT(&HyperRam, &UchanHR2);
 			Base += Chunk;
 			Size -= Chunk;
@@ -4082,14 +4333,14 @@ int resnetCNN_Construct()
 			Size -= Chunk;
 		}
 	}
-	/* Moving Model_1res5bbranch2aconv2d_bia, size 128 from HyperFlash at 353424 to (size 128) HyperRam at 322688..322815 */
+	/* Moving Model_1res5bbranch2aconv2d_bia, size 128 from HyperFlash at 353424 to (size 128) HyperRam at 353424..353551 */
 	{
 		int Size = 128, Base = 0;
 		while (Size) {
 			int Chunk = Min(Size, 1024);
 			AT_HYPERFLASH_FS_FC_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) resnet_L3_Flash + 353424+Base), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) resnet_L2_Memory + 0), Chunk, 0, &UchanHF1);
 			AT_HYPERFLASH_FS_FC_WAIT(&HyperFlash, &UchanHF1);
-			AT_HYPERRAM_FC_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 322688+Base), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 0), Chunk, 1, &UchanHR2);
+			AT_HYPERRAM_FC_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 353424+Base), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 0), Chunk, 1, &UchanHR2);
 			AT_HYPERRAM_FC_WAIT(&HyperRam, &UchanHR2);
 			Base += Chunk;
 			Size -= Chunk;
@@ -4108,99 +4359,61 @@ int resnetCNN_Construct()
 			Size -= Chunk;
 		}
 	}
-	/* Moving Model_1res5bbranch2bconv2d_bia, size 128 from HyperFlash at 353552 to (size 128) HyperRam at 322816..322943 */
+	/* Moving Model_1res5bbranch2bconv2d_bia, size 128 from HyperFlash at 353552 to (size 128) HyperRam at 353552..353679 */
 	{
 		int Size = 128, Base = 0;
 		while (Size) {
 			int Chunk = Min(Size, 1024);
 			AT_HYPERFLASH_FS_FC_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) resnet_L3_Flash + 353552+Base), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) resnet_L2_Memory + 0), Chunk, 0, &UchanHF1);
 			AT_HYPERFLASH_FS_FC_WAIT(&HyperFlash, &UchanHF1);
-			AT_HYPERRAM_FC_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 322816+Base), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 0), Chunk, 1, &UchanHR2);
+			AT_HYPERRAM_FC_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 353552+Base), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 0), Chunk, 1, &UchanHR2);
 			AT_HYPERRAM_FC_WAIT(&HyperRam, &UchanHR2);
 			Base += Chunk;
 			Size -= Chunk;
 		}
 	}
-	/* Moving M2weightedaveragematmul_bias, size 14 from HyperFlash at 354240 to (size 14) HyperRam at 323456..323469 */
+	/* Moving Weightedaveragekerneltranspose, size 3584 from HyperFlash at 340480 to (size 3584) HyperRam at 340480..344063 */
+	{
+		int Size = 3584, Base = 0;
+		while (Size) {
+			int Chunk = Min(Size, 1024);
+			AT_HYPERFLASH_FS_FC_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) resnet_L3_Flash + 340480+Base), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) resnet_L2_Memory + 0), Chunk, 0, &UchanHF1);
+			AT_HYPERFLASH_FS_FC_WAIT(&HyperFlash, &UchanHF1);
+			AT_HYPERRAM_FC_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 340480+Base), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 0), Chunk, 1, &UchanHR2);
+			AT_HYPERRAM_FC_WAIT(&HyperRam, &UchanHR2);
+			Base += Chunk;
+			Size -= Chunk;
+		}
+	}
+	/* Moving M2weightedaveragematmul_bias, size 14 from HyperFlash at 354240 to (size 14) HyperRam at 354240..354253 */
 	{
 		int Size = 14, Base = 0;
 		while (Size) {
 			int Chunk = Min(Size, 1024);
 			AT_HYPERFLASH_FS_FC_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) resnet_L3_Flash + 354240+Base), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) resnet_L2_Memory + 0), Chunk, 0, &UchanHF1);
 			AT_HYPERFLASH_FS_FC_WAIT(&HyperFlash, &UchanHF1);
-			AT_HYPERRAM_FC_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 323456+Base), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 0), Chunk, 1, &UchanHR2);
+			AT_HYPERRAM_FC_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 354240+Base), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 0), Chunk, 1, &UchanHR2);
 			AT_HYPERRAM_FC_WAIT(&HyperRam, &UchanHR2);
 			Base += Chunk;
 			Size -= Chunk;
 		}
 	}
-	/* Moving Conv1kernel, size 784 from HyperFlash at 352000 to (size 784) L2 at 66816..67599 */
-	AT_HYPERFLASH_FS_FC_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) resnet_L3_Flash + 352000), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) resnet_L2_Memory + 66816), 784, 0, &UchanHF1);
+	/* Moving Model_1res3a_branch2aconv2d_bi, size 32 from HyperFlash at 354000 to (size 32) L2 at 10240..10271 */
+	AT_HYPERFLASH_FS_FC_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) resnet_L3_Flash + 354000), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) resnet_L2_Memory + 10240), 32, 0, &UchanHF1);
 	AT_HYPERFLASH_FS_FC_WAIT(&HyperFlash, &UchanHF1);
-	/* Moving Model_1conv1conv2d_bias, size 16 from HyperFlash at 354160 to (size 16) L2 at 67600..67615 */
-	AT_HYPERFLASH_FS_FC_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) resnet_L3_Flash + 354160), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) resnet_L2_Memory + 67600), 16, 0, &UchanHF1);
+	/* Moving Res4a_branch2akernel, size 9216 from HyperFlash at 313344 to (size 9216) L2 at 0..9215 */
+	AT_HYPERFLASH_FS_FC_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) resnet_L3_Flash + 313344), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) resnet_L2_Memory + 0), 9216, 0, &UchanHF1);
 	AT_HYPERFLASH_FS_FC_WAIT(&HyperFlash, &UchanHF1);
-	/* Moving Res2bbranch2akernel, size 1152 from HyperFlash at 346368 to (size 1152) L2 at 64512..65663 */
-	AT_HYPERFLASH_FS_FC_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) resnet_L3_Flash + 346368), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) resnet_L2_Memory + 64512), 1152, 0, &UchanHF1);
-	AT_HYPERFLASH_FS_FC_WAIT(&HyperFlash, &UchanHF1);
-	/* Moving Model_1res2bbranch2aconv2d_bia, size 16 from HyperFlash at 354176 to (size 16) L2 at 67616..67631 */
-	AT_HYPERFLASH_FS_FC_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) resnet_L3_Flash + 354176), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) resnet_L2_Memory + 67616), 16, 0, &UchanHF1);
-	AT_HYPERFLASH_FS_FC_WAIT(&HyperFlash, &UchanHF1);
-	/* Moving Res2bbranch2bkernel, size 1152 from HyperFlash at 347520 to (size 1152) L2 at 65664..66815 */
-	AT_HYPERFLASH_FS_FC_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) resnet_L3_Flash + 347520), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) resnet_L2_Memory + 65664), 1152, 0, &UchanHF1);
-	AT_HYPERFLASH_FS_FC_WAIT(&HyperFlash, &UchanHF1);
-	/* Moving Model_1res2bbranch2bconv2d_bia, size 16 from HyperFlash at 354192 to (size 16) L2 at 67632..67647 */
-	AT_HYPERFLASH_FS_FC_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) resnet_L3_Flash + 354192), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) resnet_L2_Memory + 67632), 16, 0, &UchanHF1);
-	AT_HYPERFLASH_FS_FC_WAIT(&HyperFlash, &UchanHF1);
-	/* Moving Res2cbranch2akernel, size 1152 from HyperFlash at 348672 to (size 1152) L2 at 109120..110271 */
-	AT_HYPERFLASH_FS_FC_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) resnet_L3_Flash + 348672), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) resnet_L2_Memory + 109120), 1152, 0, &UchanHF1);
-	AT_HYPERFLASH_FS_FC_WAIT(&HyperFlash, &UchanHF1);
-	/* Moving Res3a_branch1kernel, size 256 from HyperFlash at 352784 to (size 256) L2 at 3584..3839 */
-	AT_HYPERFLASH_FS_FC_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) resnet_L3_Flash + 352784), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) resnet_L2_Memory + 3584), 256, 0, &UchanHF1);
-	AT_HYPERFLASH_FS_FC_WAIT(&HyperFlash, &UchanHF1);
-	/* Moving Res3a_branch2bkernel, size 4608 from HyperFlash at 322560 to (size 4608) L2 at 104512..109119 */
-	AT_HYPERFLASH_FS_FC_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) resnet_L3_Flash + 322560), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) resnet_L2_Memory + 104512), 4608, 0, &UchanHF1);
-	AT_HYPERFLASH_FS_FC_WAIT(&HyperFlash, &UchanHF1);
-	/* Moving Res3bbranch2akernel, size 4608 from HyperFlash at 327168 to (size 4608) L2 at 22528..27135 */
-	AT_HYPERFLASH_FS_FC_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) resnet_L3_Flash + 327168), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) resnet_L2_Memory + 22528), 4608, 0, &UchanHF1);
-	AT_HYPERFLASH_FS_FC_WAIT(&HyperFlash, &UchanHF1);
-	/* Moving Res3bbranch2bkernel, size 4608 from HyperFlash at 331776 to (size 4608) L2 at 27136..31743 */
-	AT_HYPERFLASH_FS_FC_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) resnet_L3_Flash + 331776), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) resnet_L2_Memory + 27136), 4608, 0, &UchanHF1);
-	AT_HYPERFLASH_FS_FC_WAIT(&HyperFlash, &UchanHF1);
-	/* Moving Res4a_branch2akernel, size 9216 from HyperFlash at 313344 to (size 9216) L2 at 55296..64511 */
-	AT_HYPERFLASH_FS_FC_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) resnet_L3_Flash + 313344), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) resnet_L2_Memory + 55296), 9216, 0, &UchanHF1);
-	AT_HYPERFLASH_FS_FC_WAIT(&HyperFlash, &UchanHF1);
-	/* Moving Res4a_branch1kernel, size 1024 from HyperFlash at 350976 to (size 1024) L2 at 35840..36863 */
-	AT_HYPERFLASH_FS_FC_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) resnet_L3_Flash + 350976), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) resnet_L2_Memory + 35840), 1024, 0, &UchanHF1);
-	AT_HYPERFLASH_FS_FC_WAIT(&HyperFlash, &UchanHF1);
-	/* Moving Res4a_branch2bkernel, size 18432 from HyperFlash at 258048 to (size 18432) L2 at 4096..22527 */
-	AT_HYPERFLASH_FS_FC_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) resnet_L3_Flash + 258048), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) resnet_L2_Memory + 4096), 18432, 0, &UchanHF1);
-	AT_HYPERFLASH_FS_FC_WAIT(&HyperFlash, &UchanHF1);
-	/* Moving Res4bbranch2bkernel, size 18432 from HyperFlash at 294912 to (size 18432) L2 at 36864..55295 */
-	AT_HYPERFLASH_FS_FC_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) resnet_L3_Flash + 294912), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) resnet_L2_Memory + 36864), 18432, 0, &UchanHF1);
-	AT_HYPERFLASH_FS_FC_WAIT(&HyperFlash, &UchanHF1);
-	/* Moving Res5a_branch2akernel, size 36864 from HyperFlash at 221184 to (size 36864) L2 at 67648..104511 */
-	AT_HYPERFLASH_FS_FC_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) resnet_L3_Flash + 221184), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) resnet_L2_Memory + 67648), 36864, 0, &UchanHF1);
-	AT_HYPERFLASH_FS_FC_WAIT(&HyperFlash, &UchanHF1);
-	/* Moving Model_1res5a_branch2aconv2d_bi, size 128 from HyperFlash at 353040 to (size 128) L2 at 3840..3967 */
-	AT_HYPERFLASH_FS_FC_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) resnet_L3_Flash + 353040), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) resnet_L2_Memory + 3840), 128, 0, &UchanHF1);
-	AT_HYPERFLASH_FS_FC_WAIT(&HyperFlash, &UchanHF1);
-	/* Moving Res5a_branch1kernel, size 4096 from HyperFlash at 336384 to (size 4096) L2 at 31744..35839 */
-	AT_HYPERFLASH_FS_FC_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) resnet_L3_Flash + 336384), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) resnet_L2_Memory + 31744), 4096, 0, &UchanHF1);
-	AT_HYPERFLASH_FS_FC_WAIT(&HyperFlash, &UchanHF1);
-	/* Moving Model_1res5a_branch1conv2d_bia, size 128 from HyperFlash at 353168 to (size 128) L2 at 3968..4095 */
-	AT_HYPERFLASH_FS_FC_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) resnet_L3_Flash + 353168), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) resnet_L2_Memory + 3968), 128, 0, &UchanHF1);
-	AT_HYPERFLASH_FS_FC_WAIT(&HyperFlash, &UchanHF1);
-	/* Moving Weightedaveragekerneltranspose, size 3584 from HyperFlash at 340480 to (size 3584) L2 at 0..3583 */
-	AT_HYPERFLASH_FS_FC_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) resnet_L3_Flash + 340480), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) resnet_L2_Memory + 0), 3584, 0, &UchanHF1);
+	/* Moving Res4a_branch1kernel, size 1024 from HyperFlash at 350976 to (size 1024) L2 at 9216..10239 */
+	AT_HYPERFLASH_FS_FC_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) resnet_L3_Flash + 350976), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) resnet_L2_Memory + 9216), 1024, 0, &UchanHF1);
 	AT_HYPERFLASH_FS_FC_WAIT(&HyperFlash, &UchanHF1);
 	return 0;
 }
 int resnetCNN_Destruct()
 
 {
-	AT_HYPERRAM_FREE(&HyperRam, resnet_L3_Memory, 323470);
-	AT_L2_FREE(0, resnet_L2_Memory, 200000);
+	AT_HYPERRAM_FREE(&HyperRam, resnet_L3_Memory, 378590);
+	AT_L2_FREE(0, resnet_L2_Memory, 100000);
 	AT_L1_FREE(0, resnet_L1_Memory, 46096);
 	AT_HYPERFLASH_FS_CLOSE(&HyperFlash);
 	return 0;
@@ -4215,266 +4428,331 @@ int resnetCNN(
 	AT_HYPERRAM_CL_EVENT UchanHR2;
 	AT_HYPERRAM_CL_EVENT UchanHR3;
 	AT_HYPERRAM_CL_EVENT UchanHR4;
-	/* Moving Model_1res2cbranch2aconv2d_bia, size 16 from HyperRam at 323424 to (size 16) L2 at 185584 using event 0 */
-	AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 323424), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 185584), 16, 0, &UchanHR0);
-	/* Moving Res2cbranch2bkernel, size 1152 from HyperRam at 319872 to (size 1152) L2 at 184432 using event 1 */
-	AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 319872), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 184432), 1152, 0, &UchanHR1);
-	/* Moving Model_1res2cbranch2bconv2d_bia, size 16 from HyperRam at 323440 to (size 16) L2 at 185600 using event 2 */
-	AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 323440), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 185600), 16, 0, &UchanHR2);
+	AT_HYPERRAM_CL_EVENT UchanHR5;
+	/* Moving Conv1kernel, size 784 from HyperRam at 352000 to (size 784) L2 at 34608 using event 0 */
+	AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 352000), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 34608), 784, 0, &UchanHR0);
+	/* Moving Model_1conv1conv2d_bias, size 16 from HyperRam at 354160 to (size 16) L2 at 35392 using event 1 */
+	AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 354160), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 35392), 16, 0, &UchanHR1);
+	/* Moving Res2bbranch2akernel, size 1152 from HyperRam at 346368 to (size 1152) L2 at 58944 using event 2 */
+	AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 346368), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 58944), 1152, 0, &UchanHR2);
+	/* Moving Model_1res2bbranch2aconv2d_bia, size 16 from HyperRam at 354176 to (size 16) L2 at 60096 using event 3 */
+	AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 354176), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 60096), 16, 0, &UchanHR3);
+	/* Moving Res2bbranch2bkernel, size 1152 from HyperRam at 347520 to (size 1152) L2 at 76416 using event 4 */
+	AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 347520), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 76416), 1152, 0, &UchanHR4);
+	/* Moving Model_1res2bbranch2bconv2d_bia, size 16 from HyperRam at 354192 to (size 16) L2 at 77568 using event 5 */
+	AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 354192), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 77568), 16, 0, &UchanHR5);
+	/* Waiting completion of transfer of Conv1kernel using event 0 */
+	AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR0);
+	/* Waiting completion of transfer of Model_1conv1conv2d_bias using event 1 */
+	AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR1);
 	S4_Conv2d_8x1x7x7_MaxPool_3x3_Relu(
 		((signed short * __restrict__) Input_1), /* In */
-		((signed short * __restrict__) (resnet_L2_Memory+66816)), /* Filter */
-		((signed short * __restrict__) (resnet_L2_Memory+67600)), /* Bias */
-		((signed short * __restrict__) (resnet_L2_Memory+110272)) /* Out */
+		((signed short * __restrict__) (resnet_L2_Memory+34608)), /* Filter */
+		((signed short * __restrict__) (resnet_L2_Memory+35392)), /* Bias */
+		((signed short * __restrict__) (resnet_L2_Memory+10272)) /* Out */
 	);
-	S7_Conv2d_8x8x3x3_Relu(
-		((signed short * __restrict__) (resnet_L2_Memory+110272)), /* In */
-		((signed short * __restrict__) (resnet_L2_Memory+64512)), /* Filter */
-		((signed short * __restrict__) (resnet_L2_Memory+67616)), /* Bias */
-		((signed short * __restrict__) (resnet_L2_Memory+134608)) /* Out */
-	);
-	S10_Conv2d_8x8x3x3(
-		((signed short * __restrict__) (resnet_L2_Memory+134608)), /* In */
-		((signed short * __restrict__) (resnet_L2_Memory+65664)), /* Filter */
-		((signed short * __restrict__) (resnet_L2_Memory+67632)), /* Bias */
-		((signed short * __restrict__) (resnet_L2_Memory+158944)) /* Out */
-	);
-	S11_MatAdd_8x39x39(
-		((signed short * __restrict__) (resnet_L2_Memory+158944)), /* In1 */
-		((signed short * __restrict__) (resnet_L2_Memory+110272)), /* In2 */
-		((signed short * __restrict__) (resnet_L2_Memory+134608)) /* Out */
-	);
-	/* Waiting completion of transfer of Model_1res2cbranch2aconv2d_bia using event 0 */
-	AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR0);
-	S14_Conv2d_8x8x3x3_Relu(
-		((signed short * __restrict__) (resnet_L2_Memory+134608)), /* In */
-		((signed short * __restrict__) (resnet_L2_Memory+109120)), /* Filter */
-		((signed short * __restrict__) (resnet_L2_Memory+185584)), /* Bias */
-		((signed short * __restrict__) (resnet_L2_Memory+110272)) /* Out */
-	);
-	/* Waiting completion of transfer of Res2cbranch2bkernel using event 1 */
-	AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR1);
-	/* Waiting completion of transfer of Model_1res2cbranch2bconv2d_bia using event 2 */
+	/* Waiting completion of transfer of Res2bbranch2akernel using event 2 */
 	AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR2);
+	/* Waiting completion of transfer of Model_1res2bbranch2aconv2d_bia using event 3 */
+	AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR3);
+	S7_Conv2d_8x8x3x3_Relu(
+		((signed short * __restrict__) (resnet_L2_Memory+10272)), /* In */
+		((signed short * __restrict__) (resnet_L2_Memory+58944)), /* Filter */
+		((signed short * __restrict__) (resnet_L2_Memory+60096)), /* Bias */
+		((signed short * __restrict__) (resnet_L2_Memory+34608)) /* Out */
+	);
+	/* Waiting completion of transfer of Res2bbranch2bkernel using event 4 */
+	AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR4);
+	/* Waiting completion of transfer of Model_1res2bbranch2bconv2d_bia using event 5 */
+	AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR5);
+	S10_Conv2d_8x8x3x3(
+		((signed short * __restrict__) (resnet_L2_Memory+34608)), /* In */
+		((signed short * __restrict__) (resnet_L2_Memory+76416)), /* Filter */
+		((signed short * __restrict__) (resnet_L2_Memory+77568)), /* Bias */
+		((signed short * __restrict__) (resnet_L3_Memory+354256)) /* Out */
+	);
+	/* Moving Res2cbranch2akernel, size 1152 from HyperRam at 348672 to (size 1152) L2 at 73920 using event 0 */
+	AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 348672), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 73920), 1152, 0, &UchanHR0);
+	/* Moving Model_1res2cbranch2aconv2d_bia, size 16 from HyperRam at 354208 to (size 16) L2 at 75072 using event 1 */
+	AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 354208), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 75072), 16, 0, &UchanHR1);
+	/* Moving Res2cbranch2bkernel, size 1152 from HyperRam at 349824 to (size 1152) L2 at 76416 using event 2 */
+	AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 349824), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 76416), 1152, 0, &UchanHR2);
+	/* Moving Model_1res2cbranch2bconv2d_bia, size 16 from HyperRam at 354224 to (size 16) L2 at 77568 using event 3 */
+	AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 354224), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 77568), 16, 0, &UchanHR3);
+	S11_MatAdd_8x39x39(
+		((signed short * __restrict__) (resnet_L3_Memory+354256)), /* In1 */
+		((signed short * __restrict__) (resnet_L2_Memory+10272)), /* In2 */
+		((signed short * __restrict__) (resnet_L2_Memory+34608)) /* Out */
+	);
+	/* Waiting completion of transfer of Res2cbranch2akernel using event 0 */
+	AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR0);
+	/* Waiting completion of transfer of Model_1res2cbranch2aconv2d_bia using event 1 */
+	AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR1);
+	S14_Conv2d_8x8x3x3_Relu(
+		((signed short * __restrict__) (resnet_L2_Memory+34608)), /* In */
+		((signed short * __restrict__) (resnet_L2_Memory+73920)), /* Filter */
+		((signed short * __restrict__) (resnet_L2_Memory+75072)), /* Bias */
+		((signed short * __restrict__) (resnet_L2_Memory+10272)) /* Out */
+	);
+	/* Waiting completion of transfer of Res2cbranch2bkernel using event 2 */
+	AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR2);
+	/* Waiting completion of transfer of Model_1res2cbranch2bconv2d_bia using event 3 */
+	AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR3);
 	S17_Conv2d_8x8x3x3(
-		((signed short * __restrict__) (resnet_L2_Memory+110272)), /* In */
-		((signed short * __restrict__) (resnet_L2_Memory+184432)), /* Filter */
-		((signed short * __restrict__) (resnet_L2_Memory+185600)), /* Bias */
-		((signed short * __restrict__) (resnet_L2_Memory+158944)) /* Out */
+		((signed short * __restrict__) (resnet_L2_Memory+10272)), /* In */
+		((signed short * __restrict__) (resnet_L2_Memory+76416)), /* Filter */
+		((signed short * __restrict__) (resnet_L2_Memory+77568)), /* Bias */
+		((signed short * __restrict__) (resnet_L3_Memory+354256)) /* Out */
 	);
-	/* Moving Res3a_branch2akernel, size 2304 from HyperRam at 316416 to (size 2304) L2 at 183280 using event 0 */
-	AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 316416), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 183280), 2304, 0, &UchanHR0);
-	/* Moving Model_1res3a_branch2aconv2d_bi, size 32 from HyperRam at 323264 to (size 32) L2 at 185584 using event 1 */
-	AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 323264), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 185584), 32, 0, &UchanHR1);
+	/* Moving Res3a_branch2akernel, size 2304 from HyperRam at 344064 to (size 2304) L2 at 73920 using event 0 */
+	AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 344064), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 73920), 2304, 0, &UchanHR0);
 	S18_MatAdd_8x39x39(
-		((signed short * __restrict__) (resnet_L2_Memory+158944)), /* In1 */
-		((signed short * __restrict__) (resnet_L2_Memory+134608)), /* In2 */
-		((signed short * __restrict__) (resnet_L2_Memory+110272)) /* Out */
+		((signed short * __restrict__) (resnet_L3_Memory+354256)), /* In1 */
+		((signed short * __restrict__) (resnet_L2_Memory+34608)), /* In2 */
+		((signed short * __restrict__) (resnet_L2_Memory+10272)) /* Out */
 	);
-	/* Moving Model_1res3a_branch1conv2d_bia, size 32 from HyperRam at 323296 to (size 32) L2 at 165072 using event 2 */
-	AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 323296), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 165072), 32, 0, &UchanHR2);
-	/* Moving Model_1res3a_branch2bconv2d_bi, size 32 from HyperRam at 323328 to (size 32) L2 at 165104 using event 3 */
-	AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 323328), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 165104), 32, 0, &UchanHR3);
-	/* Moving Model_1res3bbranch2aconv2d_bia, size 32 from HyperRam at 323360 to (size 32) L2 at 164816 using event 4 */
-	AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 323360), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 164816), 32, 0, &UchanHR4);
+	/* Moving Res3a_branch1kernel, size 256 from HyperRam at 352784 to (size 256) L2 at 64816 using event 1 */
+	AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 352784), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 64816), 256, 0, &UchanHR1);
+	/* Moving Model_1res3a_branch1conv2d_bia, size 32 from HyperRam at 354032 to (size 32) L2 at 65072 using event 2 */
+	AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 354032), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 65072), 32, 0, &UchanHR2);
+	/* Moving Res3a_branch2bkernel, size 4608 from HyperRam at 322560 to (size 4608) L2 at 60208 using event 3 */
+	AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 322560), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 60208), 4608, 0, &UchanHR3);
+	/* Moving Model_1res3a_branch2bconv2d_bi, size 32 from HyperRam at 354064 to (size 32) L2 at 65104 using event 4 */
+	AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 354064), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 65104), 32, 0, &UchanHR4);
 	/* Waiting completion of transfer of Res3a_branch2akernel using event 0 */
 	AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR0);
-	/* Waiting completion of transfer of Model_1res3a_branch2aconv2d_bi using event 1 */
-	AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR1);
 	S21_Conv2d_16x8x3x3_Relu(
-		((signed short * __restrict__) (resnet_L2_Memory+110272)), /* In */
-		((signed short * __restrict__) (resnet_L2_Memory+183280)), /* Filter */
-		((signed short * __restrict__) (resnet_L2_Memory+185584)), /* Bias */
-		((signed short * __restrict__) (resnet_L2_Memory+134608)) /* Out */
+		((signed short * __restrict__) (resnet_L2_Memory+10272)), /* In */
+		((signed short * __restrict__) (resnet_L2_Memory+73920)), /* Filter */
+		((signed short * __restrict__) (resnet_L2_Memory+10240)), /* Bias */
+		((signed short * __restrict__) (resnet_L2_Memory+34608)) /* Out */
 	);
-	/* Waiting completion of transfer of Model_1res3a_branch2bconv2d_bi using event 3 */
+	/* Waiting completion of transfer of Res3a_branch2bkernel using event 3 */
 	AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR3);
+	/* Waiting completion of transfer of Model_1res3a_branch2bconv2d_bi using event 4 */
+	AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR4);
 	S27_Conv2d_16x16x3x3_Relu(
-		((signed short * __restrict__) (resnet_L2_Memory+134608)), /* In */
-		((signed short * __restrict__) (resnet_L2_Memory+104512)), /* Filter */
-		((signed short * __restrict__) (resnet_L2_Memory+165104)), /* Bias */
-		((signed short * __restrict__) (resnet_L2_Memory+147408)) /* Out */
+		((signed short * __restrict__) (resnet_L2_Memory+34608)), /* In */
+		((signed short * __restrict__) (resnet_L2_Memory+60208)), /* Filter */
+		((signed short * __restrict__) (resnet_L2_Memory+65104)), /* Bias */
+		((signed short * __restrict__) (resnet_L2_Memory+47408)) /* Out */
 	);
-	/* Moving Model_1res4a_branch2aconv2d_bi, size 64 from HyperRam at 322944 to (size 64) L2 at 160704 using event 0 */
-	AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 322944), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 160704), 64, 0, &UchanHR0);
+	/* Moving Res3bbranch2akernel, size 4608 from HyperRam at 327168 to (size 4608) L2 at 60208 using event 0 */
+	AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 327168), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 60208), 4608, 0, &UchanHR0);
+	/* Moving Model_1res4a_branch2aconv2d_bi, size 64 from HyperRam at 353680 to (size 64) L2 at 69920 using event 3 */
+	AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 353680), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 69920), 64, 0, &UchanHR3);
+	/* Waiting completion of transfer of Res3a_branch1kernel using event 1 */
+	AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR1);
 	/* Waiting completion of transfer of Model_1res3a_branch1conv2d_bia using event 2 */
 	AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR2);
 	S24_Conv2d_16x8x1x1(
-		((signed short * __restrict__) (resnet_L2_Memory+110272)), /* In */
-		((signed short * __restrict__) (resnet_L2_Memory+3584)), /* Filter */
-		((signed short * __restrict__) (resnet_L2_Memory+165072)), /* Bias */
-		((signed short * __restrict__) (resnet_L2_Memory+134608)) /* Out */
+		((signed short * __restrict__) (resnet_L2_Memory+10272)), /* In */
+		((signed short * __restrict__) (resnet_L2_Memory+64816)), /* Filter */
+		((signed short * __restrict__) (resnet_L2_Memory+65072)), /* Bias */
+		((signed short * __restrict__) (resnet_L2_Memory+34608)) /* Out */
 	);
+	/* Moving Model_1res3bbranch2aconv2d_bia, size 32 from HyperRam at 354096 to (size 32) L2 at 64816 using event 1 */
+	AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 354096), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 64816), 32, 0, &UchanHR1);
 	S28_MatAdd_16x20x20(
-		((signed short * __restrict__) (resnet_L2_Memory+147408)), /* In1 */
-		((signed short * __restrict__) (resnet_L2_Memory+134608)), /* In2 */
-		((signed short * __restrict__) (resnet_L2_Memory+110272)) /* Out */
+		((signed short * __restrict__) (resnet_L2_Memory+47408)), /* In1 */
+		((signed short * __restrict__) (resnet_L2_Memory+34608)), /* In2 */
+		((signed short * __restrict__) (resnet_L2_Memory+10272)) /* Out */
 	);
-	/* Moving Model_1res3bbranch2bconv2d_bia, size 32 from HyperRam at 323392 to (size 32) L2 at 153280 using event 1 */
-	AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 323392), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 153280), 32, 0, &UchanHR1);
-	/* Moving Model_1res4a_branch1conv2d_bia, size 64 from HyperRam at 323008 to (size 64) L2 at 161728 using event 2 */
-	AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 323008), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 161728), 64, 0, &UchanHR2);
-	/* Waiting completion of transfer of Model_1res3bbranch2aconv2d_bia using event 4 */
-	AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR4);
-	S31_Conv2d_16x16x3x3_Relu(
-		((signed short * __restrict__) (resnet_L2_Memory+110272)), /* In */
-		((signed short * __restrict__) (resnet_L2_Memory+22528)), /* Filter */
-		((signed short * __restrict__) (resnet_L2_Memory+164816)), /* Bias */
-		((signed short * __restrict__) (resnet_L2_Memory+123072)) /* Out */
-	);
-	/* Waiting completion of transfer of Model_1res3bbranch2bconv2d_bia using event 1 */
+	/* Moving Res3bbranch2bkernel, size 4608 from HyperRam at 331776 to (size 4608) L2 at 48672 using event 2 */
+	AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 331776), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 48672), 4608, 0, &UchanHR2);
+	/* Moving Model_1res3bbranch2bconv2d_bia, size 32 from HyperRam at 354128 to (size 32) L2 at 53280 using event 4 */
+	AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 354128), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 53280), 32, 0, &UchanHR4);
+	/* Waiting completion of transfer of Res3bbranch2akernel using event 0 */
+	AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR0);
+	/* Waiting completion of transfer of Model_1res3bbranch2aconv2d_bia using event 1 */
 	AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR1);
+	S31_Conv2d_16x16x3x3_Relu(
+		((signed short * __restrict__) (resnet_L2_Memory+10272)), /* In */
+		((signed short * __restrict__) (resnet_L2_Memory+60208)), /* Filter */
+		((signed short * __restrict__) (resnet_L2_Memory+64816)), /* Bias */
+		((signed short * __restrict__) (resnet_L2_Memory+23072)) /* Out */
+	);
+	/* Moving Model_1res4a_branch1conv2d_bia, size 64 from HyperRam at 353744 to (size 64) L2 at 61728 using event 0 */
+	AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 353744), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 61728), 64, 0, &UchanHR0);
+	/* Waiting completion of transfer of Res3bbranch2bkernel using event 2 */
+	AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR2);
+	/* Waiting completion of transfer of Model_1res3bbranch2bconv2d_bia using event 4 */
+	AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR4);
 	S34_Conv2d_16x16x3x3(
-		((signed short * __restrict__) (resnet_L2_Memory+123072)), /* In */
-		((signed short * __restrict__) (resnet_L2_Memory+27136)), /* Filter */
-		((signed short * __restrict__) (resnet_L2_Memory+153280)), /* Bias */
-		((signed short * __restrict__) (resnet_L2_Memory+135872)) /* Out */
+		((signed short * __restrict__) (resnet_L2_Memory+23072)), /* In */
+		((signed short * __restrict__) (resnet_L2_Memory+48672)), /* Filter */
+		((signed short * __restrict__) (resnet_L2_Memory+53280)), /* Bias */
+		((signed short * __restrict__) (resnet_L2_Memory+35872)) /* Out */
 	);
 	S35_MatAdd_16x20x20(
-		((signed short * __restrict__) (resnet_L2_Memory+135872)), /* In1 */
-		((signed short * __restrict__) (resnet_L2_Memory+110272)), /* In2 */
-		((signed short * __restrict__) (resnet_L2_Memory+123072)) /* Out */
+		((signed short * __restrict__) (resnet_L2_Memory+35872)), /* In1 */
+		((signed short * __restrict__) (resnet_L2_Memory+10272)), /* In2 */
+		((signed short * __restrict__) (resnet_L2_Memory+23072)) /* Out */
 	);
-	/* Moving Model_1res4a_branch2bconv2d_bi, size 64 from HyperRam at 323072 to (size 64) L2 at 116672 using event 1 */
-	AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 323072), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 116672), 64, 0, &UchanHR1);
-	/* Moving Res4bbranch2akernel, size 18432 from HyperRam at 276480 to (size 18432) L2 at 142272 using event 3 */
-	AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 276480), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 142272), 18432, 0, &UchanHR3);
-	/* Waiting completion of transfer of Model_1res4a_branch2aconv2d_bi using event 0 */
-	AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR0);
-	S38_Conv2d_32x16x3x3_Relu(
-		((signed short * __restrict__) (resnet_L2_Memory+123072)), /* In */
-		((signed short * __restrict__) (resnet_L2_Memory+55296)), /* Filter */
-		((signed short * __restrict__) (resnet_L2_Memory+160704)), /* Bias */
-		((signed short * __restrict__) (resnet_L2_Memory+110272)) /* Out */
-	);
-	/* Waiting completion of transfer of Model_1res4a_branch2bconv2d_bi using event 1 */
-	AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR1);
-	S44_Conv2d_32x32x3x3_Relu(
-		((signed short * __restrict__) (resnet_L2_Memory+110272)), /* In */
-		((signed short * __restrict__) (resnet_L2_Memory+4096)), /* Filter */
-		((signed short * __restrict__) (resnet_L2_Memory+116672)), /* Bias */
-		((signed short * __restrict__) (resnet_L2_Memory+135872)) /* Out */
-	);
-	/* Waiting completion of transfer of Model_1res4a_branch1conv2d_bia using event 2 */
-	AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR2);
-	S41_Conv2d_32x16x1x1(
-		((signed short * __restrict__) (resnet_L2_Memory+123072)), /* In */
-		((signed short * __restrict__) (resnet_L2_Memory+35840)), /* Filter */
-		((signed short * __restrict__) (resnet_L2_Memory+161728)), /* Bias */
-		((signed short * __restrict__) (resnet_L2_Memory+116672)) /* Out */
-	);
-	/* Moving Model_1res4bbranch2aconv2d_bia, size 64 from HyperRam at 323136 to (size 64) L2 at 123072 using event 0 */
-	AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 323136), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 123072), 64, 0, &UchanHR0);
-	/* Moving Model_1res4bbranch2bconv2d_bia, size 64 from HyperRam at 323200 to (size 64) L2 at 129472 using event 1 */
-	AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 323200), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 129472), 64, 0, &UchanHR1);
-	S45_MatAdd_32x10x10(
-		((signed short * __restrict__) (resnet_L2_Memory+135872)), /* In1 */
-		((signed short * __restrict__) (resnet_L2_Memory+116672)), /* In2 */
-		((signed short * __restrict__) (resnet_L2_Memory+110272)) /* Out */
-	);
-	/* Waiting completion of transfer of Res4bbranch2akernel using event 3 */
+	/* Moving Res4a_branch2bkernel, size 18432 from HyperRam at 258048 to (size 18432) L2 at 42272 using event 1 */
+	AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 258048), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 42272), 18432, 0, &UchanHR1);
+	/* Moving Model_1res4a_branch2bconv2d_bi, size 64 from HyperRam at 353808 to (size 64) L2 at 16672 using event 2 */
+	AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 353808), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 16672), 64, 0, &UchanHR2);
+	/* Moving Model_1res4bbranch2bconv2d_bia, size 64 from HyperRam at 353936 to (size 64) L2 at 60704 using event 4 */
+	AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 353936), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 60704), 64, 0, &UchanHR4);
+	/* Waiting completion of transfer of Model_1res4a_branch2aconv2d_bi using event 3 */
 	AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR3);
+	S38_Conv2d_32x16x3x3_Relu(
+		((signed short * __restrict__) (resnet_L2_Memory+23072)), /* In */
+		((signed short * __restrict__) (resnet_L2_Memory+0)), /* Filter */
+		((signed short * __restrict__) (resnet_L2_Memory+69920)), /* Bias */
+		((signed short * __restrict__) (resnet_L2_Memory+10272)) /* Out */
+	);
+	/* Waiting completion of transfer of Res4a_branch2bkernel using event 1 */
+	AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR1);
+	/* Waiting completion of transfer of Model_1res4a_branch2bconv2d_bi using event 2 */
+	AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR2);
+	S44_Conv2d_32x32x3x3_Relu(
+		((signed short * __restrict__) (resnet_L2_Memory+10272)), /* In */
+		((signed short * __restrict__) (resnet_L2_Memory+42272)), /* Filter */
+		((signed short * __restrict__) (resnet_L2_Memory+16672)), /* Bias */
+		((signed short * __restrict__) (resnet_L2_Memory+35872)) /* Out */
+	);
+	/* Moving Res4bbranch2akernel, size 18432 from HyperRam at 276480 to (size 18432) L2 at 42272 using event 1 */
+	AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 276480), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 42272), 18432, 0, &UchanHR1);
+	/* Moving Model_1res5a_branch2aconv2d_bi, size 128 from HyperRam at 353040 to (size 128) L2 at 66336 using event 2 */
+	AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 353040), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 66336), 128, 0, &UchanHR2);
+	/* Waiting completion of transfer of Model_1res4a_branch1conv2d_bia using event 0 */
+	AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR0);
+	S41_Conv2d_32x16x1x1(
+		((signed short * __restrict__) (resnet_L2_Memory+23072)), /* In */
+		((signed short * __restrict__) (resnet_L2_Memory+9216)), /* Filter */
+		((signed short * __restrict__) (resnet_L2_Memory+61728)), /* Bias */
+		((signed short * __restrict__) (resnet_L2_Memory+16672)) /* Out */
+	);
+	/* Moving Model_1res4bbranch2aconv2d_bia, size 64 from HyperRam at 353872 to (size 64) L2 at 23072 using event 0 */
+	AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 353872), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 23072), 64, 0, &UchanHR0);
+	S45_MatAdd_32x10x10(
+		((signed short * __restrict__) (resnet_L2_Memory+35872)), /* In1 */
+		((signed short * __restrict__) (resnet_L2_Memory+16672)), /* In2 */
+		((signed short * __restrict__) (resnet_L2_Memory+10272)) /* Out */
+	);
+	/* Waiting completion of transfer of Res4bbranch2akernel using event 1 */
+	AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR1);
 	/* Waiting completion of transfer of Model_1res4bbranch2aconv2d_bia using event 0 */
 	AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR0);
 	S48_Conv2d_32x32x3x3_Relu(
-		((signed short * __restrict__) (resnet_L2_Memory+110272)), /* In */
-		((signed short * __restrict__) (resnet_L2_Memory+142272)), /* Filter */
-		((signed short * __restrict__) (resnet_L2_Memory+123072)), /* Bias */
-		((signed short * __restrict__) (resnet_L2_Memory+116672)) /* Out */
+		((signed short * __restrict__) (resnet_L2_Memory+10272)), /* In */
+		((signed short * __restrict__) (resnet_L2_Memory+42272)), /* Filter */
+		((signed short * __restrict__) (resnet_L2_Memory+23072)), /* Bias */
+		((signed short * __restrict__) (resnet_L2_Memory+16672)) /* Out */
 	);
-	/* Waiting completion of transfer of Model_1res4bbranch2bconv2d_bia using event 1 */
-	AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR1);
+	/* Moving Res4bbranch2bkernel, size 18432 from HyperRam at 294912 to (size 18432) L2 at 29472 using event 0 */
+	AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 294912), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 29472), 18432, 0, &UchanHR0);
+	/* Waiting completion of transfer of Res4bbranch2bkernel using event 0 */
+	AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR0);
+	/* Waiting completion of transfer of Model_1res4bbranch2bconv2d_bia using event 4 */
+	AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR4);
 	S51_Conv2d_32x32x3x3(
-		((signed short * __restrict__) (resnet_L2_Memory+116672)), /* In */
-		((signed short * __restrict__) (resnet_L2_Memory+36864)), /* Filter */
-		((signed short * __restrict__) (resnet_L2_Memory+129472)), /* Bias */
-		((signed short * __restrict__) (resnet_L2_Memory+123072)) /* Out */
+		((signed short * __restrict__) (resnet_L2_Memory+16672)), /* In */
+		((signed short * __restrict__) (resnet_L2_Memory+29472)), /* Filter */
+		((signed short * __restrict__) (resnet_L2_Memory+60704)), /* Bias */
+		((signed short * __restrict__) (resnet_L2_Memory+23072)) /* Out */
 	);
+	/* Moving Res5a_branch2akernel, size 36864 from HyperRam at 221184 to (size 36864) L2 at 29472 using event 0 */
+	AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 221184), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 29472), 36864, 0, &UchanHR0);
 	S52_MatAdd_32x10x10(
-		((signed short * __restrict__) (resnet_L2_Memory+123072)), /* In1 */
-		((signed short * __restrict__) (resnet_L2_Memory+110272)), /* In2 */
-		((signed short * __restrict__) (resnet_L2_Memory+116672)) /* Out */
+		((signed short * __restrict__) (resnet_L2_Memory+23072)), /* In1 */
+		((signed short * __restrict__) (resnet_L2_Memory+10272)), /* In2 */
+		((signed short * __restrict__) (resnet_L2_Memory+16672)) /* Out */
 	);
-	/* Moving Res5a_branch2bkernel, size 73728 from HyperRam at 0 to (size 73728) L2 at 126272 using event 0 */
-	AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 0), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 126272), 73728, 0, &UchanHR0);
-	/* Moving Model_1res5a_branch2bconv2d_bi, size 128 from HyperRam at 322560 to (size 128) L2 at 113472 using event 1 */
-	AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 322560), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 113472), 128, 0, &UchanHR1);
+	/* Moving Model_1res5a_branch2bconv2d_bi, size 128 from HyperRam at 353296 to (size 128) L2 at 13472 using event 1 */
+	AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 353296), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 13472), 128, 0, &UchanHR1);
+	/* Waiting completion of transfer of Res5a_branch2akernel using event 0 */
+	AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR0);
+	/* Waiting completion of transfer of Model_1res5a_branch2aconv2d_bi using event 2 */
+	AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR2);
 	S55_Conv2d_64x32x3x3_Relu(
-		((signed short * __restrict__) (resnet_L2_Memory+116672)), /* In */
-		((signed short * __restrict__) (resnet_L2_Memory+67648)), /* Filter */
-		((signed short * __restrict__) (resnet_L2_Memory+3840)), /* Bias */
-		((signed short * __restrict__) (resnet_L2_Memory+110272)) /* Out */
+		((signed short * __restrict__) (resnet_L2_Memory+16672)), /* In */
+		((signed short * __restrict__) (resnet_L2_Memory+29472)), /* Filter */
+		((signed short * __restrict__) (resnet_L2_Memory+66336)), /* Bias */
+		((signed short * __restrict__) (resnet_L2_Memory+10272)) /* Out */
 	);
+	/* Moving Res5a_branch2bkernel, size 73728 from HyperRam at 0 to (size 73728) L2 at 26272 using event 0 */
+	AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 0), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 26272), 73728, 0, &UchanHR0);
 	/* Waiting completion of transfer of Res5a_branch2bkernel using event 0 */
 	AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR0);
 	/* Waiting completion of transfer of Model_1res5a_branch2bconv2d_bi using event 1 */
 	AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR1);
 	S61_Conv2d_64x64x3x3_Relu(
-		((signed short * __restrict__) (resnet_L2_Memory+110272)), /* In */
-		((signed short * __restrict__) (resnet_L2_Memory+126272)), /* Filter */
-		((signed short * __restrict__) (resnet_L2_Memory+113472)), /* Bias */
-		((signed short * __restrict__) (resnet_L2_Memory+123072)) /* Out */
+		((signed short * __restrict__) (resnet_L2_Memory+10272)), /* In */
+		((signed short * __restrict__) (resnet_L2_Memory+26272)), /* Filter */
+		((signed short * __restrict__) (resnet_L2_Memory+13472)), /* Bias */
+		((signed short * __restrict__) (resnet_L2_Memory+23072)) /* Out */
 	);
-	/* Moving Res5bbranch2akernel, size 73728 from HyperRam at 73728 to (size 73728) L2 at 126272 using event 0 */
-	AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 73728), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 126272), 73728, 0, &UchanHR0);
+	/* Moving Res5a_branch1kernel, size 4096 from HyperRam at 336384 to (size 4096) L2 at 26272 using event 0 */
+	AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 336384), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 26272), 4096, 0, &UchanHR0);
+	/* Moving Model_1res5a_branch1conv2d_bia, size 128 from HyperRam at 353168 to (size 128) L2 at 13472 using event 1 */
+	AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 353168), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 13472), 128, 0, &UchanHR1);
+	/* Moving Model_1res5bbranch2aconv2d_bia, size 128 from HyperRam at 353424 to (size 128) L2 at 90400 using event 2 */
+	AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 353424), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 90400), 128, 0, &UchanHR2);
+	/* Waiting completion of transfer of Res5a_branch1kernel using event 0 */
+	AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR0);
+	/* Waiting completion of transfer of Model_1res5a_branch1conv2d_bia using event 1 */
+	AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR1);
 	S58_Conv2d_64x32x1x1(
-		((signed short * __restrict__) (resnet_L2_Memory+116672)), /* In */
-		((signed short * __restrict__) (resnet_L2_Memory+31744)), /* Filter */
-		((signed short * __restrict__) (resnet_L2_Memory+3968)), /* Bias */
-		((signed short * __restrict__) (resnet_L2_Memory+110272)) /* Out */
+		((signed short * __restrict__) (resnet_L2_Memory+16672)), /* In */
+		((signed short * __restrict__) (resnet_L2_Memory+26272)), /* Filter */
+		((signed short * __restrict__) (resnet_L2_Memory+13472)), /* Bias */
+		((signed short * __restrict__) (resnet_L2_Memory+10272)) /* Out */
 	);
-	/* Moving Model_1res5bbranch2aconv2d_bia, size 128 from HyperRam at 322688 to (size 128) L2 at 116672 using event 1 */
-	AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 322688), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 116672), 128, 0, &UchanHR1);
 	S62_MatAdd_64x5x5(
-		((signed short * __restrict__) (resnet_L2_Memory+123072)), /* In1 */
-		((signed short * __restrict__) (resnet_L2_Memory+110272)), /* In2 */
-		((signed short * __restrict__) (resnet_L2_Memory+113472)) /* Out */
+		((signed short * __restrict__) (resnet_L2_Memory+23072)), /* In1 */
+		((signed short * __restrict__) (resnet_L2_Memory+10272)), /* In2 */
+		((signed short * __restrict__) (resnet_L2_Memory+13472)) /* Out */
 	);
+	/* Moving Res5bbranch2akernel, size 73728 from HyperRam at 73728 to (size 73728) L2 at 16672 using event 0 */
+	AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 73728), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 16672), 73728, 0, &UchanHR0);
 	/* Waiting completion of transfer of Res5bbranch2akernel using event 0 */
 	AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR0);
-	/* Waiting completion of transfer of Model_1res5bbranch2aconv2d_bia using event 1 */
-	AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR1);
+	/* Waiting completion of transfer of Model_1res5bbranch2aconv2d_bia using event 2 */
+	AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR2);
 	S65_Conv2d_64x64x3x3_Relu(
-		((signed short * __restrict__) (resnet_L2_Memory+113472)), /* In */
-		((signed short * __restrict__) (resnet_L2_Memory+126272)), /* Filter */
-		((signed short * __restrict__) (resnet_L2_Memory+116672)), /* Bias */
-		((signed short * __restrict__) (resnet_L2_Memory+110272)) /* Out */
+		((signed short * __restrict__) (resnet_L2_Memory+13472)), /* In */
+		((signed short * __restrict__) (resnet_L2_Memory+16672)), /* Filter */
+		((signed short * __restrict__) (resnet_L2_Memory+90400)), /* Bias */
+		((signed short * __restrict__) (resnet_L2_Memory+10272)) /* Out */
 	);
-	/* Moving Res5bbranch2bkernel, size 73728 from HyperRam at 147456 to (size 73728) L2 at 123072 using event 0 */
-	AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 147456), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 123072), 73728, 0, &UchanHR0);
-	/* Moving Model_1res5bbranch2bconv2d_bia, size 128 from HyperRam at 322816 to (size 128) L2 at 116672 using event 1 */
-	AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 322816), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 116672), 128, 0, &UchanHR1);
+	/* Moving Res5bbranch2bkernel, size 73728 from HyperRam at 147456 to (size 73728) L2 at 23072 using event 0 */
+	AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 147456), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 23072), 73728, 0, &UchanHR0);
+	/* Moving Model_1res5bbranch2bconv2d_bia, size 128 from HyperRam at 353552 to (size 128) L2 at 16672 using event 1 */
+	AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 353552), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 16672), 128, 0, &UchanHR1);
 	/* Waiting completion of transfer of Res5bbranch2bkernel using event 0 */
 	AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR0);
 	/* Waiting completion of transfer of Model_1res5bbranch2bconv2d_bia using event 1 */
 	AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR1);
 	S68_Conv2d_64x64x3x3(
-		((signed short * __restrict__) (resnet_L2_Memory+110272)), /* In */
-		((signed short * __restrict__) (resnet_L2_Memory+123072)), /* Filter */
-		((signed short * __restrict__) (resnet_L2_Memory+116672)), /* Bias */
-		((signed short * __restrict__) (resnet_L2_Memory+119872)) /* Out */
+		((signed short * __restrict__) (resnet_L2_Memory+10272)), /* In */
+		((signed short * __restrict__) (resnet_L2_Memory+23072)), /* Filter */
+		((signed short * __restrict__) (resnet_L2_Memory+16672)), /* Bias */
+		((signed short * __restrict__) (resnet_L2_Memory+19872)) /* Out */
 	);
 	S69_MatAdd_64x5x5(
-		((signed short * __restrict__) (resnet_L2_Memory+119872)), /* In1 */
-		((signed short * __restrict__) (resnet_L2_Memory+113472)), /* In2 */
-		((signed short * __restrict__) (resnet_L2_Memory+116672)) /* Out */
+		((signed short * __restrict__) (resnet_L2_Memory+19872)), /* In1 */
+		((signed short * __restrict__) (resnet_L2_Memory+13472)), /* In2 */
+		((signed short * __restrict__) (resnet_L2_Memory+16672)) /* Out */
 	);
-	/* Moving M2weightedaveragematmul_bias, size 14 from HyperRam at 323456 to (size 14) L2 at 114384 using event 0 */
-	AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 323456), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 114384), 14, 0, &UchanHR0);
+	/* Moving M2weightedaveragematmul_bias, size 14 from HyperRam at 354240 to (size 14) L2 at 14384 using event 0 */
+	AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) resnet_L3_Memory + 354240), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory + 14384), 14, 0, &UchanHR0);
 	S70_AveragePool_2x2(
-		((signed short * __restrict__) (resnet_L2_Memory+116672)), /* In */
-		((signed short * __restrict__) (resnet_L2_Memory+110272)) /* Out */
+		((signed short * __restrict__) (resnet_L2_Memory+16672)), /* In */
+		((signed short * __restrict__) (resnet_L2_Memory+10272)) /* Out */
 	);
 	/* Waiting completion of transfer of M2weightedaveragematmul_bias using event 0 */
 	AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR0);
 	S73_Linear_7x64x2x2(
-		((signed short * __restrict__) (resnet_L2_Memory+110272)), /* In */
-		((signed short * __restrict__) (resnet_L2_Memory+0)), /* Filter */
-		((signed short * __restrict__) (resnet_L2_Memory+114384)), /* Bias */
-		((signed short * __restrict__) (resnet_L2_Memory+110784)) /* Out */
+		((signed short * __restrict__) (resnet_L2_Memory+10272)), /* In */
+		((signed short * __restrict__) (resnet_L3_Memory+340480)), /* Filter */
+		((signed short * __restrict__) (resnet_L2_Memory+14384)), /* Bias */
+		((signed short * __restrict__) (resnet_L2_Memory+10784)) /* Out */
 	);
 	S74_SoftMax(
-		((signed short * __restrict__) (resnet_L2_Memory+110784)), /* In */
+		((signed short * __restrict__) (resnet_L2_Memory+10784)), /* In */
 		((signed short * __restrict__) Output_1) /* Out */
 	);
 	return 0;
