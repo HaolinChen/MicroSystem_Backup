@@ -1,7 +1,7 @@
 # CNN-SSD + ResNet Workflow
 2021/09/29  HaolinChen  
-PC Input: 128x160 gray pictures.  
-Camera Input: 128x160 gray pictures.  
+PC Input: 160x128 gray pictures.  
+Camera Input: 324x244 gray pictures.  
 
 ### Done:
 1.Test pictures from PC.  
