@@ -1,14 +1,16 @@
 # CNN-SSD + ResNet Workflow
-2021/09/27  
-Input: 128*160 gray pictures. 
+2021/09/29  HaolinChen
+PC Input: 128*160 gray pictures. 
+Camera Input: 128*160 gray pictures. 
 
 ### Done:
 1.Test pictures from PC.  
 2.Tested on gvsoc and gap8.  
+2.Tested on camera.  
+2.Fixed some BUGs.  
 
 ### Not Done:
-1.Test pictures from camera.  
-2.Improve performance.  
+1.Improve performance.  
 
 ### Workflow:
 

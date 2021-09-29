@@ -19,7 +19,7 @@
 
 // Delete the following code to disable the camera and the wifi
 // change 1 to 0 is not useful
-// #define FROM_CAMERA 1
+#define FROM_CAMERA 1
 // #define USE_STREAMER 1
 
 #if defined(USE_STREAMER)
@@ -84,9 +84,9 @@ AT_HYPERFLASH_FS_EXT_ADDR_TYPE resnet_L3_Flash = 0;
 
 PI_L2 short int *tmp_buffer_classes, *tmp_buffer_boxes;
 
-typedef short int MNIST_IMAGE_IN_T;
+typedef short int IMAGE_IN_T;
 
-L2_MEM MNIST_IMAGE_IN_T *ImageIn;
+L2_MEM IMAGE_IN_T *ImageIn;
 L2_MEM short int *ImageIn_2;
 
 extern PI_L2 Alps * anchor_layer_1;
@@ -592,10 +592,10 @@ int start()
     // unsigned char *ImageInChar = (unsigned char *) pmsis_l2_malloc( Wi * Hi * sizeof(unsigned char));
     // if (ImageInChar == 0)
     // {
-    //     printf("Failed to allocate Memory for Image (%d bytes)\n", Wi * Hi * sizeof(MNIST_IMAGE_IN_T));
+    //     printf("Failed to allocate Memory for Image (%d bytes)\n", Wi * Hi * sizeof(IMAGE_IN_T));
     //     pmsis_exit(-6);
     // }
-    // ImageIn = (MNIST_IMAGE_IN_T *)ImageInChar;
+    // ImageIn = (IMAGE_IN_T *)ImageInChar;
 
 
     // buffer.data = ImageInChar;
@@ -619,7 +619,7 @@ int start()
     // unsigned char *ImageInChar_2 = (unsigned char *) pmsis_l2_malloc( W_2 * H_2 * sizeof(unsigned char));
     // if (ImageInChar == 0 || ImageInChar_2 == 0)
     // {
-    //     printf("Failed to allocate Memory for Image (%d bytes)\n", W * H * sizeof(MNIST_IMAGE_IN_T));
+    //     printf("Failed to allocate Memory for Image (%d bytes)\n", W * H * sizeof(IMAGE_IN_T));
     //     pmsis_exit(-6);
     // }
 
@@ -752,30 +752,33 @@ int start()
                 pmsis_exit(-6);
             }
 
-            ImageIn = (MNIST_IMAGE_IN_T *)ImageInChar;
+            ImageIn = (IMAGE_IN_T *)ImageInChar;
             for (int i = W * H - 1; i >= 0; i--)
             {
                 ImageIn[i] = (int16_t)ImageInChar[i] << INPUT_1_Q-8; //Input is naturally Q8
             }
         #else
             pic_num ++;
-            unsigned char *ImageInChar = (unsigned char *) pmsis_l2_malloc( Wi * Hi * sizeof(unsigned char));
-            if (ImageInChar == 0)
+            unsigned char *ImageInChar = (unsigned char *) pmsis_l2_malloc( W * H * sizeof(short int));
+            unsigned char *ImageInCamera = (unsigned char *) pmsis_l2_malloc( Wi * Hi * sizeof(unsigned char));
+            if (ImageInChar == 0 || ImageInCamera == 0)
             {
-                printf("Failed to allocate Memory for Image (%d bytes)\n", Wi * Hi * sizeof(MNIST_IMAGE_IN_T));
+                printf("Failed to allocate Memory for Image (%d bytes)\n", Wi * Hi * sizeof(IMAGE_IN_T));
+                printf("Failed to allocate Memory for Image (%d bytes)\n", W * H * sizeof(IMAGE_IN_T));
                 pmsis_exit(-6);
             }
-            ImageIn = (MNIST_IMAGE_IN_T *)ImageInChar;
+            ImageIn = (IMAGE_IN_T *)ImageInChar;
             pi_camera_control(&device, PI_CAMERA_CMD_START, 0);
-            pi_camera_capture(&device, ImageInChar, Wi*Hi);
+            pi_camera_capture(&device, ImageInCamera, Wi*Hi);
             pi_camera_control(&device, PI_CAMERA_CMD_STOP, 0);
             int Xoffset = (Wi - W)/2;
             int Yoffset = (Hi - H)/2;
             for(int y=0;y<H;y++){
                 for(int x=0;x<W;x++){
-                    ImageIn[y*W+x] = ((short int)ImageInChar[((y+Yoffset)*Wi)+(x+Xoffset)]) << S0_Op_input_1_Q-8;
+                    ImageIn[y*W+x] = ((short int)ImageInCamera[((y+Yoffset)*Wi)+(x+Xoffset)]) << INPUT_1_Q-8;
                 }
             }
+            pmsis_l2_malloc_free(ImageInCamera,Wi * Hi * sizeof(unsigned char));
         #endif
 
 
@@ -841,17 +844,24 @@ int start()
         pmsis_l1_malloc_free(SSDKernels_L1_Memory,_SSDKernels_L1_Memory_SIZE);
         pmsis_l2_malloc_free(SSDKernels_L2_Memory,_SSDKernels_L2_Memory_SIZE);
 
-        //Draw BBs
+        //-------------Start Draw BBs-------------------//
         int box_num = 0;
         while((bbxs.bbs[box_num].alive==0 || bbxs.bbs[box_num].class!=1) && box_num<bbxs.num_bb) //Only want person confidence
         {
             box_num++;
         }
-        drawBboxes(&bbxs,ImageInChar);
-        if(SAVE_DET==1) {
-            writeDetImg(ImageInChar, pic_num, bbxs.bbs[box_num].score);
+        unsigned char *ImageDrawBox = (unsigned char *) pmsis_l2_malloc( W * H * sizeof(unsigned char));
+        for(int y=0;y<H;y++){
+            for(int x=0;x<W;x++){
+                ImageDrawBox[y*W+x] = ImageInChar[y*W+x];
+            }
         }
-
+        drawBboxes(&bbxs,ImageDrawBox);
+        if(SAVE_DET==1) {
+            writeDetImg(ImageDrawBox, pic_num, bbxs.bbs[box_num].score);
+        }
+        pmsis_l2_malloc_free(ImageDrawBox, W * H * sizeof(unsigned char));
+        //-------------End Draw BBs-------------------//
         box_num = 0;
         while((bbxs.bbs[box_num].alive==0 || bbxs.bbs[box_num].class!=2) && box_num<bbxs.num_bb) //Only want gesture box
         {
@@ -864,7 +874,7 @@ int start()
 
         if(GESTURE_FLAG ==1)
         {
-            unsigned char *ImageInChar_2 = (unsigned char *) pmsis_l2_malloc( W_2 * H_2 * sizeof(short int));
+            unsigned char *ImageInChar_2 = (unsigned char *) pmsis_l2_malloc( W_2 * H_2 * sizeof(IMAGE_IN_T));
             if(RESIZE)
             {
                 //Resize Targets
@@ -874,7 +884,7 @@ int start()
                 int resize_X = bbxs.bbs[box_num].x;
                 int resize_Y = bbxs.bbs[box_num].y;
                 
-                unsigned char *ImageTemp = (unsigned char *) pmsis_l2_malloc( resize_W * resize_H * sizeof(short int));
+                unsigned char *ImageTemp = (unsigned char *) pmsis_l2_malloc( resize_W * resize_H * sizeof(unsigned char));
                 for(int y=0;y<resize_H;y++){
                     for(int x=0;x<resize_W;x++){
                         ImageTemp[y*resize_W+x] = ImageInChar[(y+resize_Y)*W + (x+resize_X)];
@@ -896,7 +906,7 @@ int start()
                 ResizeArg.FirstLineIndex = 0;
                 task->arg = &ResizeArg;
                 pi_cluster_send_task_to_cl(&cluster_dev, task);
-                pmsis_l2_malloc_free(ImageTemp,  resize_W * resize_H * sizeof(short int));
+                pmsis_l2_malloc_free(ImageTemp,  resize_W * resize_H * sizeof(unsigned char));
             }
             else
             {
@@ -909,14 +919,12 @@ int start()
             ImageIn_2 = (short int *)ImageInChar_2;
             for (int i = W_2 * H_2 - 1; i >= 0; i--)
             {
-                ImageIn_2[i] = (int16_t)ImageInChar_2[i] << INPUT_1_Q-8;
+                ImageIn_2[i] = (short int)ImageInChar_2[i] << INPUT_1_Q-8;
             }
         
-            #ifndef FROM_CAMERA
-                pmsis_l2_malloc_free(ImageInChar, W * H * sizeof(short int));
-            #else
-                pmsis_l2_malloc_free(ImageInChar, Wi * Hi * sizeof(short int));
-            #endif
+
+            pmsis_l2_malloc_free(ImageInChar, W * H * sizeof(short int));
+
 
             printf("\n-------- STRAT RUN RESNET ----------\n");
             
@@ -976,11 +984,9 @@ int start()
         }
         else
         {
-            #ifndef FROM_CAMERA
-                pmsis_l2_malloc_free(ImageInChar, W * H * sizeof(short int));
-            #else
-                pmsis_l2_malloc_free(ImageInChar, Wi * Hi * sizeof(short int));
-            #endif
+
+            pmsis_l2_malloc_free(ImageInChar, W * H * sizeof(short int));
+
         }
 
         #if defined(USE_STREAMER)
