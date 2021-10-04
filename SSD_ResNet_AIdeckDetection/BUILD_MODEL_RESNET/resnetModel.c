@@ -34,7 +34,7 @@ void resnetModel(unsigned int L1Memory, unsigned int L2Memory, unsigned int L3Me
     // generator for DEPTHWISE_CONV_2D_0_1_fusion
     CNN_ConvolutionPoolReLU("S4_Conv2d_8x1x7x7_MaxPool_3x3_Relu", 0,
                             2, 2, 2, 2,
-                            15, 11, 12, 11,
+                            15, 11, 13, 12,
                             1, 1, 1, 1, 1, 8, 160, 160,
                             KOP_CONV_DP, 7, 7, 1, 1, 2, 2, 1,
                             KOP_MAXPOOL, 3, 3, 1, 1, 2, 2, 0,
@@ -44,7 +44,7 @@ void resnetModel(unsigned int L1Memory, unsigned int L2Memory, unsigned int L3Me
     // generator for CONV_2D_0_3_fusion
     CNN_ConvolutionPoolReLU("S7_Conv2d_8x8x3x3_Relu", 0,
                             2, 2, 2, 2,
-                            11, 15, 13, 12,
+                            12, 15, 13, 12,
                             1, 1, 1, 1, 8, 8, 39, 39,
                             KOP_CONV_DP, 3, 3, 1, 1, 1, 1, 1,
                             KOP_NONE, 0, 0, 0, 0, 0, 0, 0,
@@ -54,7 +54,7 @@ void resnetModel(unsigned int L1Memory, unsigned int L2Memory, unsigned int L3Me
     // generator for CONV_2D_0_4
     CNN_ConvolutionPoolReLU("S10_Conv2d_8x8x3x3", 0,
                             2, 2, 2, 2,
-                            12, 15, 13, 12,
+                            12, 15, 14, 11,
                             1, 1, 1, 1, 8, 8, 39, 39,
                             KOP_CONV_DP, 3, 3, 1, 1, 1, 1, 1,
                             KOP_NONE, 0, 0, 0, 0, 0, 0, 0,
@@ -63,7 +63,7 @@ void resnetModel(unsigned int L1Memory, unsigned int L2Memory, unsigned int L3Me
     
     // generator for ADD_0_5
     CNN_MatAddDynAdjust("S11_MatAdd_8x39x39", 0, 2, 2, 2,
-                        12, 11, 11, 1, 1, 1, 
+                        11, 12, 11, 1, 1, 1, 
                         8, 8, 
                         39, 39, KOP_MATADD_DYNADJUST);
     
@@ -87,13 +87,18 @@ void resnetModel(unsigned int L1Memory, unsigned int L2Memory, unsigned int L3Me
                             KOP_NONE, 0, 0, 0, 0, 0, 0, 0,
                             KOP_NONE);
     
+    
     // generator for ADD_0_8
-    CNN_MatAdd("S18_MatAdd_8x39x39", 0, 2, 2, 2, 11, 11, 11, 1, 1, 1, 8, 8, 39, 39, KOP_MATADD);
+    CNN_MatAddDynAdjust("S18_MatAdd_8x39x39", 0, 2, 2, 2,
+                        11, 11, 10, 1, 1, 1, 
+                        8, 8, 
+                        39, 39, KOP_MATADD_DYNADJUST);
+    
     
     // generator for CONV_2D_0_9_fusion
     CNN_ConvolutionPoolReLU("S21_Conv2d_16x8x3x3_Relu", 0,
                             2, 2, 2, 2,
-                            11, 15, 14, 12,
+                            10, 15, 14, 12,
                             1, 1, 1, 1, 8, 16, 39, 39,
                             KOP_CONV_DP, 3, 3, 1, 1, 2, 2, 1,
                             KOP_NONE, 0, 0, 0, 0, 0, 0, 0,
@@ -103,7 +108,7 @@ void resnetModel(unsigned int L1Memory, unsigned int L2Memory, unsigned int L3Me
     // generator for CONV_2D_0_10
     CNN_ConvolutionPoolReLU("S24_Conv2d_16x8x1x1", 0,
                             2, 2, 2, 2,
-                            11, 14, 13, 11,
+                            10, 14, 13, 11,
                             1, 1, 1, 1, 8, 16, 39, 39,
                             KOP_CONV_DP, 1, 1, 1, 1, 2, 2, 0,
                             KOP_NONE, 0, 0, 0, 0, 0, 0, 0,
@@ -180,7 +185,7 @@ void resnetModel(unsigned int L1Memory, unsigned int L2Memory, unsigned int L3Me
     // generator for CONV_2D_0_18_fusion
     CNN_ConvolutionPoolReLU("S44_Conv2d_32x32x3x3_Relu", 0,
                             2, 2, 2, 2,
-                            12, 14, 12, 12,
+                            12, 15, 12, 12,
                             1, 1, 1, 1, 32, 32, 10, 10,
                             KOP_CONV_DP, 3, 3, 1, 1, 1, 1, 1,
                             KOP_NONE, 0, 0, 0, 0, 0, 0, 0,
@@ -207,14 +212,19 @@ void resnetModel(unsigned int L1Memory, unsigned int L2Memory, unsigned int L3Me
     // generator for CONV_2D_0_21
     CNN_ConvolutionPoolReLU("S51_Conv2d_32x32x3x3", 0,
                             2, 2, 2, 2,
-                            13, 14, 13, 11,
+                            13, 15, 13, 12,
                             1, 1, 1, 1, 32, 32, 10, 10,
                             KOP_CONV_DP, 3, 3, 1, 1, 1, 1, 1,
                             KOP_NONE, 0, 0, 0, 0, 0, 0, 0,
                             KOP_NONE);
     
+    
     // generator for ADD_0_22
-    CNN_MatAdd("S52_MatAdd_32x10x10", 0, 2, 2, 2, 11, 11, 11, 1, 1, 1, 32, 32, 10, 10, KOP_MATADD);
+    CNN_MatAddDynAdjust("S52_MatAdd_32x10x10", 0, 2, 2, 2,
+                        12, 11, 10, 1, 1, 1, 
+                        32, 32, 
+                        10, 10, KOP_MATADD_DYNADJUST);
+    
     CNN_GenControl_T gen_ctrl_S55_Conv2d_64x32x3x3_Relu;
     CNN_InitGenCtrl(&gen_ctrl_S55_Conv2d_64x32x3x3_Relu);
     CNN_SetGenCtrl(&gen_ctrl_S55_Conv2d_64x32x3x3_Relu, "PADTYPE", AT_OPT_VAL(1));
@@ -222,7 +232,7 @@ void resnetModel(unsigned int L1Memory, unsigned int L2Memory, unsigned int L3Me
     // generator for CONV_2D_0_23_fusion
     CNN_ConvolutionPoolReLU("S55_Conv2d_64x32x3x3_Relu", &gen_ctrl_S55_Conv2d_64x32x3x3_Relu,
                             2, 2, 2, 2,
-                            11, 15, 14, 12,
+                            10, 15, 14, 13,
                             1, 1, 1, 1, 32, 64, 10, 10,
                             KOP_CONV_DP, 3, 3, 1, 1, 2, 2, 1,
                             KOP_NONE, 0, 0, 0, 0, 0, 0, 0,
@@ -232,7 +242,7 @@ void resnetModel(unsigned int L1Memory, unsigned int L2Memory, unsigned int L3Me
     // generator for CONV_2D_0_24
     CNN_ConvolutionPoolReLU("S58_Conv2d_64x32x1x1", 0,
                             2, 2, 2, 2,
-                            11, 15, 15, 12,
+                            10, 15, 15, 12,
                             1, 1, 1, 1, 32, 64, 10, 10,
                             KOP_CONV_DP, 1, 1, 1, 1, 2, 2, 0,
                             KOP_NONE, 0, 0, 0, 0, 0, 0, 0,
@@ -242,7 +252,7 @@ void resnetModel(unsigned int L1Memory, unsigned int L2Memory, unsigned int L3Me
     // generator for CONV_2D_0_25_fusion
     CNN_ConvolutionPoolReLU("S61_Conv2d_64x64x3x3_Relu", 0,
                             2, 2, 2, 2,
-                            12, 14, 13, 12,
+                            13, 14, 13, 12,
                             1, 1, 1, 1, 64, 64, 5, 5,
                             KOP_CONV_DP, 3, 3, 1, 1, 1, 1, 1,
                             KOP_NONE, 0, 0, 0, 0, 0, 0, 0,
@@ -307,11 +317,11 @@ void resnetModel(unsigned int L1Memory, unsigned int L2Memory, unsigned int L3Me
             CArgs(44,
                 TCArgInfo("signed short * __restrict__", "Input_1", ARG_SCOPE_ARG, ARG_DIR_IN, AT_MEM_L2, AT_MEM_L2, 0),
                 TCArgInfo("signed short * __restrict__", "Conv1kernel", ARG_SCOPE_GLOBAL, ARG_DIR_CONSTIN, AT_MEM_L3_HFLASH, AT_MEM_UNDEF, ConstInfo("BUILD_MODEL_RESNET/tensors/Conv1kernel.tensor", 1, 1, 16, 11)),
-                TCArgInfo("signed short * __restrict__", "Model_1conv1conv2d_bias", ARG_SCOPE_GLOBAL, ARG_DIR_CONSTIN, AT_MEM_L3_HFLASH, AT_MEM_UNDEF, ConstInfo("BUILD_MODEL_RESNET/tensors/Model_1conv1conv2d_bias.tensor", 1, 1, 16, 12)),
+                TCArgInfo("signed short * __restrict__", "Model_1conv1conv2d_bias", ARG_SCOPE_GLOBAL, ARG_DIR_CONSTIN, AT_MEM_L3_HFLASH, AT_MEM_UNDEF, ConstInfo("BUILD_MODEL_RESNET/tensors/Model_1conv1conv2d_bias.tensor", 1, 1, 16, 13)),
                 TCArgInfo("signed short * __restrict__", "Res2bbranch2akernel", ARG_SCOPE_GLOBAL, ARG_DIR_CONSTIN, AT_MEM_L3_HFLASH, AT_MEM_UNDEF, ConstInfo("BUILD_MODEL_RESNET/tensors/Res2bbranch2akernel.tensor", 1, 1, 16, 15)),
                 TCArgInfo("signed short * __restrict__", "Model_1res2bbranch2aconv2d_bia", ARG_SCOPE_GLOBAL, ARG_DIR_CONSTIN, AT_MEM_L3_HFLASH, AT_MEM_UNDEF, ConstInfo("BUILD_MODEL_RESNET/tensors/Model_1res2bbranch2aconv2d_bia.tensor", 1, 1, 16, 13)),
                 TCArgInfo("signed short * __restrict__", "Res2bbranch2bkernel", ARG_SCOPE_GLOBAL, ARG_DIR_CONSTIN, AT_MEM_L3_HFLASH, AT_MEM_UNDEF, ConstInfo("BUILD_MODEL_RESNET/tensors/Res2bbranch2bkernel.tensor", 1, 1, 16, 15)),
-                TCArgInfo("signed short * __restrict__", "Model_1res2bbranch2bconv2d_bia", ARG_SCOPE_GLOBAL, ARG_DIR_CONSTIN, AT_MEM_L3_HFLASH, AT_MEM_UNDEF, ConstInfo("BUILD_MODEL_RESNET/tensors/Model_1res2bbranch2bconv2d_bia.tensor", 1, 1, 16, 13)),
+                TCArgInfo("signed short * __restrict__", "Model_1res2bbranch2bconv2d_bia", ARG_SCOPE_GLOBAL, ARG_DIR_CONSTIN, AT_MEM_L3_HFLASH, AT_MEM_UNDEF, ConstInfo("BUILD_MODEL_RESNET/tensors/Model_1res2bbranch2bconv2d_bia.tensor", 1, 1, 16, 14)),
                 TCArgInfo("signed short * __restrict__", "Res2cbranch2akernel", ARG_SCOPE_GLOBAL, ARG_DIR_CONSTIN, AT_MEM_L3_HFLASH, AT_MEM_UNDEF, ConstInfo("BUILD_MODEL_RESNET/tensors/Res2cbranch2akernel.tensor", 1, 1, 16, 15)),
                 TCArgInfo("signed short * __restrict__", "Model_1res2cbranch2aconv2d_bia", ARG_SCOPE_GLOBAL, ARG_DIR_CONSTIN, AT_MEM_L3_HFLASH, AT_MEM_UNDEF, ConstInfo("BUILD_MODEL_RESNET/tensors/Model_1res2cbranch2aconv2d_bia.tensor", 1, 1, 16, 14)),
                 TCArgInfo("signed short * __restrict__", "Res2cbranch2bkernel", ARG_SCOPE_GLOBAL, ARG_DIR_CONSTIN, AT_MEM_L3_HFLASH, AT_MEM_UNDEF, ConstInfo("BUILD_MODEL_RESNET/tensors/Res2cbranch2bkernel.tensor", 1, 1, 16, 15)),
@@ -330,11 +340,11 @@ void resnetModel(unsigned int L1Memory, unsigned int L2Memory, unsigned int L3Me
                 TCArgInfo("signed short * __restrict__", "Model_1res4a_branch2aconv2d_bi", ARG_SCOPE_GLOBAL, ARG_DIR_CONSTIN, AT_MEM_L3_HFLASH, AT_MEM_UNDEF, ConstInfo("BUILD_MODEL_RESNET/tensors/Model_1res4a_branch2aconv2d_bi.tensor", 1, 1, 16, 14)),
                 TCArgInfo("signed short * __restrict__", "Res4a_branch1kernel", ARG_SCOPE_GLOBAL, ARG_DIR_CONSTIN, AT_MEM_L3_HFLASH, AT_MEM_UNDEF, ConstInfo("BUILD_MODEL_RESNET/tensors/Res4a_branch1kernel.tensor", 1, 1, 16, 15)),
                 TCArgInfo("signed short * __restrict__", "Model_1res4a_branch1conv2d_bia", ARG_SCOPE_GLOBAL, ARG_DIR_CONSTIN, AT_MEM_L3_HFLASH, AT_MEM_UNDEF, ConstInfo("BUILD_MODEL_RESNET/tensors/Model_1res4a_branch1conv2d_bia.tensor", 1, 1, 16, 14)),
-                TCArgInfo("signed short * __restrict__", "Res4a_branch2bkernel", ARG_SCOPE_GLOBAL, ARG_DIR_CONSTIN, AT_MEM_L3_HFLASH, AT_MEM_UNDEF, ConstInfo("BUILD_MODEL_RESNET/tensors/Res4a_branch2bkernel.tensor", 1, 1, 16, 14)),
+                TCArgInfo("signed short * __restrict__", "Res4a_branch2bkernel", ARG_SCOPE_GLOBAL, ARG_DIR_CONSTIN, AT_MEM_L3_HFLASH, AT_MEM_UNDEF, ConstInfo("BUILD_MODEL_RESNET/tensors/Res4a_branch2bkernel.tensor", 1, 1, 16, 15)),
                 TCArgInfo("signed short * __restrict__", "Model_1res4a_branch2bconv2d_bi", ARG_SCOPE_GLOBAL, ARG_DIR_CONSTIN, AT_MEM_L3_HFLASH, AT_MEM_UNDEF, ConstInfo("BUILD_MODEL_RESNET/tensors/Model_1res4a_branch2bconv2d_bi.tensor", 1, 1, 16, 12)),
                 TCArgInfo("signed short * __restrict__", "Res4bbranch2akernel", ARG_SCOPE_GLOBAL, ARG_DIR_CONSTIN, AT_MEM_L3_HFLASH, AT_MEM_UNDEF, ConstInfo("BUILD_MODEL_RESNET/tensors/Res4bbranch2akernel.tensor", 1, 1, 16, 15)),
                 TCArgInfo("signed short * __restrict__", "Model_1res4bbranch2aconv2d_bia", ARG_SCOPE_GLOBAL, ARG_DIR_CONSTIN, AT_MEM_L3_HFLASH, AT_MEM_UNDEF, ConstInfo("BUILD_MODEL_RESNET/tensors/Model_1res4bbranch2aconv2d_bia.tensor", 1, 1, 16, 14)),
-                TCArgInfo("signed short * __restrict__", "Res4bbranch2bkernel", ARG_SCOPE_GLOBAL, ARG_DIR_CONSTIN, AT_MEM_L3_HFLASH, AT_MEM_UNDEF, ConstInfo("BUILD_MODEL_RESNET/tensors/Res4bbranch2bkernel.tensor", 1, 1, 16, 14)),
+                TCArgInfo("signed short * __restrict__", "Res4bbranch2bkernel", ARG_SCOPE_GLOBAL, ARG_DIR_CONSTIN, AT_MEM_L3_HFLASH, AT_MEM_UNDEF, ConstInfo("BUILD_MODEL_RESNET/tensors/Res4bbranch2bkernel.tensor", 1, 1, 16, 15)),
                 TCArgInfo("signed short * __restrict__", "Model_1res4bbranch2bconv2d_bia", ARG_SCOPE_GLOBAL, ARG_DIR_CONSTIN, AT_MEM_L3_HFLASH, AT_MEM_UNDEF, ConstInfo("BUILD_MODEL_RESNET/tensors/Model_1res4bbranch2bconv2d_bia.tensor", 1, 1, 16, 13)),
                 TCArgInfo("signed short * __restrict__", "Res5a_branch2akernel", ARG_SCOPE_GLOBAL, ARG_DIR_CONSTIN, AT_MEM_L3_HFLASH, AT_MEM_UNDEF, ConstInfo("BUILD_MODEL_RESNET/tensors/Res5a_branch2akernel.tensor", 1, 1, 16, 15)),
                 TCArgInfo("signed short * __restrict__", "Model_1res5a_branch2aconv2d_bi", ARG_SCOPE_GLOBAL, ARG_DIR_CONSTIN, AT_MEM_L3_HFLASH, AT_MEM_UNDEF, ConstInfo("BUILD_MODEL_RESNET/tensors/Model_1res5a_branch2aconv2d_bi.tensor", 1, 1, 16, 14)),
@@ -388,23 +398,23 @@ void resnetModel(unsigned int L1Memory, unsigned int L2Memory, unsigned int L3Me
     /* Stacked tensors - Concats */
     // no concats in graph so not stacked tensors created
 
-    // Node S4_Conv2d_8x1x7x7_MaxPool_3x3_Relu inq 15 weightsq 11 outq 11 biasesq 12
+    // Node S4_Conv2d_8x1x7x7_MaxPool_3x3_Relu inq 15 weightsq 11 outq 12 biasesq 13
     AddNode("S4_Conv2d_8x1x7x7_MaxPool_3x3_Relu", Bindings(4, GNodeArg(GNA_IN, "Input_1", 0), GNodeArg(GNA_IN, "Conv1kernel", 0), GNodeArg(GNA_IN, "Model_1conv1conv2d_bias", 0), GNodeArg(GNA_OUT, "S4_Output", 0)));
-    // Node S7_Conv2d_8x8x3x3_Relu inq 11 weightsq 15 outq 12 biasesq 13
+    // Node S7_Conv2d_8x8x3x3_Relu inq 12 weightsq 15 outq 12 biasesq 13
     AddNode("S7_Conv2d_8x8x3x3_Relu", Bindings(4, GNodeArg(GNA_IN, "S4_Output", 0), GNodeArg(GNA_IN, "Res2bbranch2akernel", 0), GNodeArg(GNA_IN, "Model_1res2bbranch2aconv2d_bia", 0), GNodeArg(GNA_OUT, "S7_Output", 0)));
-    // Node S10_Conv2d_8x8x3x3 inq 12 weightsq 15 outq 12 biasesq 13
+    // Node S10_Conv2d_8x8x3x3 inq 12 weightsq 15 outq 11 biasesq 14
     AddNode("S10_Conv2d_8x8x3x3", Bindings(4, GNodeArg(GNA_IN, "S7_Output", 0), GNodeArg(GNA_IN, "Res2bbranch2bkernel", 0), GNodeArg(GNA_IN, "Model_1res2bbranch2bconv2d_bia", 0), GNodeArg(GNA_OUT, "S10_Output", 0)));
-    // Node ADD_0_5 inq1 12 inq2 11 outq 11
+    // Node ADD_0_5 inq1 11 inq2 12 outq 11
     AddNode("S11_MatAdd_8x39x39", Bindings(3, GNodeArg(GNA_IN, "S10_Output", 0), GNodeArg(GNA_IN, "S4_Output", 0), GNodeArg(GNA_OUT, "S11_Output", 0)));
     // Node S14_Conv2d_8x8x3x3_Relu inq 11 weightsq 15 outq 12 biasesq 14
     AddNode("S14_Conv2d_8x8x3x3_Relu", Bindings(4, GNodeArg(GNA_IN, "S11_Output", 0), GNodeArg(GNA_IN, "Res2cbranch2akernel", 0), GNodeArg(GNA_IN, "Model_1res2cbranch2aconv2d_bia", 0), GNodeArg(GNA_OUT, "S14_Output", 0)));
     // Node S17_Conv2d_8x8x3x3 inq 12 weightsq 15 outq 11 biasesq 14
     AddNode("S17_Conv2d_8x8x3x3", Bindings(4, GNodeArg(GNA_IN, "S14_Output", 0), GNodeArg(GNA_IN, "Res2cbranch2bkernel", 0), GNodeArg(GNA_IN, "Model_1res2cbranch2bconv2d_bia", 0), GNodeArg(GNA_OUT, "S17_Output", 0)));
-    // Node ADD_0_8 inq1 11 inq2 11 outq 11
+    // Node ADD_0_8 inq1 11 inq2 11 outq 10
     AddNode("S18_MatAdd_8x39x39", Bindings(3, GNodeArg(GNA_IN, "S17_Output", 0), GNodeArg(GNA_IN, "S11_Output", 0), GNodeArg(GNA_OUT, "S18_Output", 0)));
-    // Node S21_Conv2d_16x8x3x3_Relu inq 11 weightsq 15 outq 12 biasesq 14
+    // Node S21_Conv2d_16x8x3x3_Relu inq 10 weightsq 15 outq 12 biasesq 14
     AddNode("S21_Conv2d_16x8x3x3_Relu", Bindings(4, GNodeArg(GNA_IN, "S18_Output", 0), GNodeArg(GNA_IN, "Res3a_branch2akernel", 0), GNodeArg(GNA_IN, "Model_1res3a_branch2aconv2d_bi", 0), GNodeArg(GNA_OUT, "S21_Output", 0)));
-    // Node S24_Conv2d_16x8x1x1 inq 11 weightsq 14 outq 11 biasesq 13
+    // Node S24_Conv2d_16x8x1x1 inq 10 weightsq 14 outq 11 biasesq 13
     AddNode("S24_Conv2d_16x8x1x1", Bindings(4, GNodeArg(GNA_IN, "S18_Output", 0), GNodeArg(GNA_IN, "Res3a_branch1kernel", 0), GNodeArg(GNA_IN, "Model_1res3a_branch1conv2d_bia", 0), GNodeArg(GNA_OUT, "S24_Output", 0)));
     // Node S27_Conv2d_16x16x3x3_Relu inq 12 weightsq 15 outq 12 biasesq 12
     AddNode("S27_Conv2d_16x16x3x3_Relu", Bindings(4, GNodeArg(GNA_IN, "S21_Output", 0), GNodeArg(GNA_IN, "Res3a_branch2bkernel", 0), GNodeArg(GNA_IN, "Model_1res3a_branch2bconv2d_bi", 0), GNodeArg(GNA_OUT, "S27_Output", 0)));
@@ -420,21 +430,21 @@ void resnetModel(unsigned int L1Memory, unsigned int L2Memory, unsigned int L3Me
     AddNode("S38_Conv2d_32x16x3x3_Relu", Bindings(4, GNodeArg(GNA_IN, "S35_Output", 0), GNodeArg(GNA_IN, "Res4a_branch2akernel", 0), GNodeArg(GNA_IN, "Model_1res4a_branch2aconv2d_bi", 0), GNodeArg(GNA_OUT, "S38_Output", 0)));
     // Node S41_Conv2d_32x16x1x1 inq 10 weightsq 15 outq 11 biasesq 14
     AddNode("S41_Conv2d_32x16x1x1", Bindings(4, GNodeArg(GNA_IN, "S35_Output", 0), GNodeArg(GNA_IN, "Res4a_branch1kernel", 0), GNodeArg(GNA_IN, "Model_1res4a_branch1conv2d_bia", 0), GNodeArg(GNA_OUT, "S41_Output", 0)));
-    // Node S44_Conv2d_32x32x3x3_Relu inq 12 weightsq 14 outq 12 biasesq 12
+    // Node S44_Conv2d_32x32x3x3_Relu inq 12 weightsq 15 outq 12 biasesq 12
     AddNode("S44_Conv2d_32x32x3x3_Relu", Bindings(4, GNodeArg(GNA_IN, "S38_Output", 0), GNodeArg(GNA_IN, "Res4a_branch2bkernel", 0), GNodeArg(GNA_IN, "Model_1res4a_branch2bconv2d_bi", 0), GNodeArg(GNA_OUT, "S44_Output", 0)));
     // Node ADD_0_19 inq1 12 inq2 11 outq 11
     AddNode("S45_MatAdd_32x10x10", Bindings(3, GNodeArg(GNA_IN, "S44_Output", 0), GNodeArg(GNA_IN, "S41_Output", 0), GNodeArg(GNA_OUT, "S45_Output", 0)));
     // Node S48_Conv2d_32x32x3x3_Relu inq 11 weightsq 15 outq 13 biasesq 14
     AddNode("S48_Conv2d_32x32x3x3_Relu", Bindings(4, GNodeArg(GNA_IN, "S45_Output", 0), GNodeArg(GNA_IN, "Res4bbranch2akernel", 0), GNodeArg(GNA_IN, "Model_1res4bbranch2aconv2d_bia", 0), GNodeArg(GNA_OUT, "S48_Output", 0)));
-    // Node S51_Conv2d_32x32x3x3 inq 13 weightsq 14 outq 11 biasesq 13
+    // Node S51_Conv2d_32x32x3x3 inq 13 weightsq 15 outq 12 biasesq 13
     AddNode("S51_Conv2d_32x32x3x3", Bindings(4, GNodeArg(GNA_IN, "S48_Output", 0), GNodeArg(GNA_IN, "Res4bbranch2bkernel", 0), GNodeArg(GNA_IN, "Model_1res4bbranch2bconv2d_bia", 0), GNodeArg(GNA_OUT, "S51_Output", 0)));
-    // Node ADD_0_22 inq1 11 inq2 11 outq 11
+    // Node ADD_0_22 inq1 12 inq2 11 outq 10
     AddNode("S52_MatAdd_32x10x10", Bindings(3, GNodeArg(GNA_IN, "S51_Output", 0), GNodeArg(GNA_IN, "S45_Output", 0), GNodeArg(GNA_OUT, "S52_Output", 0)));
-    // Node S55_Conv2d_64x32x3x3_Relu inq 11 weightsq 15 outq 12 biasesq 14
+    // Node S55_Conv2d_64x32x3x3_Relu inq 10 weightsq 15 outq 13 biasesq 14
     AddNode("S55_Conv2d_64x32x3x3_Relu", Bindings(4, GNodeArg(GNA_IN, "S52_Output", 0), GNodeArg(GNA_IN, "Res5a_branch2akernel", 0), GNodeArg(GNA_IN, "Model_1res5a_branch2aconv2d_bi", 0), GNodeArg(GNA_OUT, "S55_Output", 0)));
-    // Node S58_Conv2d_64x32x1x1 inq 11 weightsq 15 outq 12 biasesq 15
+    // Node S58_Conv2d_64x32x1x1 inq 10 weightsq 15 outq 12 biasesq 15
     AddNode("S58_Conv2d_64x32x1x1", Bindings(4, GNodeArg(GNA_IN, "S52_Output", 0), GNodeArg(GNA_IN, "Res5a_branch1kernel", 0), GNodeArg(GNA_IN, "Model_1res5a_branch1conv2d_bia", 0), GNodeArg(GNA_OUT, "S58_Output", 0)));
-    // Node S61_Conv2d_64x64x3x3_Relu inq 12 weightsq 14 outq 12 biasesq 13
+    // Node S61_Conv2d_64x64x3x3_Relu inq 13 weightsq 14 outq 12 biasesq 13
     AddNode("S61_Conv2d_64x64x3x3_Relu", Bindings(4, GNodeArg(GNA_IN, "S55_Output", 0), GNodeArg(GNA_IN, "Res5a_branch2bkernel", 0), GNodeArg(GNA_IN, "Model_1res5a_branch2bconv2d_bi", 0), GNodeArg(GNA_OUT, "S61_Output", 0)));
     // Node ADD_0_26 inq1 12 inq2 12 outq 11
     AddNode("S62_MatAdd_64x5x5", Bindings(3, GNodeArg(GNA_IN, "S61_Output", 0), GNodeArg(GNA_IN, "S58_Output", 0), GNodeArg(GNA_OUT, "S62_Output", 0)));

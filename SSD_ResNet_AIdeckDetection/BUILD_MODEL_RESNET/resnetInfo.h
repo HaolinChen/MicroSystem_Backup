@@ -9,9 +9,9 @@
 // S2_Op_conv1kernel
 #define S2_Op_conv1kernel_Q	11
 // S3_Op_model_1conv1Conv2D_bias
-#define S3_Op_model_1conv1Conv2D_bias_Q	12
+#define S3_Op_model_1conv1Conv2D_bias_Q	13
 // S4_Conv2d_8x1x7x7_MaxPool_3x3_Relu
-#define S4_Conv2d_8x1x7x7_MaxPool_3x3_Relu_Q	11
+#define S4_Conv2d_8x1x7x7_MaxPool_3x3_Relu_Q	12
 // S5_Op_res2bbranch2akernel
 #define S5_Op_res2bbranch2akernel_Q	15
 // S6_Op_model_1res2bbranch2aConv2D_bia
@@ -21,9 +21,9 @@
 // S8_Op_res2bbranch2bkernel
 #define S8_Op_res2bbranch2bkernel_Q	15
 // S9_Op_model_1res2bbranch2bConv2D_bia
-#define S9_Op_model_1res2bbranch2bConv2D_bia_Q	13
+#define S9_Op_model_1res2bbranch2bConv2D_bia_Q	14
 // S10_Conv2d_8x8x3x3
-#define S10_Conv2d_8x8x3x3_Q	12
+#define S10_Conv2d_8x8x3x3_Q	11
 // S11_MatAdd_8x39x39
 #define S11_MatAdd_8x39x39_Q	11
 // S12_Op_res2cbranch2akernel
@@ -39,7 +39,7 @@
 // S17_Conv2d_8x8x3x3
 #define S17_Conv2d_8x8x3x3_Q	11
 // S18_MatAdd_8x39x39
-#define S18_MatAdd_8x39x39_Q	11
+#define S18_MatAdd_8x39x39_Q	10
 // S19_Op_res3a_branch2akernel
 #define S19_Op_res3a_branch2akernel_Q	15
 // S20_Op_model_1res3a_branch2aConv2D_bi
@@ -87,7 +87,7 @@
 // S41_Conv2d_32x16x1x1
 #define S41_Conv2d_32x16x1x1_Q	11
 // S42_Op_res4a_branch2bkernel
-#define S42_Op_res4a_branch2bkernel_Q	14
+#define S42_Op_res4a_branch2bkernel_Q	15
 // S43_Op_model_1res4a_branch2bConv2D_bi
 #define S43_Op_model_1res4a_branch2bConv2D_bi_Q	12
 // S44_Conv2d_32x32x3x3_Relu
@@ -101,19 +101,19 @@
 // S48_Conv2d_32x32x3x3_Relu
 #define S48_Conv2d_32x32x3x3_Relu_Q	13
 // S49_Op_res4bbranch2bkernel
-#define S49_Op_res4bbranch2bkernel_Q	14
+#define S49_Op_res4bbranch2bkernel_Q	15
 // S50_Op_model_1res4bbranch2bConv2D_bia
 #define S50_Op_model_1res4bbranch2bConv2D_bia_Q	13
 // S51_Conv2d_32x32x3x3
-#define S51_Conv2d_32x32x3x3_Q	11
+#define S51_Conv2d_32x32x3x3_Q	12
 // S52_MatAdd_32x10x10
-#define S52_MatAdd_32x10x10_Q	11
+#define S52_MatAdd_32x10x10_Q	10
 // S53_Op_res5a_branch2akernel
 #define S53_Op_res5a_branch2akernel_Q	15
 // S54_Op_model_1res5a_branch2aConv2D_bi
 #define S54_Op_model_1res5a_branch2aConv2D_bi_Q	14
 // S55_Conv2d_64x32x3x3_Relu
-#define S55_Conv2d_64x32x3x3_Relu_Q	12
+#define S55_Conv2d_64x32x3x3_Relu_Q	13
 // S56_Op_res5a_branch1kernel
 #define S56_Op_res5a_branch1kernel_Q	15
 // S57_Op_model_1res5a_branch1Conv2D_bia

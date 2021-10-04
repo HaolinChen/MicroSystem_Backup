@@ -22,5 +22,5 @@ def convert(in_name, out_name):
 
 
 if __name__ == '__main__':
-    Resize('original', 'resize', 128, 160)
+    Resize('original', 'resize', 244, 324)
     convert('resize', 'converted')

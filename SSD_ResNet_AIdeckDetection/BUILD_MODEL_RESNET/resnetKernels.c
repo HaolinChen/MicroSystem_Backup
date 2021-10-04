@@ -76,21 +76,21 @@ void S4_Conv2d_8x1x7x7_MaxPool_3x3_Relu(
 	KerArg0->W = (unsigned short int) (79);
 	KerArg0->OutFeatures = (unsigned short int) (8);
 	KerArg0->Bias = (short int * __restrict__) (resnet_L1_Memory+14720);
-	KerArg0->NormBias = (signed char) (14);
+	KerArg0->NormBias = (signed char) (13);
 	KerArg1->W = (unsigned short int) (160);
 	KerArg1->UsedW = (unsigned short int) (160);
 	KerArg1->InFeatures = (unsigned short int) (1);
 	KerArg1->OutFeatures = (unsigned short int) (8);
 	KerArg1->Filter = (short int * __restrict__) (resnet_L1_Memory+14736);
 	KerArg1->Out = (int * __restrict__) (resnet_L1_Memory+20512);
-	KerArg1->Norm = (unsigned char) (15);
+	KerArg1->Norm = (unsigned char) (14);
 	KerArg1->TotalInFeatures = (short int) (1);
 	KerArg1->Orientation = (unsigned char) (1);
 	KerArg1->S = (unsigned char) (2);
 	KerArg2->In = (int * __restrict__) (resnet_L1_Memory+20512);
 	KerArg2->W = (unsigned short int) (79);
 	KerArg2->Out = (short int * __restrict__) (resnet_L1_Memory+20512);
-	KerArg2->Norm = (unsigned char) (15);
+	KerArg2->Norm = (unsigned char) (14);
 	KerArg2->InFeatures = (unsigned short int) (8);
 	KerArg2->LB = (int) (0);
 	KerArg2->UB = (int) (32767);
@@ -252,19 +252,19 @@ void S7_Conv2d_8x8x3x3_Relu(
 	KerArg0->W = (unsigned short int) (39);
 	KerArg0->OutFeatures = (unsigned short int) (8);
 	KerArg0->Bias = (short int * __restrict__) (resnet_L1_Memory+9984);
-	KerArg0->NormBias = (signed char) (13);
+	KerArg0->NormBias = (signed char) (14);
 	KerArg1->W = (unsigned short int) (39);
 	KerArg1->UsedW = (unsigned short int) (39);
 	KerArg1->InFeatures = (unsigned short int) (4);
 	KerArg1->OutFeatures = (unsigned short int) (8);
 	KerArg1->Filter = (short int * __restrict__) (resnet_L1_Memory+10000);
 	KerArg1->Out = (int * __restrict__) (resnet_L1_Memory+28624);
-	KerArg1->Norm = (unsigned char) (14);
+	KerArg1->Norm = (unsigned char) (15);
 	KerArg1->TotalInFeatures = (short int) (8);
 	KerArg1->Orientation = (unsigned char) (1);
 	KerArg2->In = (int * __restrict__) (resnet_L1_Memory+28624);
 	KerArg2->W = (unsigned short int) (39);
-	KerArg2->Norm = (unsigned char) (14);
+	KerArg2->Norm = (unsigned char) (15);
 	KerArg2->InFeatures = (unsigned short int) (8);
 	KerArg2->LB = (int) (0);
 	KerArg2->UB = (int) (32767);
@@ -414,19 +414,19 @@ void S10_Conv2d_8x8x3x3(
 	KerArg0->W = (unsigned short int) (39);
 	KerArg0->OutFeatures = (unsigned short int) (8);
 	KerArg0->Bias = (short int * __restrict__) (resnet_L1_Memory+9984);
-	KerArg0->NormBias = (signed char) (14);
+	KerArg0->NormBias = (signed char) (13);
 	KerArg1->W = (unsigned short int) (39);
 	KerArg1->UsedW = (unsigned short int) (39);
 	KerArg1->InFeatures = (unsigned short int) (4);
 	KerArg1->OutFeatures = (unsigned short int) (8);
 	KerArg1->Filter = (short int * __restrict__) (resnet_L1_Memory+10000);
 	KerArg1->Out = (int * __restrict__) (resnet_L1_Memory+28624);
-	KerArg1->Norm = (unsigned char) (15);
+	KerArg1->Norm = (unsigned char) (16);
 	KerArg1->TotalInFeatures = (short int) (8);
 	KerArg1->Orientation = (unsigned char) (1);
 	KerArg2->In = (int * __restrict__) (resnet_L1_Memory+28624);
 	KerArg2->W = (unsigned short int) (39);
-	KerArg2->Norm = (unsigned char) (15);
+	KerArg2->Norm = (unsigned char) (16);
 	KerArg2->InFeatures = (unsigned short int) (8);
 	KerArg2->LB = (int) (-32768);
 	KerArg2->UB = (int) (32767);
@@ -567,8 +567,8 @@ void S11_MatAdd_8x39x39(
 	KerArg0->N = (unsigned short int) (8);
 	KerArg0->LB = (int) (-32768);
 	KerArg0->UB = (int) (32767);
-	KerArg0->In1_Q = (unsigned char) (12);
-	KerArg0->In2_Q = (unsigned char) (11);
+	KerArg0->In1_Q = (unsigned char) (11);
+	KerArg0->In2_Q = (unsigned char) (12);
 	KerArg0->Out_Q = (unsigned char) (11);
 	/*================================= Read Tiles Prolog ===============================*/
 	AT_HYPERRAM_CL_COPY2D(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) In1+0), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory+58944+0), 7488, 3042, 936, 0, &UchanHR1);
@@ -1029,6 +1029,9 @@ void S18_MatAdd_8x39x39(
 	KerArg0->N = (unsigned short int) (8);
 	KerArg0->LB = (int) (-32768);
 	KerArg0->UB = (int) (32767);
+	KerArg0->In1_Q = (unsigned char) (11);
+	KerArg0->In2_Q = (unsigned char) (11);
+	KerArg0->Out_Q = (unsigned char) (10);
 	/*================================= Read Tiles Prolog ===============================*/
 	AT_HYPERRAM_CL_COPY2D(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) In1+0), ((AT_HYPERRAM_INT_ADDR_TYPE) resnet_L2_Memory+58944+0), 7488, 3042, 936, 0, &UchanHR1);
 	AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR1); /* Wait previous uDMA read In1 */
@@ -1078,8 +1081,8 @@ void S18_MatAdd_8x39x39(
 			KerArg0->In2 = (short int *__restrict__) (resnet_L1_Memory+14976+7488*((T0Ind_Total)%2));
 			KerArg0->Out = (short int *__restrict__) (resnet_L1_Memory+29952+7488*((T0Ind_Total)%2));
 			KerArg0->H = (unsigned short int) (T0Ind_Last?3:12);
-			AT_FORK(gap_ncore(), (void *) KerParMatAdd_fp, (void *) KerArg0);
-			__CALL(KerParMatAdd_fp, KerArg0);
+			AT_FORK(gap_ncore(), (void *) KerParMatAddDynAdjust_fp, (void *) KerArg0);
+			__CALL(KerParMatAddDynAdjust_fp, KerArg0);
 			/*================================= Write Tiles =====================================*/
 			if (_SP_Out) AT_L2_WAIT(0, &DmaW_Evt1); /* Wait previous DMA write Out */
 			AT_L2_COPY2D(0, ((AT_L2_EXT_ADDR_TYPE) Out+_C_Out), ((AT_L2_INT_ADDR_TYPE) resnet_L1_Memory+29952+7488*((T0Ind_Total)%2)),
@@ -1173,19 +1176,19 @@ void S21_Conv2d_16x8x3x3_Relu(
 	KerArg0->W = (unsigned short int) (20);
 	KerArg0->OutFeatures = (unsigned short int) (16);
 	KerArg0->Bias = (short int * __restrict__) (resnet_L1_Memory+14352);
-	KerArg0->NormBias = (signed char) (12);
+	KerArg0->NormBias = (signed char) (11);
 	KerArg1->W = (unsigned short int) (39);
 	KerArg1->UsedW = (unsigned short int) (39);
 	KerArg1->InFeatures = (unsigned short int) (4);
 	KerArg1->OutFeatures = (unsigned short int) (16);
 	KerArg1->Filter = (short int * __restrict__) (resnet_L1_Memory+14384);
 	KerArg1->Out = (int * __restrict__) (resnet_L1_Memory+30768);
-	KerArg1->Norm = (unsigned char) (14);
+	KerArg1->Norm = (unsigned char) (13);
 	KerArg1->TotalInFeatures = (short int) (8);
 	KerArg1->Orientation = (unsigned char) (1);
 	KerArg2->In = (int * __restrict__) (resnet_L1_Memory+30768);
 	KerArg2->W = (unsigned short int) (20);
-	KerArg2->Norm = (unsigned char) (14);
+	KerArg2->Norm = (unsigned char) (13);
 	KerArg2->InFeatures = (unsigned short int) (16);
 	KerArg2->LB = (int) (0);
 	KerArg2->UB = (int) (32767);
@@ -1334,20 +1337,20 @@ void S24_Conv2d_16x8x1x1(
 	KerArg0->W = (unsigned short int) (20);
 	KerArg0->OutFeatures = (unsigned short int) (16);
 	KerArg0->Bias = (short int * __restrict__) (resnet_L1_Memory+21216);
-	KerArg0->NormBias = (signed char) (12);
+	KerArg0->NormBias = (signed char) (11);
 	KerArg1->W = (unsigned short int) (39);
 	KerArg1->UsedW = (unsigned short int) (39);
 	KerArg1->InFeatures = (unsigned short int) (8);
 	KerArg1->OutFeatures = (unsigned short int) (16);
 	KerArg1->Filter = (short int * __restrict__) (resnet_L1_Memory+21248);
 	KerArg1->Out = (int * __restrict__) (resnet_L1_Memory+33024);
-	KerArg1->Norm = (unsigned char) (14);
+	KerArg1->Norm = (unsigned char) (13);
 	KerArg1->TotalInFeatures = (short int) (8);
 	KerArg1->Pad = (v4s) 0;
 	KerArg1->Orientation = (unsigned char) (1);
 	KerArg2->In = (int * __restrict__) (resnet_L1_Memory+33024);
 	KerArg2->W = (unsigned short int) (20);
-	KerArg2->Norm = (unsigned char) (14);
+	KerArg2->Norm = (unsigned char) (13);
 	KerArg2->InFeatures = (unsigned short int) (16);
 	KerArg2->LB = (int) (-32768);
 	KerArg2->UB = (int) (32767);
@@ -2353,7 +2356,7 @@ void S44_Conv2d_32x32x3x3_Relu(
 	KerArg0->H = (unsigned short int) (10);
 	KerArg0->OutFeatures = (unsigned short int) (32);
 	KerArg0->Bias = (short int * __restrict__) (resnet_L1_Memory+6400);
-	KerArg0->NormBias = (signed char) (14);
+	KerArg0->NormBias = (signed char) (15);
 	KerArg1->In = (short int * __restrict__) (resnet_L1_Memory+0);
 	KerArg1->W = (unsigned short int) (10);
 	KerArg1->UsedW = (unsigned short int) (10);
@@ -2362,7 +2365,7 @@ void S44_Conv2d_32x32x3x3_Relu(
 	KerArg1->OutFeatures = (unsigned short int) (32);
 	KerArg1->Filter = (short int * __restrict__) (resnet_L1_Memory+6464);
 	KerArg1->Out = (int * __restrict__) (resnet_L1_Memory+31296);
-	KerArg1->Norm = (unsigned char) (14);
+	KerArg1->Norm = (unsigned char) (15);
 	KerArg1->TotalInFeatures = (short int) (32);
 	KerArg1->Pad = (v4s) ((v4s){1,1,1,1});
 	KerArg1->Orientation = (unsigned char) (1);
@@ -2370,7 +2373,7 @@ void S44_Conv2d_32x32x3x3_Relu(
 	KerArg2->W = (unsigned short int) (10);
 	KerArg2->H = (unsigned short int) (10);
 	KerArg2->Out = (short int * __restrict__) (resnet_L1_Memory+24896);
-	KerArg2->Norm = (unsigned char) (14);
+	KerArg2->Norm = (unsigned char) (15);
 	KerArg2->InFeatures = (unsigned short int) (32);
 	KerArg2->LB = (int) (0);
 	KerArg2->UB = (int) (32767);
@@ -2667,7 +2670,7 @@ void S51_Conv2d_32x32x3x3(
 	KerArg0->H = (unsigned short int) (10);
 	KerArg0->OutFeatures = (unsigned short int) (32);
 	KerArg0->Bias = (short int * __restrict__) (resnet_L1_Memory+6400);
-	KerArg0->NormBias = (signed char) (14);
+	KerArg0->NormBias = (signed char) (15);
 	KerArg1->In = (short int * __restrict__) (resnet_L1_Memory+0);
 	KerArg1->W = (unsigned short int) (10);
 	KerArg1->UsedW = (unsigned short int) (10);
@@ -2771,6 +2774,9 @@ void S52_MatAdd_32x10x10(
 	KerArg0->N = (unsigned short int) (32);
 	KerArg0->LB = (int) (-32768);
 	KerArg0->UB = (int) (32767);
+	KerArg0->In1_Q = (unsigned char) (12);
+	KerArg0->In2_Q = (unsigned char) (11);
+	KerArg0->Out_Q = (unsigned char) (10);
 	/*================================= Read Tiles Prolog ===============================*/
 	AT_L2_COPY(0, ((AT_L2_EXT_ADDR_TYPE) In1+0), ((AT_L2_INT_ADDR_TYPE) resnet_L1_Memory+0), 6400, 0, &DmaR_Evt1);
 	AT_L2_WAIT(0, &DmaR_Evt1); /* Wait previous DMA read In1 */
@@ -2782,8 +2788,8 @@ void S52_MatAdd_32x10x10(
 		{ /* Single iteration on Tile0 */
 			int T0Ind_Last = 1;
 			/*====================== Call Kernel LOC_LOOP =========================*/
-			AT_FORK(gap_ncore(), (void *) KerParMatAdd_fp, (void *) KerArg0);
-			__CALL(KerParMatAdd_fp, KerArg0);
+			AT_FORK(gap_ncore(), (void *) KerParMatAddDynAdjust_fp, (void *) KerArg0);
+			__CALL(KerParMatAddDynAdjust_fp, KerArg0);
 		} /* End iteration on Tile0 */
 	} /* End iteration on D0 */
 	/*================================ Write Tiles Epilog ===============================*/
@@ -2863,19 +2869,19 @@ void S55_Conv2d_64x32x3x3_Relu(
 	KerArg0->H = (unsigned short int) (5);
 	KerArg0->OutFeatures = (unsigned short int) (64);
 	KerArg0->Bias = (short int * __restrict__) (resnet_L1_Memory+4800);
-	KerArg0->NormBias = (signed char) (12);
+	KerArg0->NormBias = (signed char) (11);
 	KerArg1->W = (unsigned short int) (10);
 	KerArg1->UsedW = (unsigned short int) (10);
 	KerArg1->OutFeatures = (unsigned short int) (64);
 	KerArg1->Out = (int * __restrict__) (resnet_L1_Memory+35776);
-	KerArg1->Norm = (unsigned char) (14);
+	KerArg1->Norm = (unsigned char) (12);
 	KerArg1->Pad = (v4s) ((v4s){0,1,0,1});
 	KerArg1->Orientation = (unsigned char) (1);
 	KerArg2->In = (int * __restrict__) (resnet_L1_Memory+35776);
 	KerArg2->W = (unsigned short int) (5);
 	KerArg2->H = (unsigned short int) (5);
 	KerArg2->Out = (short int * __restrict__) (resnet_L1_Memory+32576);
-	KerArg2->Norm = (unsigned char) (14);
+	KerArg2->Norm = (unsigned char) (12);
 	KerArg2->InFeatures = (unsigned short int) (64);
 	KerArg2->LB = (int) (0);
 	KerArg2->UB = (int) (32767);
@@ -3011,7 +3017,7 @@ void S58_Conv2d_64x32x1x1(
 	KerArg0->H = (unsigned short int) (5);
 	KerArg0->OutFeatures = (unsigned short int) (64);
 	KerArg0->Bias = (short int * __restrict__) (resnet_L1_Memory+6400);
-	KerArg0->NormBias = (signed char) (11);
+	KerArg0->NormBias = (signed char) (10);
 	KerArg1->In = (short int * __restrict__) (resnet_L1_Memory+0);
 	KerArg1->W = (unsigned short int) (10);
 	KerArg1->UsedW = (unsigned short int) (9);
@@ -3020,7 +3026,7 @@ void S58_Conv2d_64x32x1x1(
 	KerArg1->OutFeatures = (unsigned short int) (64);
 	KerArg1->Filter = (short int * __restrict__) (resnet_L1_Memory+6528);
 	KerArg1->Out = (int * __restrict__) (resnet_L1_Memory+13824);
-	KerArg1->Norm = (unsigned char) (14);
+	KerArg1->Norm = (unsigned char) (13);
 	KerArg1->TotalInFeatures = (short int) (32);
 	KerArg1->Pad = (v4s) 0;
 	KerArg1->Orientation = (unsigned char) (1);
@@ -3028,7 +3034,7 @@ void S58_Conv2d_64x32x1x1(
 	KerArg2->W = (unsigned short int) (5);
 	KerArg2->H = (unsigned short int) (5);
 	KerArg2->Out = (short int * __restrict__) (resnet_L1_Memory+10624);
-	KerArg2->Norm = (unsigned char) (14);
+	KerArg2->Norm = (unsigned char) (13);
 	KerArg2->InFeatures = (unsigned short int) (64);
 	KerArg2->LB = (int) (-32768);
 	KerArg2->UB = (int) (32767);
@@ -3136,19 +3142,19 @@ void S61_Conv2d_64x64x3x3_Relu(
 	KerArg0->H = (unsigned short int) (5);
 	KerArg0->OutFeatures = (unsigned short int) (64);
 	KerArg0->Bias = (short int * __restrict__) (resnet_L1_Memory+1200);
-	KerArg0->NormBias = (signed char) (13);
+	KerArg0->NormBias = (signed char) (14);
 	KerArg1->W = (unsigned short int) (5);
 	KerArg1->UsedW = (unsigned short int) (5);
 	KerArg1->OutFeatures = (unsigned short int) (64);
 	KerArg1->Out = (int * __restrict__) (resnet_L1_Memory+32176);
-	KerArg1->Norm = (unsigned char) (14);
+	KerArg1->Norm = (unsigned char) (15);
 	KerArg1->Pad = (v4s) ((v4s){1,1,1,1});
 	KerArg1->Orientation = (unsigned char) (1);
 	KerArg2->In = (int * __restrict__) (resnet_L1_Memory+32176);
 	KerArg2->W = (unsigned short int) (5);
 	KerArg2->H = (unsigned short int) (5);
 	KerArg2->Out = (short int * __restrict__) (resnet_L1_Memory+28976);
-	KerArg2->Norm = (unsigned char) (14);
+	KerArg2->Norm = (unsigned char) (15);
 	KerArg2->InFeatures = (unsigned short int) (64);
 	KerArg2->LB = (int) (0);
 	KerArg2->UB = (int) (32767);
