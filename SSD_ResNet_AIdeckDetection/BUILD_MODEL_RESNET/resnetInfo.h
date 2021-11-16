@@ -15,15 +15,15 @@
 // S5_Op_res2bbranch2akernel
 #define S5_Op_res2bbranch2akernel_Q	15
 // S6_Op_model_1res2bbranch2aConv2D_bia
-#define S6_Op_model_1res2bbranch2aConv2D_bia_Q	13
+#define S6_Op_model_1res2bbranch2aConv2D_bia_Q	12
 // S7_Conv2d_8x8x3x3_Relu
-#define S7_Conv2d_8x8x3x3_Relu_Q	12
+#define S7_Conv2d_8x8x3x3_Relu_Q	13
 // S8_Op_res2bbranch2bkernel
 #define S8_Op_res2bbranch2bkernel_Q	15
 // S9_Op_model_1res2bbranch2bConv2D_bia
-#define S9_Op_model_1res2bbranch2bConv2D_bia_Q	14
+#define S9_Op_model_1res2bbranch2bConv2D_bia_Q	13
 // S10_Conv2d_8x8x3x3
-#define S10_Conv2d_8x8x3x3_Q	11
+#define S10_Conv2d_8x8x3x3_Q	12
 // S11_MatAdd_8x39x39
 #define S11_MatAdd_8x39x39_Q	11
 // S12_Op_res2cbranch2akernel
@@ -37,9 +37,9 @@
 // S16_Op_model_1res2cbranch2bConv2D_bia
 #define S16_Op_model_1res2cbranch2bConv2D_bia_Q	14
 // S17_Conv2d_8x8x3x3
-#define S17_Conv2d_8x8x3x3_Q	11
+#define S17_Conv2d_8x8x3x3_Q	12
 // S18_MatAdd_8x39x39
-#define S18_MatAdd_8x39x39_Q	10
+#define S18_MatAdd_8x39x39_Q	11
 // S19_Op_res3a_branch2akernel
 #define S19_Op_res3a_branch2akernel_Q	15
 // S20_Op_model_1res3a_branch2aConv2D_bi
@@ -65,15 +65,15 @@
 // S30_Op_model_1res3bbranch2aConv2D_bia
 #define S30_Op_model_1res3bbranch2aConv2D_bia_Q	14
 // S31_Conv2d_16x16x3x3_Relu
-#define S31_Conv2d_16x16x3x3_Relu_Q	12
+#define S31_Conv2d_16x16x3x3_Relu_Q	13
 // S32_Op_res3bbranch2bkernel
-#define S32_Op_res3bbranch2bkernel_Q	15
+#define S32_Op_res3bbranch2bkernel_Q	14
 // S33_Op_model_1res3bbranch2bConv2D_bia
 #define S33_Op_model_1res3bbranch2bConv2D_bia_Q	13
 // S34_Conv2d_16x16x3x3
 #define S34_Conv2d_16x16x3x3_Q	11
 // S35_MatAdd_16x20x20
-#define S35_MatAdd_16x20x20_Q	10
+#define S35_MatAdd_16x20x20_Q	11
 // S36_Op_res4a_branch2akernel
 #define S36_Op_res4a_branch2akernel_Q	15
 // S37_Op_model_1res4a_branch2aConv2D_bi
@@ -103,11 +103,11 @@
 // S49_Op_res4bbranch2bkernel
 #define S49_Op_res4bbranch2bkernel_Q	15
 // S50_Op_model_1res4bbranch2bConv2D_bia
-#define S50_Op_model_1res4bbranch2bConv2D_bia_Q	13
+#define S50_Op_model_1res4bbranch2bConv2D_bia_Q	14
 // S51_Conv2d_32x32x3x3
 #define S51_Conv2d_32x32x3x3_Q	12
 // S52_MatAdd_32x10x10
-#define S52_MatAdd_32x10x10_Q	10
+#define S52_MatAdd_32x10x10_Q	11
 // S53_Op_res5a_branch2akernel
 #define S53_Op_res5a_branch2akernel_Q	15
 // S54_Op_model_1res5a_branch2aConv2D_bi
@@ -119,7 +119,7 @@
 // S57_Op_model_1res5a_branch1Conv2D_bia
 #define S57_Op_model_1res5a_branch1Conv2D_bia_Q	15
 // S58_Conv2d_64x32x1x1
-#define S58_Conv2d_64x32x1x1_Q	12
+#define S58_Conv2d_64x32x1x1_Q	13
 // S59_Op_res5a_branch2bkernel
 #define S59_Op_res5a_branch2bkernel_Q	14
 // S60_Op_model_1res5a_branch2bConv2D_bi
@@ -127,7 +127,7 @@
 // S61_Conv2d_64x64x3x3_Relu
 #define S61_Conv2d_64x64x3x3_Relu_Q	12
 // S62_MatAdd_64x5x5
-#define S62_MatAdd_64x5x5_Q	11
+#define S62_MatAdd_64x5x5_Q	12
 // S63_Op_res5bbranch2akernel
 #define S63_Op_res5bbranch2akernel_Q	15
 // S64_Op_model_1res5bbranch2aConv2D_bia
@@ -139,7 +139,7 @@
 // S67_Op_model_1res5bbranch2bConv2D_bia
 #define S67_Op_model_1res5bbranch2bConv2D_bia_Q	14
 // S68_Conv2d_64x64x3x3
-#define S68_Conv2d_64x64x3x3_Q	12
+#define S68_Conv2d_64x64x3x3_Q	13
 // S69_MatAdd_64x5x5
 #define S69_MatAdd_64x5x5_Q	11
 // S70_AveragePool_2x2
@@ -149,7 +149,7 @@
 // S72_Op_m2weightedaverageMatMul_bias
 #define S72_Op_m2weightedaverageMatMul_bias_Q	15
 // S73_Linear_7x64x2x2
-#define S73_Linear_7x64x2x2_Q	10
+#define S73_Linear_7x64x2x2_Q	12
 // S74_SoftMax
 #define S74_SoftMax_Q	15
 // S75_Op_output_1

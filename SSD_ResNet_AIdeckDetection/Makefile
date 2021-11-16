@@ -64,7 +64,7 @@ PLPBRIDGE_FLAGS += -f
 
 
 BUILD_MODEL_SSD/cnn_ssdKernels.c: 
-	make -f cnnssd.mk model
+	make -f cnnssd.mk SSD_model model
 BUILD_MODEL_RESNET/resnetKernels.c: 
 	make -f resnet.mk model
 
@@ -74,8 +74,14 @@ all:: BUILD_MODEL_SSD/cnn_ssdKernels.c BUILD_MODEL_RESNET/resnetKernels.c
 clean::
 	rm -rf BUILD
 
+clean_ssd:
+	make -f cnnssd.mk clean
+clean_resnet:
+	make -f resnet.mk clean
+
 clean_models:
 	rm -rf BUILD_MODEL*
+	make -f cnnssd.mk clean
 
 $(info APP_SRCS... $(APP_SRCS))
 $(info APP_CFLAGS... $(APP_CFLAGS))

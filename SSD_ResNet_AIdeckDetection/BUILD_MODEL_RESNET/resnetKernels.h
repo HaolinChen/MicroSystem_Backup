@@ -4,10 +4,10 @@
 #include "AutoTilerLibTypes.h"
 #include "CNN_BasicKernels.h"
 #include "resnet.h"
-#define _resnet_L1_Memory_SIZE 46096
-#define _resnet_L2_Memory_SIZE 44928
-extern char *resnet_L1_Memory; /* Size given for generation: 46736 bytes, used: 46096 bytes */
-extern char *resnet_L2_Memory; /* Size used for generation: 44928 bytes */
+#define _resnet_L1_Memory_SIZE 16672
+#define _resnet_L2_Memory_SIZE 15360
+extern char *resnet_L1_Memory; /* Size given for generation: 16736 bytes, used: 16672 bytes */
+extern char *resnet_L2_Memory; /* Size used for generation: 15360 bytes */
 extern void S4_Conv2d_8x1x7x7_MaxPool_3x3_Relu(
 		short int * __restrict__ In,
 		short int * __restrict__ Filter,

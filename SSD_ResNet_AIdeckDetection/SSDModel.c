@@ -118,8 +118,8 @@ int main(int argc, char **argv)
     int n_offsets = 4;
     int n_anchors;
 
-    int L1Memory = 38000;
-    int L2Memory = 100000;
+    int L1Memory = 10000;
+    int L2Memory = 50000;
     int L3Memory = 1024*1024;
 
 

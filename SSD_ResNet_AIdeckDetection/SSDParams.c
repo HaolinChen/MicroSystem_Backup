@@ -32,7 +32,7 @@ int initAnchorLayer_1(){
 	anchor_layer_1->aspect_ratios = n_aspect_ratios_1;
 	anchor_layer_1->variances = n_variances_1;
 	anchor_layer_1->two_boxes_for_ar1 = true;
-	anchor_layer_1->confidence_thr = 13106;
+	anchor_layer_1->confidence_thr = 8191;
 	anchor_layer_1->n_aspect_ratios =  5;
 	anchor_layer_1->n_anchors   =  6;
 	anchor_layer_1->n_variances =  4;
@@ -73,7 +73,7 @@ int initAnchorLayer_2(){
 	anchor_layer_2->aspect_ratios = n_aspect_ratios_2;
 	anchor_layer_2->variances = n_variances_2;
 	anchor_layer_2->two_boxes_for_ar1 = true;
-	anchor_layer_2->confidence_thr = 13106;
+	anchor_layer_2->confidence_thr = 8191;
 	anchor_layer_2->n_aspect_ratios =  5;
 	anchor_layer_2->n_anchors   =  6;
 	anchor_layer_2->n_variances =  4;
@@ -114,7 +114,7 @@ int initAnchorLayer_3(){
 	anchor_layer_3->aspect_ratios = n_aspect_ratios_3;
 	anchor_layer_3->variances = n_variances_3;
 	anchor_layer_3->two_boxes_for_ar1 = true;
-	anchor_layer_3->confidence_thr = 13106;
+	anchor_layer_3->confidence_thr = 8191;
 	anchor_layer_3->n_aspect_ratios =  5;
 	anchor_layer_3->n_anchors   =  6;
 	anchor_layer_3->n_variances =  4;
@@ -155,7 +155,7 @@ int initAnchorLayer_4(){
 	anchor_layer_4->aspect_ratios = n_aspect_ratios_4;
 	anchor_layer_4->variances = n_variances_4;
 	anchor_layer_4->two_boxes_for_ar1 = true;
-	anchor_layer_4->confidence_thr = 13106;
+	anchor_layer_4->confidence_thr = 8191;
 	anchor_layer_4->n_aspect_ratios =  5;
 	anchor_layer_4->n_anchors   =  6;
 	anchor_layer_4->n_variances =  4;

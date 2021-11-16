@@ -5,19 +5,19 @@
 // S0_Op_input_1
 #define S0_Op_input_1_Q	15
 // S1_Op_Conv_0_weights
-#define S1_Op_Conv_0_weights_Q	10
+#define S1_Op_Conv_0_weights_Q	12
 // S2_Op_constant_103
 #define S2_Op_constant_103_Q	14
 // S3_Conv2d_8x1x3x3_MaxPool_2x2_Relu
-#define S3_Conv2d_8x1x3x3_MaxPool_2x2_Relu_Q	10
+#define S3_Conv2d_8x1x3x3_MaxPool_2x2_Relu_Q	12
 // S4_Op_Conv_3_weights
-#define S4_Op_Conv_3_weights_Q	15
+#define S4_Op_Conv_3_weights_Q	14
 // S5_Op_constant_106
-#define S5_Op_constant_106_Q	15
+#define S5_Op_constant_106_Q	13
 // S6_Conv2d_16x8x3x3_MaxPool_2x2_Relu
 #define S6_Conv2d_16x8x3x3_MaxPool_2x2_Relu_Q	12
 // S7_Op_Conv_6_weights
-#define S7_Op_Conv_6_weights_Q	14
+#define S7_Op_Conv_6_weights_Q	15
 // S8_Op_constant_109
 #define S8_Op_constant_109_Q	14
 // S9_Conv2d_16x16x3x3_MaxPool_2x2_Relu
@@ -27,13 +27,13 @@
 // S11_Op_constant_112
 #define S11_Op_constant_112_Q	13
 // S12_Conv2d_32x16x3x3_Relu
-#define S12_Conv2d_32x16x3x3_Relu_Q	12
+#define S12_Conv2d_32x16x3x3_Relu_Q	13
 // S13_MaxPool_2x2
-#define S13_MaxPool_2x2_Q	12
+#define S13_MaxPool_2x2_Q	13
 // S14_Op_Conv_11_weights
-#define S14_Op_Conv_11_weights_Q	15
+#define S14_Op_Conv_11_weights_Q	14
 // S15_Op_constant_classification_headers.0.bias
-#define S15_Op_constant_classification_headers.0.bias_Q	15
+#define S15_Op_constant_classification_headers.0.bias_Q	14
 // S16_Conv2d_18x32x3x3
 #define S16_Conv2d_18x32x3x3_Q	11
 // S17_Op_output_1
@@ -79,13 +79,13 @@
 // S37_MaxPool_2x2
 #define S37_MaxPool_2x2_Q	13
 // S38_Op_Conv_21_weights
-#define S38_Op_Conv_21_weights_Q	14
+#define S38_Op_Conv_21_weights_Q	15
 // S39_Op_constant_classification_headers.2.bias
 #define S39_Op_constant_classification_headers.2.bias_Q	15
 // S40_Conv2d_18x128x3x3
-#define S40_Conv2d_18x128x3x3_Q	11
+#define S40_Conv2d_18x128x3x3_Q	12
 // S41_Op_output_5
-#define S41_Op_output_5_Q	11
+#define S41_Op_output_5_Q	12
 // S42_Op_Conv_22_weights
 #define S42_Op_Conv_22_weights_Q	15
 // S43_Op_constant_regression_headers.2.bias
@@ -99,9 +99,9 @@
 // S47_Op_constant_121
 #define S47_Op_constant_121_Q	13
 // S48_Conv2d_128x128x3x3_Relu
-#define S48_Conv2d_128x128x3x3_Relu_Q	14
+#define S48_Conv2d_128x128x3x3_Relu_Q	13
 // S49_Op_Conv_26_weights
-#define S49_Op_Conv_26_weights_Q	14
+#define S49_Op_Conv_26_weights_Q	15
 // S50_Op_constant_classification_headers.3.bias
 #define S50_Op_constant_classification_headers.3.bias_Q	15
 // S51_Conv2d_18x128x3x3
@@ -113,7 +113,7 @@
 // S54_Op_constant_regression_headers.3.bias
 #define S54_Op_constant_regression_headers.3.bias_Q	15
 // S55_Conv2d_24x128x3x3
-#define S55_Conv2d_24x128x3x3_Q	13
+#define S55_Conv2d_24x128x3x3_Q	12
 // S56_Op_output_8
-#define S56_Op_output_8_Q	13
+#define S56_Op_output_8_Q	12
 #endif //CNN_SSD_GRAPHINFO_H

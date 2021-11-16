@@ -19,8 +19,11 @@
 
 // Delete the following code to disable the camera and the wifi
 // change 1 to 0 is not useful
-#define FROM_CAMERA 1
+// #define FROM_CAMERA 1
 // #define USE_STREAMER 1
+#define MUTE 1
+#define TOTAL_CYCLE 1
+#define PERFORMANCE_DEBUG 1
 
 #if defined(USE_STREAMER)
 #include "bsp/transport/nina_w10.h"
@@ -38,12 +41,6 @@
 #include "resnetInfo.h"
 #include "ResizeBasicKernels.h"
 
-#if SILENT
-#define PRINTF(...) ((void)0)
-#else
-#define PRINTF printf
-#endif
-
 struct pi_device ili;
 struct pi_device device;
 static pi_buffer_t buffer;
@@ -52,10 +49,16 @@ static pi_buffer_t buffer;
 #define MOUNT 1
 #define UNMOUNT 0
 #define CID 0
-#define SAVE_DET 1
-#define SAVE_GESTURE_DET 0
+#define SAVE_DET 0
+#define SAVE_GESTURE_DET 1
 // #define TARGET_NUM      2
 #define RESIZE 1
+
+#if MUTE
+#define PRINTF(...) ((void)0)
+#else
+#define PRINTF printf
+#endif
 
 struct pi_device HyperRam;
 static struct pi_hyperram_conf conf;
@@ -117,11 +120,11 @@ short GESTURE_FLAG = 0;
 void writeDetImg(unsigned char *imageinchar, uint16_t Img_num, int16_t score)
 {
 
-    static char imgName[50];
+    static char imgName[80];
     //Save Images to Local
     float score_fp = FIX2FP(score, 15);
-    sprintf(imgName, "../../../OUTPUT/ssd_resnet_camera/%d_%f.ppm", Img_num, score_fp);
-    printf("Dumping image %s\n", imgName);
+    sprintf(imgName, "../../../OUTPUT/ssd_resnet_camera/optimization/gvsoc/gesture_%d_%f.ppm", Img_num, score_fp);
+    PRINTF("Dumping image %s\n", imgName);
 
     WriteImageToFile(imgName, W, H, imageinchar);
 }
@@ -129,11 +132,11 @@ void writeDetImg(unsigned char *imageinchar, uint16_t Img_num, int16_t score)
 void writeDetImg_resnet(unsigned char *imageinchar, uint16_t Img_num, int outclass1)
 {
     //write Detected Bbox to Image and save to imgName
-    static char imgName[50];
+    static char imgName[80];
 
     //Save Images to Local
-    sprintf(imgName, "../../../OUTPUT/ssd_resnet_camera/%ld_class%d.ppm", Img_num, outclass1);
-    printf("Dumping image %s\n", imgName);
+    sprintf(imgName, "../../../samples_codetest/gap8_gesture_prepare/pic_output/1/num%ld_label%ld.pgm", Img_num, outclass1);
+    PRINTF("Dumping image %s\n", imgName);
 
     WriteImageToFile(imgName, W_2, H_2, imageinchar);
 }
@@ -158,7 +161,7 @@ static int open_camera_himax(struct pi_device *device)
     pi_camera_reg_get(device, IMG_ORIENTATION, &reg_value);
     if (set_value != reg_value)
     {
-        printf("Failed to rotate camera image\n");
+        PRINTF("Failed to rotate camera image\n");
         return -1;
     }
     pi_camera_control(device, PI_CAMERA_CMD_STOP, 0);
@@ -220,41 +223,41 @@ static frame_streamer_t *open_streamer(char *name)
 
 void test_hyper_ram(short int *output, short W, short H, short num, short start_fp)
 {
-    printf("Start read output %d from hyper ram...\n", num);
+    PRINTF("Start read output %d from hyper ram...\n", num);
     out_buff = (short int *)pmsis_l2_malloc(W * H * sizeof(short int) * (start_fp + 1));
     int start_num = W * H * start_fp;
     if (out_buff == NULL)
     {
-        printf("L2_buff alloc failed !\n");
+        PRINTF("L2_buff alloc failed !\n");
         pmsis_exit(-1);
     }
     pi_ram_read(&HyperRam, output, out_buff, W * H * sizeof(short int) * (start_fp + 1));
-    printf("Read output done.\n");
+    PRINTF("Read output done.\n");
     /* Verification. */
     for (uint32_t i = 0; i < H; i++)
     {
         for (uint32_t j = 0; j < W; j++)
         {
-            printf("%d ", out_buff[i * W + j + start_num]);
+            PRINTF("%d ", out_buff[i * W + j + start_num]);
         }
-        printf("\n");
+        PRINTF("\n");
     }
-    printf("\n");
+    PRINTF("\n");
     pmsis_l2_malloc_free(out_buff, W * H * sizeof(short int) * (start_fp + 1));
 }
 
 void test_l2(short int *output, short W, short num)
 {
-    printf("Output %d:\n", num);
+    PRINTF("Output %d:\n", num);
     for (uint32_t i = 0; i < W; i++)
     {
         for (uint32_t j = 0; j < W; j++)
         {
-            printf("%d ", output[i * W + j]);
+            PRINTF("%d ", output[i * W + j]);
         }
-        printf("\n");
+        PRINTF("\n");
     }
-    printf("\n");
+    PRINTF("\n");
 }
 
 static int initSSD()
@@ -264,7 +267,7 @@ static int initSSD()
 
     if (bbxs.bbs == NULL)
     {
-        printf("Bounding Boxes Allocation Error...\n");
+        PRINTF("Bounding Boxes Allocation Error...\n");
         return 1;
     }
 
@@ -361,7 +364,7 @@ void non_max_suppress(bboxs_t *boundbxs)
 
     int idx, idx_int;
     //Non-max supression
-    // printf("Box num: %d \n", boundbxs->num_bb);
+    // PRINTF("Box num: %d \n", boundbxs->num_bb);
     for (idx = 0; idx < boundbxs->num_bb; idx++)
     {
         //check if rect has been removed (-1)
@@ -386,65 +389,58 @@ void non_max_suppress(bboxs_t *boundbxs)
             }
         }
     }
-
-    // filter the boxes nums again
-    // for(idx=0;idx<boundbxs->num_bb;idx++){
-    //     if(idx < TARGET_NUM)
-    //     {
-    //         boundbxs->bbs[idx].alive=1;
-    //     }
-    //     else
-    //     {
-    //         boundbxs->bbs[idx].alive=0;
-    //     }
-    // }
 }
 
 static void RunNN()
 {
 
-    unsigned int ti, ti_nn, ti_ssd;
+#ifndef TOTAL_CYCLE
+    unsigned int ti, ti_nn;
 
     gap_cl_starttimer();
     gap_cl_resethwtimer();
     ti = gap_cl_readhwtimer();
+#endif
 
     cnn_ssdCNN(ImageIn, Output_1, Output_2, Output_3, Output_4, Output_5, Output_6, Output_7, Output_8);
-
+#ifndef TOTAL_CYCLE
     ti_nn = gap_cl_readhwtimer() - ti;
     PRINTF("Cycles NN : %10d\n", ti_nn);
+#endif
     // test_l2(Output_3, 5, 3);
-    // test_l2(Output_4, 5, 4);
-    // test_l2(Output_5, 5, 5);
-    // test_l2(Output_6, 5, 6);
-    // test_l2(Output_7, 7, 7);
-    // test_l2(Output_8, 7, 8);
     // test_hyper_ram();
 }
 
 static void Resize(KerResizeBilinear_ArgT *KerArg)
 {
-    printf("Resizing...\n");
+    PRINTF("Resizing...\n");
     unsigned int ti, ti_nn;
+#ifndef TOTAL_CYCLE
     gap_cl_starttimer();
     gap_cl_resethwtimer();
     ti = gap_cl_readhwtimer();
+#endif
     AT_FORK(gap_ncore(), (void *)KerResizeBilinear, (void *)KerArg);
+#ifndef TOTAL_CYCLE
     ti_nn = gap_cl_readhwtimer() - ti;
-    printf("Cycles resize : %10d\n", ti_nn);
+    PRINTF("Cycles resize : %10d\n", ti_nn);
+#endif
 }
 
 static void RunRESNET()
 {
-    printf("\n===RunResNet===\n");
+    PRINTF("\n===RunResNet===\n");
+#ifndef TOTAL_CYCLE
     unsigned int ti, ti_nn;
     gap_cl_starttimer();
     gap_cl_resethwtimer();
     ti = gap_cl_readhwtimer();
-
+#endif
     resnetCNN(ImageIn_2, Output);
+#ifndef TOTAL_CYCLE
     ti_nn = gap_cl_readhwtimer() - ti;
-    printf("Cycles NN : %10d\n", ti_nn);
+    PRINTF("Cycles NN : %10d\n", ti_nn);
+#endif
 }
 
 /////////////////////
@@ -454,10 +450,11 @@ static void RunRESNET()
 static void RunSSD()
 {
 
+#ifndef TOTAL_CYCLE
     unsigned int ti, ti_ssd;
-
     gap_cl_resethwtimer();
     ti = gap_cl_readhwtimer();
+#endif
 
     //Set Boundinx Boxes to 0
     bbxs.num_bb = 0;
@@ -503,13 +500,11 @@ static void RunSSD()
     convertCoordBboxes(&bbxs, 160, 128);
     // printBboxes(&bbxs);
     non_max_suppress(&bbxs);
-    // printBboxes(&bbxs);
-
-    ti_ssd = gap_cl_readhwtimer() - ti;
-
     // printBboxes_forPython(&bbxs);
-
+#ifndef TOTAL_CYCLE
+    ti_ssd = gap_cl_readhwtimer() - ti;
     PRINTF("Cycles SSD: %10d\n", ti_ssd);
+#endif
 }
 
 static int open_display(struct pi_device *device)
@@ -552,7 +547,7 @@ void drawBboxes(bboxs_t *boundbxs, uint8_t *img)
     {
         if (boundbxs->bbs[counter].alive)
         {
-            DrawRectangle(img, H, W, boundbxs->bbs[counter].x, boundbxs->bbs[counter].y, boundbxs->bbs[counter].w, boundbxs->bbs[counter].h, 255);
+            DrawRectangle(img, H, W, boundbxs->bbs[counter].x - 1, boundbxs->bbs[counter].y - 1, boundbxs->bbs[counter].w + 2, boundbxs->bbs[counter].h + 2, 255);
         }
     }
 }
@@ -583,7 +578,7 @@ void cropTargets(bboxs_t *boundbxs, int box_number, unsigned char *img_in, unsig
 int start()
 {
 
-    char *ImageName;
+    char ImageName[80];
 
     int ret_state;
     int ret_state_2;
@@ -593,13 +588,14 @@ int start()
     PRINTF("Entering main controller\n");
 
     pi_freq_set(PI_FREQ_DOMAIN_FC, FREQ_FC * 1000 * 1000);
+    pi_freq_set(PI_FREQ_DOMAIN_CL, FREQ_CL * 1000 * 1000);
 
 #ifdef FROM_CAMERA
 
     // unsigned char *ImageInChar = (unsigned char *) pmsis_l2_malloc( Wi * Hi * sizeof(unsigned char));
     // if (ImageInChar == 0)
     // {
-    //     printf("Failed to allocate Memory for Image (%d bytes)\n", Wi * Hi * sizeof(IMAGE_IN_T));
+    //     PRINTF("Failed to allocate Memory for Image (%d bytes)\n", Wi * Hi * sizeof(IMAGE_IN_T));
     //     pmsis_exit(-6);
     // }
     // ImageIn = (IMAGE_IN_T *)ImageInChar;
@@ -614,7 +610,7 @@ int start()
 
     if (open_camera_himax(&device))
     {
-        printf("Failed to open camera\n");
+        PRINTF("Failed to open camera\n");
         pmsis_exit(-2);
     }
 
@@ -624,7 +620,7 @@ int start()
     // unsigned char *ImageInChar_2 = (unsigned char *) pmsis_l2_malloc( W_2 * H_2 * sizeof(unsigned char));
     // if (ImageInChar == 0 || ImageInChar_2 == 0)
     // {
-    //     printf("Failed to allocate Memory for Image (%d bytes)\n", W * H * sizeof(IMAGE_IN_T));
+    //     PRINTF("Failed to allocate Memory for Image (%d bytes)\n", W * H * sizeof(IMAGE_IN_T));
     //     pmsis_exit(-6);
     // }
 
@@ -634,15 +630,15 @@ int start()
 
     if (open_wifi(&wifi))
     {
-        printf("Failed to open wifi\n");
+        PRINTF("Failed to open wifi\n");
         return -1;
     }
-    printf("WIFI connected\n"); // check this with NINA printout
+    PRINTF("WIFI connected\n"); // check this with NINA printout
 
     streamer1 = open_streamer("cam");
     if (streamer1 == NULL)
         return -1;
-    printf("Streamer set up\n");
+    PRINTF("Streamer set up\n");
 
 #endif
 
@@ -651,7 +647,7 @@ int start()
     pi_open_from_conf(&HyperRam, &conf);
     if (pi_ram_open(&HyperRam))
     {
-        printf("Error ram open !\n");
+        PRINTF("Error ram open !\n");
         pmsis_exit(-5);
     }
 
@@ -671,24 +667,23 @@ int start()
 
     if (Output_1 == NULL || Output_2 == NULL || Output_3 == NULL || Output_4 == NULL || Output_5 == NULL || Output_6 == NULL || Output_7 == NULL || Output_8 == NULL)
     {
-        printf("Error Allocating OUTPUTs in L3\n");
+        PRINTF("Error Allocating OUTPUTs in L3\n");
         pmsis_exit(-7);
     }
 
     if (tmp_buffer_classes == NULL || tmp_buffer_classes == NULL)
     {
-        printf("Error Allocating SSD Temp buffers in L3\n");
+        PRINTF("Error Allocating SSD Temp buffers in L3\n");
         pmsis_exit(-7);
     }
 
     Output = (short int *)pmsis_l2_malloc(NUM_CLASSES * sizeof(short int));
     if (Output == NULL)
     {
-        printf("Error Allocating OUTPUTs in L2\n");
+        PRINTF("Error Allocating OUTPUTs in L2\n");
         pmsis_exit(-7);
     }
 
-#ifndef __EMUL__
     /* Configure And open cluster. */
     struct pi_device cluster_dev;
     struct pi_cluster_conf cl_conf;
@@ -696,86 +691,94 @@ int start()
     pi_open_from_conf(&cluster_dev, (void *)&cl_conf);
     if (pi_cluster_open(&cluster_dev))
     {
-        printf("Cluster open failed !\n");
+        PRINTF("Cluster open failed !\n");
         pmsis_exit(-7);
     }
 
-#endif
+    PRINTF("================ Memory Alocate=================\n");
 
     if (initSSD())
     {
-        printf("NN Init exited with an error\n");
+        PRINTF("NN Init exited with an error\n");
         pmsis_exit(-6);
     }
-
-    PRINTF("Running NN\n");
 
     struct pi_cluster_task *task = pmsis_l2_malloc(sizeof(struct pi_cluster_task));
     if (task == NULL)
     {
-        printf("Alloc Error! \n");
+        PRINTF("Alloc Error! \n");
         pmsis_exit(-5);
     }
-    // struct pi_cluster_task *task_classfication = pmsis_l2_malloc(sizeof(struct pi_cluster_task));
-    // if(task_classfication==NULL) {
-    //     printf("Alloc Error! \n");
-    //     pmsis_exit(-5);
-    // }
+
+    unsigned char *ImageInChar = (unsigned char *)pmsis_l2_malloc(W * H * sizeof(short int));
+    unsigned char *ImageInCamera = (unsigned char *)pmsis_l2_malloc(Wi * Hi * sizeof(unsigned char));
+
+    //SSD Allocations
+    SSDKernels_L1_Memory = pmsis_l1_malloc(_SSDKernels_L1_Memory_SIZE);
+    SSDKernels_L2_Memory = pmsis_l2_malloc(_SSDKernels_L2_Memory_SIZE);
+
+    if (SSDKernels_L1_Memory == NULL || SSDKernels_L2_Memory == NULL)
+    {
+        PRINTF("SSD L1 and/or L2 allocation error\n");
+        pmsis_exit(-3);
+    }
+
+    if (ret_state_2 = resnetCNN_Construct())
+    {
+        PRINTF("Graph constructor exited with error: %d\n", ret_state_2);
+        pmsis_exit(-4);
+    }
+    PRINTF("ResNet Constructor was OK!\n");
+
+    if (ret_state = cnn_ssdCNN_Construct())
+    {
+        PRINTF("Graph constructor exited with an error code: %d\n", ret_state);
+        pmsis_exit(-4);
+    }
+    PRINTF("CNN_SSD Constructor was OK!\n");
 
     short iter = 1;
     uint16_t count = 0;
-    uint16_t pic_num = 0;
+    uint16_t gesture_now = 1;
+    uint16_t pic_num = 64;
     pi_freq_set(PI_FREQ_DOMAIN_CL, FREQ_CL * 1000 * 1000);
+
+#ifdef PERFORMANCE_DEBUG
+    float detect_count = 0;
+    float right_count = 0;
+    float detect_rate = 0.0;
+    float right_rate = 0.0;
+#endif
 
     while (iter)
     {
 
 #ifndef FROM_CAMERA
 
-        switch (count)
-        {
-        case 0:
-            pic_num = 81;
-            ImageName = "../../../samples_codetest/backward_81.pgm";
-            break;
-        case 1:
-            pic_num = 49;
-            ImageName = "../../../samples_codetest/lb_left_49.pgm";
-            break;
-        case 2:
-            pic_num = 487;
-            ImageName = "../../../samples_codetest/zyq_forward_487.pgm";
-            break;
-        case 3:
-            pic_num = 4;
-            ImageName = "../../../samples_codetest/lb_right_4.pgm";
-            break;
-        case 4:
-            pic_num = 94;
-            ImageName = "../../../samples_codetest/lb_down_94.pgm";
-            break;
-        case 5:
-            pic_num = 37;
-            ImageName = "../../../samples_codetest/lb_left_37.pgm";
-            iter = 0;
-            break;
-        default:
-            break;
-        }
+        sprintf(ImageName, "../../../samples_codetest/gap8_gesture_prepare/pic_input/1/label%ld_num%ld.pgm", gesture_now, count);
         count = count + 1;
+        if (count == pic_num)
+        {
+            iter = 0;
+        }
         //Reading Image from Bridge
         PRINTF("\n\n******************CYCLE START******************\n\n\n");
         PRINTF("Loading Image from File\n");
-        unsigned char *ImageInChar = (unsigned char *)pmsis_l2_malloc(W * H * sizeof(short int));
-        unsigned char *ImageInCamera = (unsigned char *)pmsis_l2_malloc(Wi * Hi * sizeof(unsigned char));
         if ((ReadImageFromFile(ImageName, &Wi, &Hi, ImageInCamera, Wi * Hi * sizeof(unsigned char)) == 0) || (Wi != Wi) || (Hi != Hi))
         {
-            printf("Failed to load image %s or dimension mismatch Expects [%dx%d], Got [%dx%d]\n", ImageName, W, H, Wi, Hi);
+            PRINTF("Failed to load image %s or dimension mismatch Expects [%dx%d], Got [%dx%d]\n", ImageName, W, H, Wi, Hi);
             pmsis_exit(-6);
         }
 
+#ifdef TOTAL_CYCLE
+        unsigned int t_start, t_end;
+        gap_cl_starttimer();
+        gap_cl_resethwtimer();
+        t_start = gap_cl_readhwtimer();
+#endif
+
         //Resize Targets
-        printf("\n-------- STRAT RESIZE ORIGINAL PICTURE ----------\n");
+        PRINTF("\n-------- STRAT RESIZE ORIGINAL PICTURE ----------\n");
         memset(task, 0, sizeof(struct pi_cluster_task));
         task->entry = &Resize;
         task->stack_size = (uint32_t)CLUSTER_STACK_SIZE;
@@ -792,7 +795,7 @@ int start()
         ResizeArg.FirstLineIndex = 0;
         task->arg = &ResizeArg;
         pi_cluster_send_task_to_cl(&cluster_dev, task);
-        pmsis_l2_malloc_free(ImageInCamera, Wi * Hi * sizeof(unsigned char));
+        // pmsis_l2_malloc_free(ImageInCamera, Wi * Hi * sizeof(unsigned char));
 
         ImageIn = (IMAGE_IN_T *)ImageInChar;
         for (int i = W * H - 1; i >= 0; i--)
@@ -800,31 +803,20 @@ int start()
             ImageIn[i] = (int16_t)ImageInChar[i] << INPUT_1_Q - 8; //Input is naturally Q8
         }
 #else
+
+#ifdef TOTAL_CYCLE
+        unsigned int t_start, t_end;
+        gap_cl_starttimer();
+        gap_cl_resethwtimer();
+        t_start = gap_cl_readhwtimer();
+#endif
         pic_num++;
-        unsigned char *ImageInChar = (unsigned char *)pmsis_l2_malloc(W * H * sizeof(short int));
-        unsigned char *ImageInCamera = (unsigned char *)pmsis_l2_malloc(Wi * Hi * sizeof(unsigned char));
-        if (ImageInChar == 0 || ImageInCamera == 0)
-        {
-            printf("Failed to allocate Memory for Image (%d bytes)\n", Wi * Hi * sizeof(IMAGE_IN_T));
-            printf("Failed to allocate Memory for Image (%d bytes)\n", W * H * sizeof(IMAGE_IN_T));
-            pmsis_exit(-6);
-        }
         ImageIn = (IMAGE_IN_T *)ImageInChar;
         pi_camera_control(&device, PI_CAMERA_CMD_START, 0);
         pi_camera_capture(&device, ImageInCamera, Wi * Hi);
         pi_camera_control(&device, PI_CAMERA_CMD_STOP, 0);
-        // int Xoffset = (Wi - W) / 2;
-        // int Yoffset = (Hi - H) / 2;
-        // for (int y = 0; y < H; y++)
-        // {
-        //     for (int x = 0; x < W; x++)
-        //     {
-        //         ImageIn[y * W + x] = ((short int)ImageInCamera[((y + Yoffset) * Wi) + (x + Xoffset)]) << INPUT_1_Q - 8;
-        //     }
-        // }
-        // pmsis_l2_malloc_free(ImageInCamera, Wi * Hi * sizeof(unsigned char));
         //Resize Targets
-        printf("\n-------- STRAT RESIZE ORIGINAL PICTURE ----------\n");
+        PRINTF("\n-------- STRAT RESIZE ORIGINAL PICTURE ----------\n");
         memset(task, 0, sizeof(struct pi_cluster_task));
         task->entry = &Resize;
         task->stack_size = (uint32_t)CLUSTER_STACK_SIZE;
@@ -841,20 +833,13 @@ int start()
         ResizeArg.FirstLineIndex = 0;
         task->arg = &ResizeArg;
         pi_cluster_send_task_to_cl(&cluster_dev, task);
-        pmsis_l2_malloc_free(ImageInCamera, Wi * Hi * sizeof(unsigned char));
         for (int i = W * H - 1; i >= 0; i--)
         {
             ImageIn[i] = (int16_t)ImageInChar[i] << INPUT_1_Q - 8; //Input is naturally Q8
         }
 #endif
 
-        printf("\n-------- STRAT RUN CNN_SSD ----------\n");
-        if (ret_state = cnn_ssdCNN_Construct())
-        {
-            printf("Graph constructor exited with an error code: %d\n", ret_state);
-            pmsis_exit(-4);
-        }
-        printf("CNN_SSD Constructor was OK!\n");
+        PRINTF("\n-------- STRAT RUN CNN_SSD ----------\n");
 
         memset(task, 0, sizeof(struct pi_cluster_task));
         task->entry = RunNN;
@@ -863,37 +848,8 @@ int start()
         task->slave_stack_size = (uint32_t)CLUSTER_SLAVE_STACK_SIZE;
 
         pi_cluster_send_task_to_cl(&cluster_dev, task);
-#ifdef NN_PERF
-        {
-            unsigned int TotalCycles = 0, TotalOper = 0;
-            printf("\n");
-            for (int i = 0; i < (sizeof(AT_GraphPerf) / sizeof(unsigned int)); i++)
-            {
-                printf("%45s: Cycles: %10d, Operations: %10d, Operations/Cycle: %f\n", AT_GraphNodeNames[i], AT_GraphPerf[i], AT_GraphOperInfosNames[i], ((float)AT_GraphOperInfosNames[i]) / AT_GraphPerf[i]);
-                TotalCycles += AT_GraphPerf[i];
-                TotalOper += AT_GraphOperInfosNames[i];
-            }
-            printf("\n");
-            printf("%45s: Cycles: %10d, Operations: %10d, Operations/Cycle: %f\n", "Total", TotalCycles, TotalOper, ((float)TotalOper) / TotalCycles);
-            printf("\n");
-        }
-#endif /* NN_PERF */
-
-        cnn_ssdCNN_Destruct();
 
         // test_hyper_ram(Output_5, 5, 4, 5, 0);
-        // test_hyper_ram(Output_5, 5, 4, 5, 1);
-        // test_hyper_ram(Output_5, 5, 4, 5, 2);
-
-        //SSD Allocations
-        SSDKernels_L1_Memory = pmsis_l1_malloc(_SSDKernels_L1_Memory_SIZE);
-        SSDKernels_L2_Memory = pmsis_l2_malloc(_SSDKernels_L2_Memory_SIZE);
-
-        if (SSDKernels_L1_Memory == NULL || SSDKernels_L2_Memory == NULL)
-        {
-            printf("SSD L1 and/or L2 allocation error\n");
-            pmsis_exit(-3);
-        }
 
         memset(task, 0, sizeof(struct pi_cluster_task));
         task->entry = RunSSD;
@@ -910,30 +866,19 @@ int start()
             }
         }
 
-        pmsis_l1_malloc_free(SSDKernels_L1_Memory, _SSDKernels_L1_Memory_SIZE);
-        pmsis_l2_malloc_free(SSDKernels_L2_Memory, _SSDKernels_L2_Memory_SIZE);
-
-        //-------------Start Draw BBs-------------------//
         int box_num = 0;
-        while ((bbxs.bbs[box_num].alive == 0 || bbxs.bbs[box_num].class != 1) && box_num < bbxs.num_bb) //Only want person confidence
-        {
-            box_num++;
-        }
-        unsigned char *ImageDrawBox = (unsigned char *)pmsis_l2_malloc(W * H * sizeof(unsigned char));
-        for (int y = 0; y < H; y++)
-        {
-            for (int x = 0; x < W; x++)
-            {
-                ImageDrawBox[y * W + x] = ImageInChar[y * W + x];
-            }
-        }
-        drawBboxes(&bbxs, ImageDrawBox);
+        //-------------Start Draw BBs-------------------//
         if (SAVE_DET == 1)
         {
-            writeDetImg(ImageDrawBox, pic_num, bbxs.bbs[box_num].score);
+            while ((bbxs.bbs[box_num].alive == 0 || bbxs.bbs[box_num].class != 2) && box_num < bbxs.num_bb) //Only want person confidence
+            {
+                box_num++;
+            }
+            drawBboxes(&bbxs, ImageInChar);
+            writeDetImg(ImageInChar, count, bbxs.bbs[box_num].score);
         }
-        pmsis_l2_malloc_free(ImageDrawBox, W * H * sizeof(unsigned char));
         //-------------End Draw BBs-------------------//
+
         box_num = 0;
         while ((bbxs.bbs[box_num].alive == 0 || bbxs.bbs[box_num].class != 2) && box_num < bbxs.num_bb) //Only want gesture box
         {
@@ -944,13 +889,25 @@ int start()
             GESTURE_FLAG = 1;
         }
 
-        if (GESTURE_FLAG == 1)
+        if (GESTURE_FLAG == 0)
         {
+#ifdef TOTAL_CYCLE
+            t_end = gap_cl_readhwtimer() - t_start;
+            printf("Cycles total from PC: %15d\n", t_end);
+            printf("SSD gesture: 0\n");
+#endif
+        }
+        else
+        {
+#ifdef PERFORMANCE_DEBUG
+            detect_count++;
+#endif
             unsigned char *ImageInChar_2 = (unsigned char *)pmsis_l2_malloc(W_2 * H_2 * sizeof(IMAGE_IN_T));
             if (RESIZE)
             {
+
                 //Resize Targets
-                printf("\n-------- STRAT RESIZE TARGETS ----------\n");
+                PRINTF("\n-------- STRAT RESIZE TARGETS ----------\n");
                 int resize_W = bbxs.bbs[box_num].w;
                 int resize_H = bbxs.bbs[box_num].h;
                 int resize_X = bbxs.bbs[box_num].x;
@@ -985,7 +942,7 @@ int start()
             else
             {
                 //Crop Targets
-                printf("\n-------- STRAT CROP TARGETS ----------\n");
+                PRINTF("\n-------- STRAT CROP TARGETS ----------\n");
                 cropTargets(&bbxs, box_num, ImageInChar, ImageInChar_2);
             }
 
@@ -996,16 +953,7 @@ int start()
                 ImageIn_2[i] = (short int)ImageInChar_2[i] << INPUT_1_Q - 8;
             }
 
-            pmsis_l2_malloc_free(ImageInChar, W * H * sizeof(short int));
-
-            printf("\n-------- STRAT RUN RESNET ----------\n");
-
-            if (ret_state_2 = resnetCNN_Construct())
-            {
-                printf("Graph constructor exited with error: %d\n", ret_state_2);
-                pmsis_exit(-4);
-            }
-            printf("ResNet Constructor was OK!\n");
+            PRINTF("\n-------- STRAT RUN RESNET ----------\n");
 
             memset(task, 0, sizeof(struct pi_cluster_task));
             task->entry = RunRESNET;
@@ -1018,13 +966,21 @@ int start()
             int outclass, MaxPrediction = 0;
             for (int i = 0; i < NUM_CLASSES; i++)
             {
-                printf("Class%d confidence:\t%d\n", i, Output[i]);
+                PRINTF("Class%d confidence:\t%d\n", i, Output[i]);
                 if (Output[i] > MaxPrediction)
                 {
                     outclass = i;
                     MaxPrediction = Output[i];
                 }
             }
+#ifdef PERFORMANCE_DEBUG
+            if (outclass == gesture_now)
+            {
+                right_count++;
+            }
+#endif
+
+#ifndef MUTE
             switch (outclass)
             {
             case 0:
@@ -1049,33 +1005,33 @@ int start()
                 strcpy(dirction, "no_gesture");
                 break;
             }
-            printf("Predicted class:\t%d\n", outclass);
-            printf("Predicted direction:\t%s\n", dirction);
-            printf("With confidence:\t%d\n", MaxPrediction);
-            printf("=== Task ended \n ");
-            resnetCNN_Destruct();
+#endif
+            PRINTF("Predicted class:\t%d\n", outclass);
+            PRINTF("Predicted direction:\t%s\n", dirction);
+            PRINTF("With confidence:\t%d\n", MaxPrediction);
+            PRINTF("=== Task ended \n ");
 
-            for (int y = 0; y < H_2; y++)
-            {
-                for (int x = 0; x < W_2; x++)
-                {
-                    ImageInChar_2[y * W_2 + x] = (unsigned char)(ImageIn_2[(y * W_2) + (x)] >> INPUT_1_Q - 8);
-                }
-            }
+#ifdef TOTAL_CYCLE
+            t_end = gap_cl_readhwtimer() - t_start;
+            printf("Cycles total from PC: %15d\n", t_end);
+            printf("SSD gesture: 1\n");
+#endif
 
             if (SAVE_GESTURE_DET == 1)
             {
-                writeDetImg_resnet(ImageInChar_2, pic_num, outclass);
+                for (int y = 0; y < H_2; y++)
+                {
+                    for (int x = 0; x < W_2; x++)
+                    {
+                        ImageInChar_2[y * W_2 + x] = (unsigned char)(ImageIn_2[(y * W_2) + (x)] >> INPUT_1_Q - 8);
+                    }
+                }
+                writeDetImg_resnet(ImageInChar_2, count, outclass);
             }
 
             pmsis_l2_malloc_free(ImageInChar_2, W_2 * H_2 * sizeof(short int));
 
             GESTURE_FLAG = 0;
-        }
-        else
-        {
-
-            pmsis_l2_malloc_free(ImageInChar, W * H * sizeof(short int));
         }
 
 #if defined(USE_STREAMER)
@@ -1088,18 +1044,19 @@ int start()
         // #endif
     }
 
+    //put CNN Destruct out loop
+    cnn_ssdCNN_Destruct();
+    resnetCNN_Destruct();
+
     pi_cluster_close(&cluster_dev);
 
-    PRINTF("Ended giao!!!!!!\n");
+    PRINTF("Loop Ended!!!!!!\n");
+#ifdef PERFORMANCE_DEBUG
+    detect_rate = detect_count / pic_num;
+    right_rate = right_count / pic_num;
+    printf("Label%d detect rate: %f , right rate: %f.\n", gesture_now, detect_rate, right_rate);
+#endif
 
-    // if(checkResults(&bbxs)==0){
-    //     printf("Correct results!\n");
-    //     pmsis_exit(0);
-    // }
-    // else{
-    //     printf("Wrong results!\n");
-    //     pmsis_exit(-1);
-    // }
     pmsis_exit(0);
     return 0;
 }

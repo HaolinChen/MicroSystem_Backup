@@ -4,10 +4,10 @@
 #include "AutoTilerLibTypes.h"
 #include "CNN_BasicKernels.h"
 #include "cnn_ssd.h"
-#define _cnn_ssd_L1_Memory_SIZE 47792
-#define _cnn_ssd_L2_Memory_SIZE 46000
-extern char *cnn_ssd_L1_Memory; /* Size given for generation: 48736 bytes, used: 47792 bytes */
-extern char *cnn_ssd_L2_Memory; /* Size used for generation: 46000 bytes */
+#define _cnn_ssd_L1_Memory_SIZE 16544
+#define _cnn_ssd_L2_Memory_SIZE 15684
+extern char *cnn_ssd_L1_Memory; /* Size given for generation: 16736 bytes, used: 16544 bytes */
+extern char *cnn_ssd_L2_Memory; /* Size used for generation: 15684 bytes */
 extern void S3_Conv2d_8x1x3x3_MaxPool_2x2_Relu(
 		short int * __restrict__ In,
 		short int * __restrict__ Filter,

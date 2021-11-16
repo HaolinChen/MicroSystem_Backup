@@ -14,11 +14,15 @@ def Resize(in_name,out_name, size_H, size_W):
 
 def convert(in_name, out_name):
     print("Start convert picture:")
+    count = 0
     for filename in os.listdir(in_name):
-        print(filename)  # 仅仅是为了测试
+        new_name = 'gesture_%d' % count
+        print(filename + '  to  ' + new_name + '.pgm')  # 仅仅是为了测试
         file_path = in_name + "/" + filename
-        write_path = out_name + "/" + filename.split('.')[0] + '.pgm'
+        # write_path = out_name + "/" + filename.split('.')[0] + '.pgm'
+        write_path = out_name + "/" + new_name + '.pgm'
         Image.open(file_path).save(write_path)
+        count +=1
 
 
 if __name__ == '__main__':

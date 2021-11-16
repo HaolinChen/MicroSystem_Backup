@@ -60,7 +60,7 @@ include model_decl.mk
 # FC stack size:
 MAIN_STACK_SIZE=1024
 # Cluster PE0 stack size:
-CLUSTER_STACK_SIZE=4096
+CLUSTER_STACK_SIZE=6096
 # Cluster PE1-PE7 stack size:
 CLUSTER_SLAVE_STACK_SIZE=1024
 TOTAL_STACK_SIZE=$(shell expr $(CLUSTER_STACK_SIZE) \+ $(CLUSTER_SLAVE_STACK_SIZE) \* 7)
@@ -77,8 +77,8 @@ else
     FREQ_CL?=50
   endif
   FREQ_FC?=250
-  MODEL_L1_MEMORY=$(shell expr 60000 \- $(TOTAL_STACK_SIZE))
-  MODEL_L2_MEMORY=100000
+  MODEL_L1_MEMORY=$(shell expr 30000 \- $(TOTAL_STACK_SIZE))
+  MODEL_L2_MEMORY=50000
   MODEL_L3_MEMORY=8388608
 endif
 # hram - HyperBus RAM
