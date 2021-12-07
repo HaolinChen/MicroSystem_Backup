@@ -1,0 +1,25 @@
+#######yolo nntool_script### many debug things done in gap_sdk/nntool
+
+#set debug true
+adjust
+fusions --pow2 
+
+
+set input_divisor 255
+set input_offset 0
+
+set l3_ram_ext_managed True
+#set l2_ram_ext_managed False
+
+aquant -s POW2 -f 16 test_samples/*.pgm
+
+
+#set default_output_exec_location "AT_MEM_L3_HRAM"
+#set graph_reorder_constant_in true
+#set graph_produce_node_names true
+#set graph_produce_operinfos true
+#set graph_monitor_cycles true
+#set graph_const_exec_from_flash true
+
+
+save_state

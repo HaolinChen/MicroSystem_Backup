@@ -50,7 +50,7 @@ static pi_buffer_t buffer;
 #define UNMOUNT 0
 #define CID 0
 #define SAVE_DET 0
-#define SAVE_GESTURE_DET 1
+#define SAVE_GESTURE_DET 0
 // #define TARGET_NUM      2
 #define RESIZE 1
 
@@ -76,10 +76,10 @@ AT_HYPERFLASH_FS_EXT_ADDR_TYPE resnet_L3_Flash = 0;
 #define OUTPUT_2_Q S21_Op_output_2_Q
 #define OUTPUT_3_Q S29_Op_output_3_Q
 #define OUTPUT_4_Q S33_Op_output_4_Q
-#define OUTPUT_5_Q S41_Op_output_5_Q
-#define OUTPUT_6_Q S45_Op_output_6_Q
-#define OUTPUT_7_Q S52_Op_output_7_Q
-#define OUTPUT_8_Q S56_Op_output_8_Q
+#define OUTPUT_5_Q S40_Op_output_5_Q
+#define OUTPUT_6_Q S44_Op_output_6_Q
+// #define OUTPUT_7_Q S52_Op_output_7_Q
+// #define OUTPUT_8_Q S56_Op_output_8_Q
 // resnet
 #define NUM_CLASSES 7
 
@@ -93,7 +93,7 @@ L2_MEM short int *ImageIn_2;
 extern PI_L2 Alps *anchor_layer_1;
 extern PI_L2 Alps *anchor_layer_2;
 extern PI_L2 Alps *anchor_layer_3;
-extern PI_L2 Alps *anchor_layer_4;
+// extern PI_L2 Alps *anchor_layer_4;
 
 short int *Output_1;
 short int *Output_2;
@@ -101,8 +101,8 @@ short int *Output_3;
 short int *Output_4;
 short int *Output_5;
 short int *Output_6;
-short int *Output_7;
-short int *Output_8;
+// short int *Output_7;
+// short int *Output_8;
 short int *Output;
 
 PI_L2 bboxs_t bbxs;
@@ -115,7 +115,18 @@ unsigned int Wi = 324, Hi = 244;
 unsigned int W = 160, H = 128; //nn related
 // resnet
 unsigned int W_2 = 160, H_2 = 160; //nn related
+uint16_t gesture_now = 3;
+uint16_t pic_num = 5;
 short GESTURE_FLAG = 0;
+
+short max_person_id = 0;
+short max_person_confidence = 0;
+short max_gesture_id = 0;
+short max_gesture_confidence = 0;
+// short map0_used = 0;
+// short map1_used = 0;
+// short map2_used = 0;
+// short map3_used = 0;
 
 void writeDetImg(unsigned char *imageinchar, uint16_t Img_num, int16_t score)
 {
@@ -123,7 +134,7 @@ void writeDetImg(unsigned char *imageinchar, uint16_t Img_num, int16_t score)
     static char imgName[80];
     //Save Images to Local
     float score_fp = FIX2FP(score, 15);
-    sprintf(imgName, "../../../OUTPUT/ssd_resnet_camera/optimization/gvsoc/gesture_%d_%f.ppm", Img_num, score_fp);
+    sprintf(imgName, "../../../OUTPUT/ssd_resnet_camera/optimization/gvsoc/num%d_score%f.ppm", Img_num, score_fp);
     PRINTF("Dumping image %s\n", imgName);
 
     WriteImageToFile(imgName, W, H, imageinchar);
@@ -135,7 +146,7 @@ void writeDetImg_resnet(unsigned char *imageinchar, uint16_t Img_num, int outcla
     static char imgName[80];
 
     //Save Images to Local
-    sprintf(imgName, "../../../samples_codetest/gap8_gesture_prepare/pic_output/1/num%ld_label%ld.pgm", Img_num, outclass1);
+    sprintf(imgName, "../../../samples_codetest/gap8_gesture_prepare/pic_output/%d/num%ld_label%ld.pgm", gesture_now, Img_num, outclass1);
     PRINTF("Dumping image %s\n", imgName);
 
     WriteImageToFile(imgName, W_2, H_2, imageinchar);
@@ -276,7 +287,7 @@ static int initSSD()
     initAnchorLayer_1();
     initAnchorLayer_2();
     initAnchorLayer_3();
-    initAnchorLayer_4();
+    // initAnchorLayer_4();
 
     return 0;
 }
@@ -402,7 +413,7 @@ static void RunNN()
     ti = gap_cl_readhwtimer();
 #endif
 
-    cnn_ssdCNN(ImageIn, Output_1, Output_2, Output_3, Output_4, Output_5, Output_6, Output_7, Output_8);
+    cnn_ssdCNN(ImageIn, Output_1, Output_2, Output_3, Output_4, Output_5, Output_6);
 #ifndef TOTAL_CYCLE
     ti_nn = gap_cl_readhwtimer() - ti;
     PRINTF("Cycles NN : %10d\n", ti_nn);
@@ -462,10 +473,17 @@ static void RunSSD()
     {
         bbxs.bbs[counter].alive == 0;
     }
+    short box_num = 0;
 
     SDD3Dto2DSoftmax_20_16_18(Output_1, tmp_buffer_classes, OUTPUT_1_Q, 3);
     SDD3Dto2D_20_16_24(Output_2, tmp_buffer_boxes, 0, 0);
     Predecoder20_16(tmp_buffer_classes, tmp_buffer_boxes, anchor_layer_1, &bbxs, OUTPUT_2_Q);
+
+    // if (bbxs.num_bb != box_num)
+    // {
+    //     box_num = bbxs.num_bb;
+    //     map0_used++;
+    // }
 
     SDD3Dto2DSoftmax_10_8_18(Output_3, tmp_buffer_classes, OUTPUT_3_Q, 3);
     SDD3Dto2D_10_8_24(Output_4, tmp_buffer_boxes, 0, 0);
@@ -475,31 +493,57 @@ static void RunSSD()
     SDD3Dto2D_5_4_24(Output_6, tmp_buffer_boxes, 0, 0);
     Predecoder5_4(tmp_buffer_classes, tmp_buffer_boxes, anchor_layer_3, &bbxs, OUTPUT_6_Q);
 
-    SDD3Dto2DSoftmax_2_2_18(Output_7, tmp_buffer_classes, OUTPUT_7_Q, 3);
-    SDD3Dto2D_2_2_24(Output_8, tmp_buffer_boxes, 0, 0);
-    Predecoder2_2(tmp_buffer_classes, tmp_buffer_boxes, anchor_layer_4, &bbxs, OUTPUT_8_Q);
+    // SDD3Dto2DSoftmax_2_2_18(Output_7, tmp_buffer_classes, OUTPUT_7_Q, 3);
+    // SDD3Dto2D_2_2_24(Output_8, tmp_buffer_boxes, 0, 0);
+    // Predecoder2_2(tmp_buffer_classes, tmp_buffer_boxes, anchor_layer_4, &bbxs, OUTPUT_8_Q);
 
-    bbox_t temp;
+    // bbox_t temp;
 
-    int changed = 0;
-    do
+    // int changed = 0;
+    // do
+    // {
+    //     changed = 0;
+    //     for (int i = 0; i < bbxs.num_bb - 1; i++)
+    //     {
+    //         if (bbxs.bbs[i].score < bbxs.bbs[i + 1].score)
+    //         {
+    //             temp = bbxs.bbs[i];
+    //             bbxs.bbs[i] = bbxs.bbs[i + 1];
+    //             bbxs.bbs[i + 1] = temp;
+    //             changed = 1;
+    //         }
+    //     }
+    // } while (changed);
+
+    // printBboxes(&bbxs);
+
+    for (int i = 0; i < bbxs.num_bb; i++)
     {
-        changed = 0;
-        for (int i = 0; i < bbxs.num_bb - 1; i++)
+        if (bbxs.bbs[i].class == 1 && max_person_confidence < bbxs.bbs[i].score)
         {
-            if (bbxs.bbs[i].score < bbxs.bbs[i + 1].score)
-            {
-                temp = bbxs.bbs[i];
-                bbxs.bbs[i] = bbxs.bbs[i + 1];
-                bbxs.bbs[i + 1] = temp;
-                changed = 1;
-            }
+            max_person_confidence = bbxs.bbs[i].score;
+            max_person_id = i;
         }
-    } while (changed);
+        else if (bbxs.bbs[i].class == 2 && max_gesture_confidence < bbxs.bbs[i].score)
+        {
+
+            max_gesture_confidence = bbxs.bbs[i].score;
+            max_gesture_id = i;
+        }
+        bbxs.bbs[i].alive = 0;
+    }
+    if (max_person_confidence != 0)
+    {
+        bbxs.bbs[max_person_id].alive = 1;
+    }
+    if (max_gesture_confidence != 0)
+    {
+        bbxs.bbs[max_gesture_id].alive = 1;
+    }
 
     convertCoordBboxes(&bbxs, 160, 128);
     // printBboxes(&bbxs);
-    non_max_suppress(&bbxs);
+    // non_max_suppress(&bbxs);
     // printBboxes_forPython(&bbxs);
 #ifndef TOTAL_CYCLE
     ti_ssd = gap_cl_readhwtimer() - ti;
@@ -657,15 +701,15 @@ int start()
     pi_ram_alloc(&HyperRam, &Output_4, 24 * 8 * 10 * sizeof(short int));
     pi_ram_alloc(&HyperRam, &Output_5, 18 * 4 * 5 * sizeof(short int));
     pi_ram_alloc(&HyperRam, &Output_6, 24 * 4 * 5 * sizeof(short int));
-    pi_ram_alloc(&HyperRam, &Output_7, 18 * 2 * 2 * sizeof(short int));
-    pi_ram_alloc(&HyperRam, &Output_8, 24 * 2 * 2 * sizeof(short int));
+    // pi_ram_alloc(&HyperRam, &Output_7, 18 * 2 * 2 * sizeof(short int));
+    // pi_ram_alloc(&HyperRam, &Output_8, 24 * 2 * 2 * sizeof(short int));
 
     // Output_3 = (short int *) pmsis_l2_malloc( 12 * 30 * 30 * sizeof(short int));
 
     pi_ram_alloc(&HyperRam, &tmp_buffer_classes, 18 * 16 * 20 * sizeof(short int));
     pi_ram_alloc(&HyperRam, &tmp_buffer_boxes, 24 * 16 * 20 * sizeof(short int));
 
-    if (Output_1 == NULL || Output_2 == NULL || Output_3 == NULL || Output_4 == NULL || Output_5 == NULL || Output_6 == NULL || Output_7 == NULL || Output_8 == NULL)
+    if (Output_1 == NULL || Output_2 == NULL || Output_3 == NULL || Output_4 == NULL || Output_5 == NULL || Output_6 == NULL)
     {
         PRINTF("Error Allocating OUTPUTs in L3\n");
         pmsis_exit(-7);
@@ -739,8 +783,6 @@ int start()
 
     short iter = 1;
     uint16_t count = 0;
-    uint16_t gesture_now = 1;
-    uint16_t pic_num = 64;
     pi_freq_set(PI_FREQ_DOMAIN_CL, FREQ_CL * 1000 * 1000);
 
 #ifdef PERFORMANCE_DEBUG
@@ -755,12 +797,7 @@ int start()
 
 #ifndef FROM_CAMERA
 
-        sprintf(ImageName, "../../../samples_codetest/gap8_gesture_prepare/pic_input/1/label%ld_num%ld.pgm", gesture_now, count);
-        count = count + 1;
-        if (count == pic_num)
-        {
-            iter = 0;
-        }
+        sprintf(ImageName, "../../../samples_codetest/gap8_gesture_prepare/pic_input/%d/label%ld_num%ld.pgm", gesture_now, gesture_now, count);
         //Reading Image from Bridge
         PRINTF("\n\n******************CYCLE START******************\n\n\n");
         PRINTF("Loading Image from File\n");
@@ -870,9 +907,13 @@ int start()
         //-------------Start Draw BBs-------------------//
         if (SAVE_DET == 1)
         {
-            while ((bbxs.bbs[box_num].alive == 0 || bbxs.bbs[box_num].class != 2) && box_num < bbxs.num_bb) //Only want person confidence
+            // while ((bbxs.bbs[box_num].alive == 0 || bbxs.bbs[box_num].class != 2) && box_num < bbxs.num_bb) //Only want person confidence
+            // {
+            //     box_num++;
+            // }
+            if (bbxs.bbs[max_person_id].alive != 0)
             {
-                box_num++;
+                box_num = max_person_id;
             }
             drawBboxes(&bbxs, ImageInChar);
             writeDetImg(ImageInChar, count, bbxs.bbs[box_num].score);
@@ -880,13 +921,18 @@ int start()
         //-------------End Draw BBs-------------------//
 
         box_num = 0;
-        while ((bbxs.bbs[box_num].alive == 0 || bbxs.bbs[box_num].class != 2) && box_num < bbxs.num_bb) //Only want gesture box
-        {
-            box_num++;
-        }
-        if (box_num < bbxs.num_bb)
+        // while ((bbxs.bbs[box_num].alive == 0 || bbxs.bbs[box_num].class != 2) && box_num < bbxs.num_bb) //Only want gesture box
+        // {
+        //     box_num++;
+        // }
+        // if (box_num < bbxs.num_bb)
+        // {
+        //     GESTURE_FLAG = 1;
+        // }
+        if (max_gesture_confidence != 0)
         {
             GESTURE_FLAG = 1;
+            box_num = max_gesture_id;
         }
 
         if (GESTURE_FLAG == 0)
@@ -1039,6 +1085,17 @@ int start()
         frame_streamer_send_async(streamer1, &buffer, pi_task_callback(&task1, streamer_handler, (void *)&stream1_done));
 #endif
 
+        count = count + 1;
+        if (count == pic_num)
+        {
+            iter = 0;
+        }
+
+        max_person_id = 0;
+        max_person_confidence = 0;
+        max_gesture_id = 0;
+        max_gesture_confidence = 0;
+
         //Send to Screen
         // pi_display_write(&ili, &buffer, 40, 60, 160, 120);
         // #endif
@@ -1053,8 +1110,9 @@ int start()
     PRINTF("Loop Ended!!!!!!\n");
 #ifdef PERFORMANCE_DEBUG
     detect_rate = detect_count / pic_num;
-    right_rate = right_count / pic_num;
+    right_rate = right_count / detect_count;
     printf("Label%d detect rate: %f , right rate: %f.\n", gesture_now, detect_rate, right_rate);
+    // printf("Map usage: Map0: %d, Map1: %d, Map2: %d, Map3: %d.\n", map0_used, map1_used, map2_used, map3_used);
 #endif
 
     pmsis_exit(0);
