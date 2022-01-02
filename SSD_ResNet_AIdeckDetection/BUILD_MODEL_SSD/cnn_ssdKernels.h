@@ -5,9 +5,9 @@
 #include "CNN_BasicKernels.h"
 #include "cnn_ssd.h"
 #define _cnn_ssd_L1_Memory_SIZE 16544
-#define _cnn_ssd_L2_Memory_SIZE 15684
+#define _cnn_ssd_L2_Memory_SIZE 14436
 extern char *cnn_ssd_L1_Memory; /* Size given for generation: 16736 bytes, used: 16544 bytes */
-extern char *cnn_ssd_L2_Memory; /* Size used for generation: 15684 bytes */
+extern char *cnn_ssd_L2_Memory; /* Size used for generation: 14436 bytes */
 extern void S3_Conv2d_8x1x3x3_MaxPool_2x2_Relu(
 		short int * __restrict__ In,
 		short int * __restrict__ Filter,
@@ -64,30 +64,12 @@ extern void S36_Conv2d_128x64x3x3_Relu(
 		short int * __restrict__ Filter,
 		short int * __restrict__ Bias,
 		short int * __restrict__ Out);
-extern void S37_MaxPool_2x2(
-		short int * __restrict__ In,
-		short int * __restrict__ Out);
-extern void S40_Conv2d_18x128x3x3(
+extern void S39_Conv2d_18x128x3x3(
 		short int * __restrict__ In,
 		short int * __restrict__ Filter,
 		short int * __restrict__ Bias,
 		short int * __restrict__ Out);
-extern void S44_Conv2d_24x128x3x3(
-		short int * __restrict__ In,
-		short int * __restrict__ Filter,
-		short int * __restrict__ Bias,
-		short int * __restrict__ Out);
-extern void S48_Conv2d_128x128x3x3_Relu(
-		short int * __restrict__ In,
-		short int * __restrict__ Filter,
-		short int * __restrict__ Bias,
-		short int * __restrict__ Out);
-extern void S51_Conv2d_18x128x3x3(
-		short int * __restrict__ In,
-		short int * __restrict__ Filter,
-		short int * __restrict__ Bias,
-		short int * __restrict__ Out);
-extern void S55_Conv2d_24x128x3x3(
+extern void S43_Conv2d_24x128x3x3(
 		short int * __restrict__ In,
 		short int * __restrict__ Filter,
 		short int * __restrict__ Bias,
@@ -101,10 +83,8 @@ extern int cnn_ssdCNN(
 		signed short * __restrict__ Output_3,
 		signed short * __restrict__ Output_4,
 		signed short * __restrict__ Output_5,
-		signed short * __restrict__ Output_6,
-		signed short * __restrict__ Output_7,
-		signed short * __restrict__ Output_8);
-extern unsigned int AT_GraphPerf[18];
-extern char * AT_GraphNodeNames[18];
-extern unsigned int AT_GraphOperInfosNames[18];
+		signed short * __restrict__ Output_6);
+extern unsigned int AT_GraphPerf[14];
+extern char * AT_GraphNodeNames[14];
+extern unsigned int AT_GraphOperInfosNames[14];
 #endif

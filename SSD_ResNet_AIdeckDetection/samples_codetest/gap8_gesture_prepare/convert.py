@@ -30,19 +30,19 @@ def convert(in_name, out_name):
 
 
 def resize_convert(in_folder, out_folder, size_H, size_W):
-    os.mkdir('./gesture_resized' + os.sep + in_folder)
-    os.mkdir('./pic_input' + os.sep + in_folder)
-    print("Start resize and convert pic...")
-    for i, filename in enumerate(os.listdir('./gesture_original' + os.sep + in_folder)):
-        print(filename)
-        file_path = './gesture_original' + os.sep + in_folder + os.sep + filename
-        temp_path = './gesture_resized' + os.sep + in_folder + os.sep + filename
-        out_path = './pic_input' + os.sep + out_folder + \
-            os.sep + 'label'+out_folder + '_num' + str(i) + '.pgm'
-        img = cv2.imread(file_path, cv2.IMREAD_GRAYSCALE)
-        img_resize = cv2.resize(img, (int(size_W), int(size_H)))
-        cv2.imwrite(temp_path, img_resize)
-        Image.open(temp_path).save(out_path)
+    # os.mkdir('./gesture_resized' + os.sep + in_folder)
+    os.mkdir('./pic_output' + os.sep + in_folder)
+    # print("Start resize and convert pic...")
+    # for i, filename in enumerate(os.listdir('./gesture_original' + os.sep + in_folder)):
+    #     print(filename)
+    #     file_path = './gesture_original' + os.sep + in_folder + os.sep + filename
+    #     temp_path = './gesture_resized' + os.sep + in_folder + os.sep + filename
+    #     out_path = './pic_input' + os.sep + out_folder + \
+    #         os.sep + 'label'+out_folder + '_num' + str(i) + '.pgm'
+    #     img = cv2.imread(file_path, cv2.IMREAD_GRAYSCALE)
+    #     img_resize = cv2.resize(img, (int(size_W), int(size_H)))
+    #     cv2.imwrite(temp_path, img_resize)
+    #     Image.open(temp_path).save(out_path)
 
 
 if __name__ == '__main__':

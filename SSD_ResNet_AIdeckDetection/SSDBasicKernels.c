@@ -272,69 +272,6 @@ void KerEstimate_bbox(int index, int global_index, int confidence, short int *Bo
     //printf("\n");
 }
 
-void KerPredecoderShort(KerPredecoderShort_ArgT *Arg)
-{
-
-    short *__restrict__ Classes = Arg->Classes;
-    short *__restrict__ Boxes = Arg->Boxes;
-    unsigned int W = Arg->Classes_W; //Same info as n_classes
-    unsigned int H = Arg->Classes_H;
-    unsigned int TileIndex = Arg->Classes_TileIndex;
-    unsigned int Std_H = Arg->Classes_Std_H;
-    unsigned int n_classes = Arg->n_classes;
-    int Boxes_Q = Arg->Boxes_Q;
-    short max_person_H = 0;
-    short max_person_threshold = 0;
-    short max_gesture_H = 0;
-    short max_gesture_threshold = 0;
-
-    Alps *anch = (Alps *)Arg->Ancor_layer;
-    bboxs_fp_t *bbxs = (bboxs_fp_t *)Arg->BoundingBoxes;
-
-    unsigned int CoreId = gap_coreid();
-
-    if (!CoreId)
-    {
-
-        for (unsigned int i = 0; i < H; i++)
-        {
-            if (Classes[i * n_classes + 1] > max_person_threshold)
-            {
-                max_person_H = i;
-                max_person_threshold = Classes[i * n_classes + 1];
-            }
-            if (Classes[i * n_classes + 2] > max_gesture_threshold)
-            {
-                max_gesture_H = i;
-                max_gesture_threshold = Classes[i * n_classes + 2];
-            }
-        }
-        int global_index = TileIndex * Std_H;
-
-        //Here it would be nice to add a different confidence for each class
-        if (Classes[max_person_H * n_classes + 1] > 13107) // person threshold = FP2FIX(0.4,15)
-        {
-            if (bbxs->num_bb >= MAX_BB)
-            {
-                printf("Reached Max BB number...\n");
-                return;
-            }
-            KerEstimate_bbox(max_person_H, TileIndex * Std_H + max_person_H, Classes[max_person_H * n_classes + 1], Boxes, Boxes_Q, anch, bbxs, 1);
-        }
-
-        if (Classes[max_gesture_H * n_classes + 2] > 8191) // person threshold = FP2FIX(0.25,15)
-        {
-            if (bbxs->num_bb >= MAX_BB)
-            {
-                printf("Reached Max BB number...\n");
-                return;
-            }
-            KerEstimate_bbox(max_gesture_H, TileIndex * Std_H + max_gesture_H, Classes[max_gesture_H * n_classes + 2], Boxes, Boxes_Q, anch, bbxs, 2);
-        }
-    }
-}
-
-
 // void KerPredecoderShort(KerPredecoderShort_ArgT *Arg)
 // {
 
@@ -346,66 +283,130 @@ void KerPredecoderShort(KerPredecoderShort_ArgT *Arg)
 //     unsigned int Std_H = Arg->Classes_Std_H;
 //     unsigned int n_classes = Arg->n_classes;
 //     int Boxes_Q = Arg->Boxes_Q;
-//     // Have no choise
-//     // float class_0 = 0;
-//     // float class_1 = 0;
-//     // float class_2 = 0;
+//     short max_person_H = 0;
+//     short max_person_threshold = 0;
+//     short max_gesture_H = 0;
+//     short max_gesture_threshold = 0;
 
 //     Alps *anch = (Alps *)Arg->Ancor_layer;
 //     bboxs_fp_t *bbxs = (bboxs_fp_t *)Arg->BoundingBoxes;
 
 //     unsigned int CoreId = gap_coreid();
+//     unsigned int ChunkCell = ChunkSize(H);
+//     unsigned int First = CoreId * ChunkCell, Last = Min(H, First + ChunkCell);
 
-//     if (!CoreId)
+//     // if (!CoreId)
+//     // {
+
+//     for (unsigned int i = First; i < Last; i++)
 //     {
-//         for (unsigned int i = 0; i < H; i++)
+//         // if (Classes[i * n_classes + 1] > max_person_threshold)
+//         // {
+//         //     max_person_H = i;
+//         //     max_person_threshold = Classes[i * n_classes + 1];
+//         // }
+//         // if (Classes[i * n_classes + 2] > max_gesture_threshold)
+//         // {
+//         //     max_gesture_H = i;
+//         //     max_gesture_threshold = Classes[i * n_classes + 2];
+//         // }
+
+//         int global_index = TileIndex * Std_H;
+
+//         //Here it would be nice to add a different confidence for each class
+//         if (Classes[i * n_classes + 1] > 9830) // person threshold = FP2FIX(0.40,15)
 //         {
-//             int global_index = TileIndex * Std_H;
-//             // if(H == 120)
-//             // {
-//             //     class_0 = FIX2FP(Classes[i*n_classes+0],15);
-//             //     class_1 = FIX2FP(Classes[i*n_classes+1],15);
-//             //     class_2 = FIX2FP(Classes[i*n_classes+2],15);
-//             //     printf("Num: %d Confidence 0: %f Confidence 1: %f Confidence 2: %f\n", i, class_0, class_1,  class_2);
-//             // }
-
-//             //we start from 1 since we skip the Background
-//             //Here it would be nice to add a different confidence for each class
-//             if (Classes[i * n_classes + 1] > 13107)  // person threshold = FP2FIX(0.4,15)
+//             if (bbxs->num_bb >= MAX_BB)
 //             {
-//                 if (bbxs->num_bb >= MAX_BB)
-//                 {
-//                     printf("Reached Max BB number...\n");
-//                     return;
-//                 }
-//                 KerEstimate_bbox(i, TileIndex * Std_H + i, Classes[i * n_classes + 1], Boxes, Boxes_Q, anch, bbxs, 1);
+//                 printf("Reached Max BB number...\n");
+//                 return;
 //             }
+//             KerEstimate_bbox(i, TileIndex * Std_H + i, Classes[i * n_classes + 1], Boxes, Boxes_Q, anch, bbxs, 1);
+//         }
 
-//             if (Classes[i * n_classes + 2] > 8191)  // person threshold = FP2FIX(0.25,15)
+//         if (Classes[i * n_classes + 2] > 9830) // person threshold = FP2FIX(0.30,15)
+//         {
+//             if (bbxs->num_bb >= MAX_BB)
 //             {
-//                 if (bbxs->num_bb >= MAX_BB)
-//                 {
-//                     printf("Reached Max BB number...\n");
-//                     return;
-//                 }
-//                 KerEstimate_bbox(i, TileIndex * Std_H + i, Classes[i * n_classes + 2], Boxes, Boxes_Q, anch, bbxs, 2);
+//                 printf("Reached Max BB number...\n");
+//                 return;
 //             }
-
-//             // for(uint8_t n=1;n<W;n++){
-//             //     //Here it would be nice to add a different confidence for each class
-//             //     if(Classes[i*n_classes+n] > anch->confidence_thr){
-//             //     // if(Classes[i*n_classes+n] > anch->confidence_thr && (class_0 + class_1 + class_2) > 0.9 ){
-
-//             //     //Here we pass the row index to find the correct row in the boxes
-//             //         //Check if there is still space to store BB
-//             //         if(bbxs->num_bb>=MAX_BB){
-//             //             printf("Reached Max BB number...\n");
-//             //             return;
-//             //         }
-//             //         KerEstimate_bbox(i, TileIndex*Std_H+i,Classes[i*n_classes+n], Boxes, Boxes_Q,anch, bbxs, n);
-
-//             //     }
-//             // }
+//             KerEstimate_bbox(i, TileIndex * Std_H + i, Classes[i * n_classes + 2], Boxes, Boxes_Q, anch, bbxs, 2);
 //         }
 //     }
 // }
+
+void KerPredecoderShort(KerPredecoderShort_ArgT *Arg)
+{
+
+    short *__restrict__ Classes = Arg->Classes;
+    short *__restrict__ Boxes = Arg->Boxes;
+    unsigned int W = Arg->Classes_W; //Same info as n_classes
+    unsigned int H = Arg->Classes_H;
+    unsigned int TileIndex = Arg->Classes_TileIndex;
+    unsigned int Std_H = Arg->Classes_Std_H;
+    unsigned int n_classes = Arg->n_classes;
+    int Boxes_Q = Arg->Boxes_Q;
+    // Have no choise
+    // float class_0 = 0;
+    // float class_1 = 0;
+    // float class_2 = 0;
+
+    Alps *anch = (Alps *)Arg->Ancor_layer;
+    bboxs_fp_t *bbxs = (bboxs_fp_t *)Arg->BoundingBoxes;
+
+    unsigned int CoreId = gap_coreid();
+
+    if (!CoreId)
+    {
+        for (unsigned int i = 0; i < H; i++)
+        {
+            int global_index = TileIndex * Std_H;
+            // if(H == 120)
+            // {
+            //     class_0 = FIX2FP(Classes[i*n_classes+0],15);
+            //     class_1 = FIX2FP(Classes[i*n_classes+1],15);
+            //     class_2 = FIX2FP(Classes[i*n_classes+2],15);
+            //     printf("Num: %d Confidence 0: %f Confidence 1: %f Confidence 2: %f\n", i, class_0, class_1,  class_2);
+            // }
+
+            //we start from 1 since we skip the Background
+            //Here it would be nice to add a different confidence for each class
+            if (Classes[i * n_classes + 1] > 9830)  // person threshold = FP2FIX(0.30,15)
+            {
+                if (bbxs->num_bb >= MAX_BB)
+                {
+                    printf("Reached Max BB number...\n");
+                    return;
+                }
+                KerEstimate_bbox(i, TileIndex * Std_H + i, Classes[i * n_classes + 1], Boxes, Boxes_Q, anch, bbxs, 1);
+            }
+
+            if (Classes[i * n_classes + 2] > 9830)  // gesture threshold = FP2FIX(0.30,15)
+            {
+                if (bbxs->num_bb >= MAX_BB)
+                {
+                    printf("Reached Max BB number...\n");
+                    return;
+                }
+                KerEstimate_bbox(i, TileIndex * Std_H + i, Classes[i * n_classes + 2], Boxes, Boxes_Q, anch, bbxs, 2);
+            }
+
+            // for(uint8_t n=1;n<W;n++){
+            //     //Here it would be nice to add a different confidence for each class
+            //     if(Classes[i*n_classes+n] > anch->confidence_thr){
+            //     // if(Classes[i*n_classes+n] > anch->confidence_thr && (class_0 + class_1 + class_2) > 0.9 ){
+
+            //     //Here we pass the row index to find the correct row in the boxes
+            //         //Check if there is still space to store BB
+            //         if(bbxs->num_bb>=MAX_BB){
+            //             printf("Reached Max BB number...\n");
+            //             return;
+            //         }
+            //         KerEstimate_bbox(i, TileIndex*Std_H+i,Classes[i*n_classes+n], Boxes, Boxes_Q,anch, bbxs, n);
+
+            //     }
+            // }
+        }
+    }
+}

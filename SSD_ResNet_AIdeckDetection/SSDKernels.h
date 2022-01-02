@@ -3,10 +3,10 @@
 
 #include "AutoTilerLibTypes.h"
 #include "SSDBasicKernels.h"
-#define _SSDKernels_L1_Memory_SIZE 10000
-#define _SSDKernels_L2_Memory_SIZE 10000
-extern char *SSDKernels_L1_Memory; /* Size given for generation: 10000 bytes, used: 10000 bytes */
-extern char *SSDKernels_L2_Memory; /* Size used for generation: 10000 bytes */
+#define _SSDKernels_L1_Memory_SIZE 14984
+#define _SSDKernels_L2_Memory_SIZE 14984
+extern char *SSDKernels_L1_Memory; /* Size given for generation: 15000 bytes, used: 14984 bytes */
+extern char *SSDKernels_L2_Memory; /* Size used for generation: 14984 bytes */
 extern void SDD3Dto2DSoftmax_20_16_18(
 		short * In,
 		short * Out,

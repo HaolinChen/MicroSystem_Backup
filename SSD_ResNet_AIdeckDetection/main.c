@@ -21,9 +21,9 @@
 // change 1 to 0 is not useful
 // #define FROM_CAMERA 1
 // #define USE_STREAMER 1
-#define MUTE 1
-#define TOTAL_CYCLE 1
-#define PERFORMANCE_DEBUG 1
+// #define MUTE 1
+// #define TOTAL_CYCLE 1
+// #define PERFORMANCE_DEBUG 1
 
 #if defined(USE_STREAMER)
 #include "bsp/transport/nina_w10.h"
@@ -49,7 +49,7 @@ static pi_buffer_t buffer;
 #define MOUNT 1
 #define UNMOUNT 0
 #define CID 0
-#define SAVE_DET 0
+#define SAVE_DET 1
 #define SAVE_GESTURE_DET 0
 // #define TARGET_NUM      2
 #define RESIZE 1
@@ -106,6 +106,13 @@ short int *Output_6;
 short int *Output;
 
 PI_L2 bboxs_t bbxs;
+static PI_L2 uint32_t person_value = 0;
+static PI_L2 uint8_t gesture_value = 0;
+static PI_L2 uint8_t crc_value = 0;
+static PI_L2 uint8_t message_head = 0xFA;
+static PI_L2 uint8_t message_tail = 0x55;
+// static PI_L2 char person_value_char[20];
+// static PI_L2 char gesture_value_char[10];
 static short int *out_buff;
 
 static uint32_t pic_idx = 0;
@@ -115,8 +122,8 @@ unsigned int Wi = 324, Hi = 244;
 unsigned int W = 160, H = 128; //nn related
 // resnet
 unsigned int W_2 = 160, H_2 = 160; //nn related
-uint16_t gesture_now = 3;
-uint16_t pic_num = 5;
+uint16_t gesture_now = 0;
+uint16_t pic_num = 15;
 short GESTURE_FLAG = 0;
 
 short max_person_id = 0;
@@ -128,13 +135,15 @@ short max_gesture_confidence = 0;
 // short map2_used = 0;
 // short map3_used = 0;
 
+struct pi_device uart_device;
+
 void writeDetImg(unsigned char *imageinchar, uint16_t Img_num, int16_t score)
 {
 
     static char imgName[80];
     //Save Images to Local
     float score_fp = FIX2FP(score, 15);
-    sprintf(imgName, "../../../OUTPUT/ssd_resnet_camera/optimization/gvsoc/num%d_score%f.ppm", Img_num, score_fp);
+    sprintf(imgName, "../../../samples_codetest/gap8_gesture_prepare/pic_output/%d/num%d_score%f.ppm", gesture_now, Img_num, score_fp);
     PRINTF("Dumping image %s\n", imgName);
 
     WriteImageToFile(imgName, W, H, imageinchar);
@@ -404,7 +413,7 @@ void non_max_suppress(bboxs_t *boundbxs)
 
 static void RunNN()
 {
-
+#ifndef MUTE
 #ifndef TOTAL_CYCLE
     unsigned int ti, ti_nn;
 
@@ -412,18 +421,23 @@ static void RunNN()
     gap_cl_resethwtimer();
     ti = gap_cl_readhwtimer();
 #endif
+#endif
 
     cnn_ssdCNN(ImageIn, Output_1, Output_2, Output_3, Output_4, Output_5, Output_6);
+
+#ifndef MUTE
 #ifndef TOTAL_CYCLE
     ti_nn = gap_cl_readhwtimer() - ti;
     PRINTF("Cycles NN : %10d\n", ti_nn);
 #endif
     // test_l2(Output_3, 5, 3);
     // test_hyper_ram();
+#endif
 }
 
 static void Resize(KerResizeBilinear_ArgT *KerArg)
 {
+#ifndef MUTE
     PRINTF("Resizing...\n");
     unsigned int ti, ti_nn;
 #ifndef TOTAL_CYCLE
@@ -431,15 +445,19 @@ static void Resize(KerResizeBilinear_ArgT *KerArg)
     gap_cl_resethwtimer();
     ti = gap_cl_readhwtimer();
 #endif
+#endif
     AT_FORK(gap_ncore(), (void *)KerResizeBilinear, (void *)KerArg);
+#ifndef MUTE
 #ifndef TOTAL_CYCLE
     ti_nn = gap_cl_readhwtimer() - ti;
     PRINTF("Cycles resize : %10d\n", ti_nn);
+#endif
 #endif
 }
 
 static void RunRESNET()
 {
+
     PRINTF("\n===RunResNet===\n");
 #ifndef TOTAL_CYCLE
     unsigned int ti, ti_nn;
@@ -447,7 +465,9 @@ static void RunRESNET()
     gap_cl_resethwtimer();
     ti = gap_cl_readhwtimer();
 #endif
+
     resnetCNN(ImageIn_2, Output);
+
 #ifndef TOTAL_CYCLE
     ti_nn = gap_cl_readhwtimer() - ti;
     PRINTF("Cycles NN : %10d\n", ti_nn);
@@ -460,30 +480,25 @@ static void RunRESNET()
 
 static void RunSSD()
 {
-
+#ifndef MUTE
 #ifndef TOTAL_CYCLE
     unsigned int ti, ti_ssd;
     gap_cl_resethwtimer();
     ti = gap_cl_readhwtimer();
+#endif
 #endif
 
     //Set Boundinx Boxes to 0
     bbxs.num_bb = 0;
     for (int counter = 0; counter < MAX_BB; counter++)
     {
-        bbxs.bbs[counter].alive == 0;
+        bbxs.bbs[counter].alive = 0;
     }
     short box_num = 0;
 
     SDD3Dto2DSoftmax_20_16_18(Output_1, tmp_buffer_classes, OUTPUT_1_Q, 3);
     SDD3Dto2D_20_16_24(Output_2, tmp_buffer_boxes, 0, 0);
     Predecoder20_16(tmp_buffer_classes, tmp_buffer_boxes, anchor_layer_1, &bbxs, OUTPUT_2_Q);
-
-    // if (bbxs.num_bb != box_num)
-    // {
-    //     box_num = bbxs.num_bb;
-    //     map0_used++;
-    // }
 
     SDD3Dto2DSoftmax_10_8_18(Output_3, tmp_buffer_classes, OUTPUT_3_Q, 3);
     SDD3Dto2D_10_8_24(Output_4, tmp_buffer_boxes, 0, 0);
@@ -492,30 +507,6 @@ static void RunSSD()
     SDD3Dto2DSoftmax_5_4_18(Output_5, tmp_buffer_classes, OUTPUT_5_Q, 3);
     SDD3Dto2D_5_4_24(Output_6, tmp_buffer_boxes, 0, 0);
     Predecoder5_4(tmp_buffer_classes, tmp_buffer_boxes, anchor_layer_3, &bbxs, OUTPUT_6_Q);
-
-    // SDD3Dto2DSoftmax_2_2_18(Output_7, tmp_buffer_classes, OUTPUT_7_Q, 3);
-    // SDD3Dto2D_2_2_24(Output_8, tmp_buffer_boxes, 0, 0);
-    // Predecoder2_2(tmp_buffer_classes, tmp_buffer_boxes, anchor_layer_4, &bbxs, OUTPUT_8_Q);
-
-    // bbox_t temp;
-
-    // int changed = 0;
-    // do
-    // {
-    //     changed = 0;
-    //     for (int i = 0; i < bbxs.num_bb - 1; i++)
-    //     {
-    //         if (bbxs.bbs[i].score < bbxs.bbs[i + 1].score)
-    //         {
-    //             temp = bbxs.bbs[i];
-    //             bbxs.bbs[i] = bbxs.bbs[i + 1];
-    //             bbxs.bbs[i + 1] = temp;
-    //             changed = 1;
-    //         }
-    //     }
-    // } while (changed);
-
-    // printBboxes(&bbxs);
 
     for (int i = 0; i < bbxs.num_bb; i++)
     {
@@ -545,30 +536,15 @@ static void RunSSD()
     // printBboxes(&bbxs);
     // non_max_suppress(&bbxs);
     // printBboxes_forPython(&bbxs);
+#ifndef MUTE
 #ifndef TOTAL_CYCLE
     ti_ssd = gap_cl_readhwtimer() - ti;
     PRINTF("Cycles SSD: %10d\n", ti_ssd);
 #endif
+#endif
 }
 
-static int open_display(struct pi_device *device)
-{
-    struct pi_ili9341_conf ili_conf;
-
-    pi_ili9341_conf_init(&ili_conf);
-
-    pi_open_from_conf(device, &ili_conf);
-
-    if (pi_display_open(device))
-        return -1;
-
-    if (pi_display_ioctl(device, PI_ILI_IOCTL_ORIENTATION, (void *)PI_ILI_ORIENTATION_180))
-        return -1;
-
-    return 0;
-}
-
-static int open_uart(struct pi_device *uart_device1)
+static int open_uart(struct pi_device *device)
 {
     struct pi_uart_conf uart_conf;
 
@@ -577,11 +553,11 @@ static int open_uart(struct pi_device *uart_device1)
     //uart_conf.enable_tx = 1;
     //uart_conf.enable_rx = 0;
 
-    pi_open_from_conf(&uart_device1, &uart_conf);
-    if (pi_uart_open(&uart_device1))
-        return -1;
+    pi_open_from_conf(device, &uart_conf);
+    if (pi_uart_open(device))
+        return 0;
 
-    return 0;
+    return 1;
 }
 
 void drawBboxes(bboxs_t *boundbxs, uint8_t *img)
@@ -627,6 +603,8 @@ int start()
     int ret_state;
     int ret_state_2;
 
+    short int x = 0, y = 0, w = 0, h = 0;
+
     static char dirction[15];
 
     PRINTF("Entering main controller\n");
@@ -635,39 +613,18 @@ int start()
     pi_freq_set(PI_FREQ_DOMAIN_CL, FREQ_CL * 1000 * 1000);
 
 #ifdef FROM_CAMERA
-
-    // unsigned char *ImageInChar = (unsigned char *) pmsis_l2_malloc( Wi * Hi * sizeof(unsigned char));
-    // if (ImageInChar == 0)
-    // {
-    //     PRINTF("Failed to allocate Memory for Image (%d bytes)\n", Wi * Hi * sizeof(IMAGE_IN_T));
-    //     pmsis_exit(-6);
-    // }
-    // ImageIn = (IMAGE_IN_T *)ImageInChar;
-
-    // buffer.data = ImageInChar;
-    // buffer.stride = 0;
-
-    // // WIth Himax, propertly configure the buffer to skip boarder pixels
-    // pi_buffer_init(&buffer, PI_BUFFER_TYPE_L2, ImageInChar);
-    // pi_buffer_set_stride(&buffer, 0);
-    // pi_buffer_set_format(&buffer, W, H, 1, PI_BUFFER_FORMAT_GRAY);
-
+    // printf("1\n");
     if (open_camera_himax(&device))
     {
         PRINTF("Failed to open camera\n");
         pmsis_exit(-2);
     }
-
-#else //reading image from host pc
-
-    // unsigned char *ImageInChar = (unsigned char *) pmsis_l2_malloc( W * H * sizeof(unsigned char));
-    // unsigned char *ImageInChar_2 = (unsigned char *) pmsis_l2_malloc( W_2 * H_2 * sizeof(unsigned char));
-    // if (ImageInChar == 0 || ImageInChar_2 == 0)
-    // {
-    //     PRINTF("Failed to allocate Memory for Image (%d bytes)\n", W * H * sizeof(IMAGE_IN_T));
-    //     pmsis_exit(-6);
-    // }
-
+    // printf("2\n");
+    if (open_uart(&uart_device) == 0)
+    {
+        printf("Failed to open uart\n");
+        pmsis_exit(-2);
+    }
 #endif
 
 #if defined(USE_STREAMER)
@@ -748,7 +705,8 @@ int start()
     }
 
     struct pi_cluster_task *task = pmsis_l2_malloc(sizeof(struct pi_cluster_task));
-    if (task == NULL)
+    struct pi_cluster_task *task_resnet = pmsis_l2_malloc(sizeof(struct pi_cluster_task));
+    if (task == NULL || task_resnet == NULL)
     {
         PRINTF("Alloc Error! \n");
         pmsis_exit(-5);
@@ -767,13 +725,6 @@ int start()
         pmsis_exit(-3);
     }
 
-    if (ret_state_2 = resnetCNN_Construct())
-    {
-        PRINTF("Graph constructor exited with error: %d\n", ret_state_2);
-        pmsis_exit(-4);
-    }
-    PRINTF("ResNet Constructor was OK!\n");
-
     if (ret_state = cnn_ssdCNN_Construct())
     {
         PRINTF("Graph constructor exited with an error code: %d\n", ret_state);
@@ -781,9 +732,15 @@ int start()
     }
     PRINTF("CNN_SSD Constructor was OK!\n");
 
+    if (ret_state_2 = resnetCNN_Construct())
+    {
+        PRINTF("Graph constructor exited with error: %d\n", ret_state_2);
+        pmsis_exit(-4);
+    }
+    PRINTF("ResNet Constructor was OK!\n");
+
     short iter = 1;
     uint16_t count = 0;
-    pi_freq_set(PI_FREQ_DOMAIN_CL, FREQ_CL * 1000 * 1000);
 
 #ifdef PERFORMANCE_DEBUG
     float detect_count = 0;
@@ -911,24 +868,17 @@ int start()
             // {
             //     box_num++;
             // }
-            if (bbxs.bbs[max_person_id].alive != 0)
+            if (max_person_confidence != 0)
             {
                 box_num = max_person_id;
             }
             drawBboxes(&bbxs, ImageInChar);
-            writeDetImg(ImageInChar, count, bbxs.bbs[box_num].score);
+            writeDetImg(ImageInChar, count, max_person_confidence);
         }
         //-------------End Draw BBs-------------------//
 
         box_num = 0;
-        // while ((bbxs.bbs[box_num].alive == 0 || bbxs.bbs[box_num].class != 2) && box_num < bbxs.num_bb) //Only want gesture box
-        // {
-        //     box_num++;
-        // }
-        // if (box_num < bbxs.num_bb)
-        // {
-        //     GESTURE_FLAG = 1;
-        // }
+
         if (max_gesture_confidence != 0)
         {
             GESTURE_FLAG = 1;
@@ -937,10 +887,94 @@ int start()
 
         if (GESTURE_FLAG == 0)
         {
+#ifndef MUTE
 #ifdef TOTAL_CYCLE
             t_end = gap_cl_readhwtimer() - t_start;
             printf("Cycles total from PC: %15d\n", t_end);
             printf("SSD gesture: 0\n");
+#endif
+#endif
+// Send person position without gesture to STM32 Add by Xinglong
+#ifdef FROM_CAMERA
+            if (max_person_confidence != 0)
+            {
+                x = bbxs.bbs[max_person_id].x;
+                y = bbxs.bbs[max_person_id].y;
+                w = bbxs.bbs[max_person_id].w;
+                h = bbxs.bbs[max_person_id].h;
+            }
+            else
+            {
+                x = 0;
+                y = 0;
+                w = 0;
+                h = 0;
+            }
+            uint8_t aa = x + w / 2;
+            uint8_t bb = y + h / 2;
+
+            person_value = aa + (bb << 8) + (w << 16) + (h << 24);
+            gesture_value = 6;
+
+            uint8_t checkSum = 0;
+            checkSum += (w + h + gesture_value + message_head + message_tail);
+            checkSum += aa;
+            checkSum += bb;
+
+            crc_value = 256 - checkSum;
+
+            pi_uart_write(&uart_device, &message_head, 1);
+            pi_uart_write(&uart_device, &person_value, 4);
+            pi_uart_write(&uart_device, &gesture_value, 1);
+            pi_uart_write(&uart_device, &crc_value, 1);
+            pi_uart_write(&uart_device, &message_tail, 1);
+
+            // short int x_recov = person_value%256;
+
+            // short int y_recov = (person_value/256)%256;
+
+            // short int w_recov = (person_value/(256*256))%256;
+
+            // short int h_recov = (person_value/(256*256*256))%256;
+
+            // if((x_recov + y_recov + w_recov + h_recov + message_head + message_tail + gesture_value + crc_value)%256 != 0)
+            // {
+            //     printf("CRC Failed!\n");
+            //     printf("CRC = %d\n", (x_recov + y_recov + w_recov + h_recov + message_head + message_tail + gesture_value + crc_value)%256);
+            // }
+
+            // printf("Person detected, but no gesture.\n");
+            // printf("Message Head: %d\n", message_head);
+            // printf("person_value: %ld\n", person_value);
+            printf("gesture_value: %d\n", gesture_value);
+            // printf("Message Head: %d\n", message_tail);
+            printf("x+w/2 = : %d\n", (x + w / 2));
+            printf("y+h/2 = : %d\n", (y + h / 2));
+            printf("w = : %d\n", w);
+            printf("h = : %d\n", h);
+            // printf("CRC_value: %d\n", crc_value);
+#else
+            if (max_person_confidence != 0)
+            {
+                x = bbxs.bbs[max_person_id].x;
+                y = bbxs.bbs[max_person_id].y;
+                w = bbxs.bbs[max_person_id].w;
+                h = bbxs.bbs[max_person_id].h;
+            }
+            else
+            {
+                x = 0;
+                y = 0;
+                w = 0;
+                h = 0;
+            }
+
+            gesture_value = 6;
+            printf("gesture_value: %d\n", gesture_value);
+            printf("x+w/2 = : %d\n", (x + w / 2));
+            printf("y+h/2 = : %d\n", (y + h / 2));
+            printf("w = : %d\n", w);
+            printf("h = : %d\n", h);
 #endif
         }
         else
@@ -948,6 +982,7 @@ int start()
 #ifdef PERFORMANCE_DEBUG
             detect_count++;
 #endif
+
             unsigned char *ImageInChar_2 = (unsigned char *)pmsis_l2_malloc(W_2 * H_2 * sizeof(IMAGE_IN_T));
             if (RESIZE)
             {
@@ -993,6 +1028,8 @@ int start()
             }
 
             // Adjust float to fix
+            // sprintf(ImageName, "../../../samples_codetest/gap8_gesture_prepare/pic_output/0/num11_label6.pgm");
+            // ReadImageFromFile(ImageName, &Wi, &Hi, ImageInChar_2, Wi * Hi * sizeof(unsigned char));
             ImageIn_2 = (short int *)ImageInChar_2;
             for (int i = W_2 * H_2 - 1; i >= 0; i--)
             {
@@ -1001,13 +1038,13 @@ int start()
 
             PRINTF("\n-------- STRAT RUN RESNET ----------\n");
 
-            memset(task, 0, sizeof(struct pi_cluster_task));
-            task->entry = RunRESNET;
-            task->arg = (void *)NULL;
-            task->stack_size = (uint32_t)CLUSTER_STACK_SIZE;
-            task->slave_stack_size = (uint32_t)CLUSTER_SLAVE_STACK_SIZE;
+            memset(task_resnet, 0, sizeof(struct pi_cluster_task));
+            task_resnet->entry = RunRESNET;
+            task_resnet->arg = (void *)NULL;
+            task_resnet->stack_size = (uint32_t)CLUSTER_STACK_SIZE;
+            task_resnet->slave_stack_size = (uint32_t)CLUSTER_SLAVE_STACK_SIZE;
             //Dispatch task on cluster
-            pi_cluster_send_task_to_cl(&cluster_dev, task);
+            pi_cluster_send_task_to_cl(&cluster_dev, task_resnet);
             //Check Results
             int outclass, MaxPrediction = 0;
             for (int i = 0; i < NUM_CLASSES; i++)
@@ -1051,6 +1088,88 @@ int start()
                 strcpy(dirction, "no_gesture");
                 break;
             }
+#endif
+#ifdef FROM_CAMERA
+            if (max_person_confidence != 0)
+            {
+                x = bbxs.bbs[max_person_id].x;
+                y = bbxs.bbs[max_person_id].y;
+                w = bbxs.bbs[max_person_id].w;
+                h = bbxs.bbs[max_person_id].h;
+            }
+            else
+            {
+                x = 0;
+                y = 0;
+                w = 0;
+                h = 0;
+            }
+
+            uint8_t aa = x + w / 2;
+            uint8_t bb = y + h / 2;
+
+            person_value = aa + (bb << 8) + (w << 16) + (h << 24);
+            gesture_value = outclass;
+
+            uint8_t checkSum = 0;
+            checkSum += (w + h + gesture_value + message_head + message_tail);
+            checkSum += aa;
+            checkSum += bb;
+            crc_value = 256 - checkSum;
+
+            pi_uart_write(&uart_device, &message_head, 1);
+            pi_uart_write(&uart_device, &person_value, 4);
+            pi_uart_write(&uart_device, &gesture_value, 1);
+            pi_uart_write(&uart_device, &crc_value, 1);
+            pi_uart_write(&uart_device, &message_tail, 1);
+
+            // short int x_recov = person_value%256;
+
+            // short int y_recov = (person_value/256)%256;
+
+            // short int w_recov = (person_value/(256*256))%256;
+
+            // short int h_recov = (person_value/(256*256*256))%256;
+
+            // if((x_recov + y_recov + w_recov + h_recov + message_head + message_tail + gesture_value + crc_value)%256 != 0)
+            // {
+            //     printf("CRC Failed!\n");
+            //     printf("CRC = %d\n", (x_recov + y_recov + w_recov + h_recov + message_head + message_tail + gesture_value + crc_value)%256);
+            // }
+
+            // printf("Person and gesture detected.\n");
+            // printf("Message Head: %d\n", message_head);
+            // printf("person_value: %ld\n", person_value);
+            printf("gesture_value: %d\n", gesture_value);
+            // printf("Message Head: %d\n", message_tail);
+            printf("x+w/2 = : %d\n", (x + w / 2));
+            printf("y+h/2 = : %d\n", (y + h / 2));
+            printf("w = : %d\n", w);
+            printf("h = : %d\n", h);
+            // printf("CRC_value: %d\n", crc_value);
+#else
+            if (max_person_confidence != 0)
+            {
+                x = bbxs.bbs[max_person_id].x;
+                y = bbxs.bbs[max_person_id].y;
+                w = bbxs.bbs[max_person_id].w;
+                h = bbxs.bbs[max_person_id].h;
+            }
+            else
+            {
+                x = 0;
+                y = 0;
+                w = 0;
+                h = 0;
+            }
+
+            gesture_value = outclass;
+            printf("gesture_value: %d\n", gesture_value);
+            printf("x+w/2 = : %d\n", (x + w / 2));
+            printf("y+h/2 = : %d\n", (y + h / 2));
+            printf("w = : %d\n", w);
+            printf("h = : %d\n", h);
+
 #endif
             PRINTF("Predicted class:\t%d\n", outclass);
             PRINTF("Predicted direction:\t%s\n", dirction);
@@ -1096,12 +1215,23 @@ int start()
         max_gesture_id = 0;
         max_gesture_confidence = 0;
 
+        person_value = 0;
+        gesture_value = 7;
+
+#ifdef PERFORMANCE_DEBUG
+        detect_rate = detect_count / pic_num;
+        right_rate = right_count / detect_count;
+        printf("Label%d detect rate: %f , right rate: %f.\n", gesture_now, detect_rate, right_rate);
+        // printf("Map usage: Map0: %d, Map1: %d, Map2: %d, Map3: %d.\n", map0_used, map1_used, map2_used, map3_used);
+#endif
+
         //Send to Screen
         // pi_display_write(&ili, &buffer, 40, 60, 160, 120);
         // #endif
     }
 
     //put CNN Destruct out loop
+    PRINTF("OUT!!!!!!\n");
     cnn_ssdCNN_Destruct();
     resnetCNN_Destruct();
 
@@ -1121,5 +1251,6 @@ int start()
 
 int main(void)
 {
+    printf("===============Start==============\n");
     return pmsis_kickoff((void *)start);
 }

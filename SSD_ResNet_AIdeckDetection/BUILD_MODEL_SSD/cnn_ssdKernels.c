@@ -78,21 +78,21 @@ void S3_Conv2d_8x1x3x3_MaxPool_2x2_Relu(
 	KerArg0->H = (unsigned short int) (2);
 	KerArg0->OutFeatures = (unsigned short int) (8);
 	KerArg0->Bias = (short int * __restrict__) (cnn_ssd_L1_Memory+2560);
-	KerArg0->NormBias = (signed char) (13);
+	KerArg0->NormBias = (signed char) (10);
 	KerArg1->W = (unsigned short int) (160);
 	KerArg1->UsedW = (unsigned short int) (160);
 	KerArg1->InFeatures = (unsigned short int) (1);
 	KerArg1->OutFeatures = (unsigned short int) (8);
 	KerArg1->Filter = (short int * __restrict__) (cnn_ssd_L1_Memory+2576);
 	KerArg1->Out = (int * __restrict__) (cnn_ssd_L1_Memory+5280);
-	KerArg1->Norm = (unsigned char) (15);
+	KerArg1->Norm = (unsigned char) (14);
 	KerArg1->TotalInFeatures = (short int) (1);
 	KerArg1->Orientation = (unsigned char) (1);
 	KerArg2->In = (int * __restrict__) (cnn_ssd_L1_Memory+5280);
 	KerArg2->W = (unsigned short int) (160);
 	KerArg2->H = (unsigned short int) (2);
 	KerArg2->Out = (short int * __restrict__) (cnn_ssd_L1_Memory+5280);
-	KerArg2->Norm = (unsigned char) (15);
+	KerArg2->Norm = (unsigned char) (14);
 	KerArg2->InFeatures = (unsigned short int) (8);
 	KerArg2->LB = (int) (0);
 	KerArg2->UB = (int) (32767);
@@ -161,9 +161,9 @@ void S3_Conv2d_8x1x3x3_MaxPool_2x2_Relu(
 			/*================================= Write Tiles =====================================*/
 			if (_SP_Out) AT_L2_WAIT(0, &DmaW_Evt1); /* Wait previous DMA write Out */
 			if (_SPP_Out) AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR1); /* Wait previous uDMA write Out */
-			if (_SP_Out) AT_HYPERRAM_CL_COPY2D(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) Out+_P_Out), ((AT_HYPERRAM_INT_ADDR_TYPE) cnn_ssd_L2_Memory+3568+1280*((T0Ind_Total+-1)%2)),
+			if (_SP_Out) AT_HYPERRAM_CL_COPY2D(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) Out+_P_Out), ((AT_HYPERRAM_INT_ADDR_TYPE) cnn_ssd_L2_Memory+7732+1280*((T0Ind_Total+-1)%2)),
 						_SP_Out, 10240, _LP_Out, 1, &UchanHR1);
-			AT_L2_COPY(0, ((AT_HYPERRAM_EXT_ADDR_TYPE) cnn_ssd_L2_Memory+3568+1280*((T0Ind_Total)%2)), ((AT_L2_INT_ADDR_TYPE) cnn_ssd_L1_Memory+2720+1280*((T0Ind_Total)%2)),
+			AT_L2_COPY(0, ((AT_HYPERRAM_EXT_ADDR_TYPE) cnn_ssd_L2_Memory+7732+1280*((T0Ind_Total)%2)), ((AT_L2_INT_ADDR_TYPE) cnn_ssd_L1_Memory+2720+1280*((T0Ind_Total)%2)),
 					_SC_Out, 1, &DmaW_Evt1);
 			/*============================= End Write Tiles =====================================*/
 			/*================================= Update Arg Pipeline =============================*/
@@ -181,7 +181,7 @@ void S3_Conv2d_8x1x3x3_MaxPool_2x2_Relu(
 	/*================================ Write Tiles Epilog ===============================*/
 	AT_L2_WAIT(0, &DmaW_Evt1); /* Wait previous DMA write Out */
 	if (_SPP_Out) AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR1); /* Wait previous uDMA write Out */
-	AT_HYPERRAM_CL_COPY2D(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) Out+_P_Out), ((AT_HYPERRAM_INT_ADDR_TYPE) cnn_ssd_L2_Memory+3568+1280*((T0Ind_Total+-1)%2)), _SP_Out, 10240, _LP_Out, 1, &UchanHR1);
+	AT_HYPERRAM_CL_COPY2D(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) Out+_P_Out), ((AT_HYPERRAM_INT_ADDR_TYPE) cnn_ssd_L2_Memory+7732+1280*((T0Ind_Total+-1)%2)), _SP_Out, 10240, _LP_Out, 1, &UchanHR1);
 	AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR1); /* Wait current uDMA write Out */
 	/*============================ End Write Tiles Epilog ===============================*/
 }
@@ -263,20 +263,20 @@ void S6_Conv2d_16x8x3x3_MaxPool_2x2_Relu(
 	KerArg0->H = (unsigned short int) (2);
 	KerArg0->OutFeatures = (unsigned short int) (16);
 	KerArg0->Bias = (short int * __restrict__) (cnn_ssd_L1_Memory+2560);
-	KerArg0->NormBias = (signed char) (13);
+	KerArg0->NormBias = (signed char) (11);
 	KerArg1->W = (unsigned short int) (80);
 	KerArg1->UsedW = (unsigned short int) (80);
 	KerArg1->InFeatures = (unsigned short int) (2);
 	KerArg1->OutFeatures = (unsigned short int) (16);
 	KerArg1->Out = (int * __restrict__) (cnn_ssd_L1_Memory+6304);
-	KerArg1->Norm = (unsigned char) (14);
+	KerArg1->Norm = (unsigned char) (13);
 	KerArg1->TotalInFeatures = (short int) (2);
 	KerArg1->Orientation = (unsigned char) (1);
 	KerArg2->In = (int * __restrict__) (cnn_ssd_L1_Memory+6304);
 	KerArg2->W = (unsigned short int) (80);
 	KerArg2->H = (unsigned short int) (2);
 	KerArg2->Out = (short int * __restrict__) (cnn_ssd_L1_Memory+6304);
-	KerArg2->Norm = (unsigned char) (14);
+	KerArg2->Norm = (unsigned char) (13);
 	KerArg2->InFeatures = (unsigned short int) (16);
 	KerArg2->LB = (int) (0);
 	KerArg2->UB = (int) (32767);
@@ -298,10 +298,10 @@ void S6_Conv2d_16x8x3x3_MaxPool_2x2_Relu(
 	AT_L2_WAIT(0, &DmaR_Evt1); /* Wait previous DMA read Bias */
 	AT_L2_COPY(0, ((AT_L2_EXT_ADDR_TYPE) Filter+0), ((AT_L2_INT_ADDR_TYPE) cnn_ssd_L1_Memory+2592+0), 576, 0, &DmaR_Evt2);
 	_N_Filter=0;
-	AT_HYPERRAM_CL_COPY2D(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) In+0), ((AT_HYPERRAM_INT_ADDR_TYPE) cnn_ssd_L2_Memory+3568+0), 960, 10240, 480, 0, &UchanHR1);
+	AT_HYPERRAM_CL_COPY2D(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) In+0), ((AT_HYPERRAM_INT_ADDR_TYPE) cnn_ssd_L2_Memory+7732+0), 960, 10240, 480, 0, &UchanHR1);
 	AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR1); /* Wait previous uDMA read In */
-	AT_HYPERRAM_CL_COPY2D(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) In+20480), ((AT_HYPERRAM_INT_ADDR_TYPE) cnn_ssd_L2_Memory+3568+1280), 960, 10240, 480, 0, &UchanHR1);
-	AT_L2_COPY(0, ((AT_HYPERRAM_EXT_ADDR_TYPE) cnn_ssd_L2_Memory+3568+0), ((AT_L2_INT_ADDR_TYPE) cnn_ssd_L1_Memory+0+0), 960, 0, &DmaR_Evt3);
+	AT_HYPERRAM_CL_COPY2D(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) In+20480), ((AT_HYPERRAM_INT_ADDR_TYPE) cnn_ssd_L2_Memory+7732+1280), 960, 10240, 480, 0, &UchanHR1);
+	AT_L2_COPY(0, ((AT_HYPERRAM_EXT_ADDR_TYPE) cnn_ssd_L2_Memory+7732+0), ((AT_L2_INT_ADDR_TYPE) cnn_ssd_L1_Memory+0+0), 960, 0, &DmaR_Evt3);
 	_NN_In=20480; _SN_In=960;
 	/*============================= End Read Tiles Prolog ===============================*/
 	{ /* Single iteration on D1 */
@@ -343,12 +343,12 @@ void S6_Conv2d_16x8x3x3_MaxPool_2x2_Relu(
 				}
 				AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR1); /* Wait previous uDMA read In */
 				if (_SNN_In) {
-					AT_HYPERRAM_CL_COPY2D(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) In+_NN_In), ((AT_HYPERRAM_INT_ADDR_TYPE) cnn_ssd_L2_Memory+3568+1280*((D0Ind_Total)%2)),
+					AT_HYPERRAM_CL_COPY2D(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) In+_NN_In), ((AT_HYPERRAM_INT_ADDR_TYPE) cnn_ssd_L2_Memory+7732+1280*((D0Ind_Total)%2)),
 							_SNN_In, 10240, _LNN_In, 0, &UchanHR1);
 				}
 				AT_L2_WAIT(0, &DmaR_Evt3); /* Wait previous DMA read In */
 				if (_SN_In) {
-					AT_L2_COPY(0, ((AT_HYPERRAM_EXT_ADDR_TYPE) cnn_ssd_L2_Memory+3568+1280*((D0Ind_Total+1)%2)), ((AT_L2_INT_ADDR_TYPE) cnn_ssd_L1_Memory+0+1280*((D0Ind_Total+1)%2)),
+					AT_L2_COPY(0, ((AT_HYPERRAM_EXT_ADDR_TYPE) cnn_ssd_L2_Memory+7732+1280*((D0Ind_Total+1)%2)), ((AT_L2_INT_ADDR_TYPE) cnn_ssd_L1_Memory+0+1280*((D0Ind_Total+1)%2)),
 							_SN_In, 0, &DmaR_Evt3);
 				}
 				/*============================= End Read Tiles ======================================*/
@@ -373,9 +373,9 @@ void S6_Conv2d_16x8x3x3_MaxPool_2x2_Relu(
 			/*================================= Write Tiles =====================================*/
 			if (_SP_Out) AT_L2_WAIT(0, &DmaW_Evt1); /* Wait previous DMA write Out */
 			if (_SPP_Out) AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR2); /* Wait previous uDMA write Out */
-			if (_SP_Out) AT_HYPERRAM_CL_COPY2D(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) Out+_P_Out), ((AT_HYPERRAM_INT_ADDR_TYPE) cnn_ssd_L2_Memory+6128+1280*((T0Ind_Total+-1)%2)),
+			if (_SP_Out) AT_HYPERRAM_CL_COPY2D(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) Out+_P_Out), ((AT_HYPERRAM_INT_ADDR_TYPE) cnn_ssd_L2_Memory+10292+1280*((T0Ind_Total+-1)%2)),
 						_SP_Out, 2560, _LP_Out, 1, &UchanHR2);
-			AT_L2_COPY(0, ((AT_HYPERRAM_EXT_ADDR_TYPE) cnn_ssd_L2_Memory+6128+1280*((T0Ind_Total)%2)), ((AT_L2_INT_ADDR_TYPE) cnn_ssd_L1_Memory+3744+1280*((T0Ind_Total)%2)),
+			AT_L2_COPY(0, ((AT_HYPERRAM_EXT_ADDR_TYPE) cnn_ssd_L2_Memory+10292+1280*((T0Ind_Total)%2)), ((AT_L2_INT_ADDR_TYPE) cnn_ssd_L1_Memory+3744+1280*((T0Ind_Total)%2)),
 					_SC_Out, 1, &DmaW_Evt1);
 			/*============================= End Write Tiles =====================================*/
 			/*================================= Update Arg Pipeline =============================*/
@@ -393,7 +393,7 @@ void S6_Conv2d_16x8x3x3_MaxPool_2x2_Relu(
 	/*================================ Write Tiles Epilog ===============================*/
 	AT_L2_WAIT(0, &DmaW_Evt1); /* Wait previous DMA write Out */
 	if (_SPP_Out) AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR2); /* Wait previous uDMA write Out */
-	AT_HYPERRAM_CL_COPY2D(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) Out+_P_Out), ((AT_HYPERRAM_INT_ADDR_TYPE) cnn_ssd_L2_Memory+6128+1280*((T0Ind_Total+-1)%2)), _SP_Out, 2560, _LP_Out, 1, &UchanHR2);
+	AT_HYPERRAM_CL_COPY2D(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) Out+_P_Out), ((AT_HYPERRAM_INT_ADDR_TYPE) cnn_ssd_L2_Memory+10292+1280*((T0Ind_Total+-1)%2)), _SP_Out, 2560, _LP_Out, 1, &UchanHR2);
 	AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR2); /* Wait current uDMA write Out */
 	/*============================ End Write Tiles Epilog ===============================*/
 }
@@ -479,14 +479,14 @@ void S9_Conv2d_16x16x3x3_MaxPool_2x2_Relu(
 	KerArg1->OutFeatures = (unsigned short int) (16);
 	KerArg1->Filter = (short int * __restrict__) (cnn_ssd_L1_Memory+5152);
 	KerArg1->Out = (int * __restrict__) (cnn_ssd_L1_Memory+11040);
-	KerArg1->Norm = (unsigned char) (14);
+	KerArg1->Norm = (unsigned char) (13);
 	KerArg1->TotalInFeatures = (short int) (16);
 	KerArg1->Orientation = (unsigned char) (1);
 	KerArg2->In = (int * __restrict__) (cnn_ssd_L1_Memory+11040);
 	KerArg2->W = (unsigned short int) (40);
 	KerArg2->H = (unsigned short int) (2);
 	KerArg2->Out = (short int * __restrict__) (cnn_ssd_L1_Memory+11040);
-	KerArg2->Norm = (unsigned char) (14);
+	KerArg2->Norm = (unsigned char) (13);
 	KerArg2->InFeatures = (unsigned short int) (16);
 	KerArg2->LB = (int) (0);
 	KerArg2->UB = (int) (32767);
@@ -508,10 +508,10 @@ void S9_Conv2d_16x16x3x3_MaxPool_2x2_Relu(
 	AT_L2_WAIT(0, &DmaR_Evt1); /* Wait previous DMA read Bias */
 	AT_L2_COPY(0, ((AT_L2_EXT_ADDR_TYPE) Filter+0), ((AT_L2_INT_ADDR_TYPE) cnn_ssd_L1_Memory+5152), 4608, 0, &DmaR_Evt2);
 	AT_L2_WAIT(0, &DmaR_Evt2); /* Wait previous DMA read Filter */
-	AT_HYPERRAM_CL_COPY2D(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) In+0), ((AT_HYPERRAM_INT_ADDR_TYPE) cnn_ssd_L2_Memory+13808+0), 1920, 2560, 240, 0, &UchanHR1);
+	AT_HYPERRAM_CL_COPY2D(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) In+0), ((AT_HYPERRAM_INT_ADDR_TYPE) cnn_ssd_L2_Memory+17972+0), 1920, 2560, 240, 0, &UchanHR1);
 	AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR1); /* Wait previous uDMA read In */
-	AT_HYPERRAM_CL_COPY2D(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) In+20480), ((AT_HYPERRAM_INT_ADDR_TYPE) cnn_ssd_L2_Memory+13808+2560), 1920, 2560, 240, 0, &UchanHR1);
-	AT_L2_COPY(0, ((AT_HYPERRAM_EXT_ADDR_TYPE) cnn_ssd_L2_Memory+13808+0), ((AT_L2_INT_ADDR_TYPE) cnn_ssd_L1_Memory+0+0), 1920, 0, &DmaR_Evt3);
+	AT_HYPERRAM_CL_COPY2D(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) In+20480), ((AT_HYPERRAM_INT_ADDR_TYPE) cnn_ssd_L2_Memory+17972+2560), 1920, 2560, 240, 0, &UchanHR1);
+	AT_L2_COPY(0, ((AT_HYPERRAM_EXT_ADDR_TYPE) cnn_ssd_L2_Memory+17972+0), ((AT_L2_INT_ADDR_TYPE) cnn_ssd_L1_Memory+0+0), 1920, 0, &DmaR_Evt3);
 	_NN_In=20480; _SN_In=1920;
 	/*============================= End Read Tiles Prolog ===============================*/
 	{ /* Single iteration on D1 */
@@ -542,12 +542,12 @@ void S9_Conv2d_16x16x3x3_MaxPool_2x2_Relu(
 				/*================================= Read Tiles ======================================*/
 				AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR1); /* Wait previous uDMA read In */
 				if (_SNN_In) {
-					AT_HYPERRAM_CL_COPY2D(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) In+_NN_In), ((AT_HYPERRAM_INT_ADDR_TYPE) cnn_ssd_L2_Memory+13808+2560*((D0Ind_Total)%2)),
+					AT_HYPERRAM_CL_COPY2D(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) In+_NN_In), ((AT_HYPERRAM_INT_ADDR_TYPE) cnn_ssd_L2_Memory+17972+2560*((D0Ind_Total)%2)),
 							_SNN_In, 2560, _LNN_In, 0, &UchanHR1);
 				}
 				AT_L2_WAIT(0, &DmaR_Evt3); /* Wait previous DMA read In */
 				if (_SN_In) {
-					AT_L2_COPY(0, ((AT_HYPERRAM_EXT_ADDR_TYPE) cnn_ssd_L2_Memory+13808+2560*((D0Ind_Total+1)%2)), ((AT_L2_INT_ADDR_TYPE) cnn_ssd_L1_Memory+0+2560*((D0Ind_Total+1)%2)),
+					AT_L2_COPY(0, ((AT_HYPERRAM_EXT_ADDR_TYPE) cnn_ssd_L2_Memory+17972+2560*((D0Ind_Total+1)%2)), ((AT_L2_INT_ADDR_TYPE) cnn_ssd_L1_Memory+0+2560*((D0Ind_Total+1)%2)),
 							_SN_In, 0, &DmaR_Evt3);
 				}
 				/*============================= End Read Tiles ======================================*/
@@ -663,7 +663,7 @@ void S12_Conv2d_32x16x3x3_Relu(
 	KerArg0->H = (unsigned short int) (1);
 	KerArg0->OutFeatures = (unsigned short int) (32);
 	KerArg0->Bias = (short int * __restrict__) (cnn_ssd_L1_Memory+1920);
-	KerArg0->NormBias = (signed char) (14);
+	KerArg0->NormBias = (signed char) (13);
 	KerArg1->W = (unsigned short int) (20);
 	KerArg1->UsedW = (unsigned short int) (20);
 	KerArg1->InFeatures = (unsigned short int) (8);
@@ -685,9 +685,9 @@ void S12_Conv2d_32x16x3x3_Relu(
 	_N_In=0;
 	AT_L2_COPY(0, ((AT_L2_EXT_ADDR_TYPE) Bias+0), ((AT_L2_INT_ADDR_TYPE) cnn_ssd_L1_Memory+1920), 64, 0, &DmaR_Evt2);
 	AT_L2_WAIT(0, &DmaR_Evt2); /* Wait previous DMA read Bias */
-	AT_HYPERFLASH_FS_CL_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) Filter+0), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) cnn_ssd_L2_Memory+34288+0), 9216, 0, &UchanHF1);
+	AT_HYPERFLASH_FS_CL_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) Filter+0), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) cnn_ssd_L2_Memory+38452+0), 9216, 0, &UchanHF1);
 	AT_HYPERFLASH_FS_CL_WAIT(&HyperFlash, &UchanHF1); /* Wait previous uDMA read Filter */
-	AT_L2_COPY(0, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) cnn_ssd_L2_Memory+34288+0), ((AT_L2_INT_ADDR_TYPE) cnn_ssd_L1_Memory+1984), 9216, 0, &DmaR_Evt3);
+	AT_L2_COPY(0, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) cnn_ssd_L2_Memory+38452+0), ((AT_L2_INT_ADDR_TYPE) cnn_ssd_L1_Memory+1984), 9216, 0, &DmaR_Evt3);
 	AT_L2_WAIT(0, &DmaR_Evt3); /* Wait previous DMA read Filter */
 	_C_Out=0; _SC_Out=1280; _LC_Out=40;
 	_SP_Out=0;
@@ -925,17 +925,17 @@ void S16_Conv2d_18x32x3x3(
 	/*=========================== Call Kernel, Invariant assignment =====================*/
 	KerArg0->Out = (int * __restrict__) (cnn_ssd_L1_Memory+10468);
 	KerArg0->W = (unsigned short int) (20);
-	KerArg0->NormBias = (signed char) (13);
+	KerArg0->NormBias = (signed char) (11);
 	KerArg1->W = (unsigned short int) (20);
 	KerArg1->UsedW = (unsigned short int) (20);
 	KerArg1->InFeatures = (unsigned short int) (4);
 	KerArg1->Out = (int * __restrict__) (cnn_ssd_L1_Memory+10468);
-	KerArg1->Norm = (unsigned char) (16);
+	KerArg1->Norm = (unsigned char) (15);
 	KerArg1->TotalInFeatures = (short int) (4);
 	KerArg1->Orientation = (unsigned char) (1);
 	KerArg2->In = (int * __restrict__) (cnn_ssd_L1_Memory+10468);
 	KerArg2->W = (unsigned short int) (20);
-	KerArg2->Norm = (unsigned char) (16);
+	KerArg2->Norm = (unsigned char) (15);
 	KerArg2->LB = (int) (-32768);
 	KerArg2->UB = (int) (32767);
 	/*================================= Read Tiles Prolog ===============================*/
@@ -943,10 +943,10 @@ void S16_Conv2d_18x32x3x3(
 	_N_In=0;
 	AT_L2_COPY(0, ((AT_L2_EXT_ADDR_TYPE) Bias+0), ((AT_L2_INT_ADDR_TYPE) cnn_ssd_L1_Memory+3520), 36, 0, &DmaR_Evt2);
 	AT_L2_WAIT(0, &DmaR_Evt2); /* Wait previous DMA read Bias */
-	AT_HYPERFLASH_FS_CL_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) Filter+0), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) cnn_ssd_L2_Memory+9328+0), 576, 0, &UchanHF1);
+	AT_HYPERFLASH_FS_CL_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) Filter+0), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) cnn_ssd_L2_Memory+13492+0), 576, 0, &UchanHF1);
 	AT_HYPERFLASH_FS_CL_WAIT(&HyperFlash, &UchanHF1); /* Wait previous uDMA read Filter */
-	AT_HYPERFLASH_FS_CL_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) Filter+576), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) cnn_ssd_L2_Memory+9328+576), 576, 0, &UchanHF1);
-	AT_L2_COPY(0, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) cnn_ssd_L2_Memory+9328+0), ((AT_L2_INT_ADDR_TYPE) cnn_ssd_L1_Memory+3556+0), 576, 0, &DmaR_Evt3);
+	AT_HYPERFLASH_FS_CL_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) Filter+576), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) cnn_ssd_L2_Memory+13492+576), 576, 0, &UchanHF1);
+	AT_L2_COPY(0, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) cnn_ssd_L2_Memory+13492+0), ((AT_L2_INT_ADDR_TYPE) cnn_ssd_L1_Memory+3556+0), 576, 0, &DmaR_Evt3);
 	_NN_Filter=576; _SN_Filter=576;
 	_C_Out=0; _SC_Out=2880; _LC_Out=360;
 	_SPP_Out=0; _SP_Out=0;
@@ -995,12 +995,12 @@ void S16_Conv2d_18x32x3x3(
 				}
 				AT_HYPERFLASH_FS_CL_WAIT(&HyperFlash, &UchanHF1); /* Wait previous uDMA read Filter */
 				if (_SNN_Filter) {
-					AT_HYPERFLASH_FS_CL_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) Filter+_NN_Filter), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) cnn_ssd_L2_Memory+9328+576*((D0Ind_Total)%2)),
+					AT_HYPERFLASH_FS_CL_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) Filter+_NN_Filter), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) cnn_ssd_L2_Memory+13492+576*((D0Ind_Total)%2)),
 							_SNN_Filter, 0, &UchanHF1);
 				}
 				AT_L2_WAIT(0, &DmaR_Evt3); /* Wait previous DMA read Filter */
 				if (_SN_Filter) {
-					AT_L2_COPY(0, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) cnn_ssd_L2_Memory+9328+576*((D0Ind_Total+1)%2)), ((AT_L2_INT_ADDR_TYPE) cnn_ssd_L1_Memory+3556+576*((D0Ind_Total+1)%2)),
+					AT_L2_COPY(0, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) cnn_ssd_L2_Memory+13492+576*((D0Ind_Total+1)%2)), ((AT_L2_INT_ADDR_TYPE) cnn_ssd_L1_Memory+3556+576*((D0Ind_Total+1)%2)),
 							_SN_Filter, 0, &DmaR_Evt3);
 				}
 				/*============================= End Read Tiles ======================================*/
@@ -1026,9 +1026,9 @@ void S16_Conv2d_18x32x3x3(
 			/*================================= Write Tiles =====================================*/
 			if (_SP_Out) AT_L2_WAIT(0, &DmaW_Evt1); /* Wait previous DMA write Out */
 			if (_SPP_Out) AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR2); /* Wait previous uDMA write Out */
-			if (_SP_Out) AT_HYPERRAM_CL_COPY2D(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) Out+_P_Out), ((AT_HYPERRAM_INT_ADDR_TYPE) cnn_ssd_L2_Memory+3568+2880*((T0Ind_Total+-1)%2)),
+			if (_SP_Out) AT_HYPERRAM_CL_COPY2D(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) Out+_P_Out), ((AT_HYPERRAM_INT_ADDR_TYPE) cnn_ssd_L2_Memory+7732+2880*((T0Ind_Total+-1)%2)),
 						_SP_Out, 640, _LP_Out, 1, &UchanHR2);
-			AT_L2_COPY(0, ((AT_HYPERRAM_EXT_ADDR_TYPE) cnn_ssd_L2_Memory+3568+2880*((T0Ind_Total)%2)), ((AT_L2_INT_ADDR_TYPE) cnn_ssd_L1_Memory+4708+2880*((T0Ind_Total)%2)),
+			AT_L2_COPY(0, ((AT_HYPERRAM_EXT_ADDR_TYPE) cnn_ssd_L2_Memory+7732+2880*((T0Ind_Total)%2)), ((AT_L2_INT_ADDR_TYPE) cnn_ssd_L1_Memory+4708+2880*((T0Ind_Total)%2)),
 					_SC_Out, 1, &DmaW_Evt1);
 			/*============================= End Write Tiles =====================================*/
 			/*================================= Update Arg Pipeline =============================*/
@@ -1048,7 +1048,7 @@ void S16_Conv2d_18x32x3x3(
 	/*================================ Write Tiles Epilog ===============================*/
 	AT_L2_WAIT(0, &DmaW_Evt1); /* Wait previous DMA write Out */
 	if (_SPP_Out) AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR2); /* Wait previous uDMA write Out */
-	AT_HYPERRAM_CL_COPY2D(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) Out+_P_Out), ((AT_HYPERRAM_INT_ADDR_TYPE) cnn_ssd_L2_Memory+3568+2880*((T0Ind_Total+-1)%2)), _SP_Out, 640, _LP_Out, 1, &UchanHR2);
+	AT_HYPERRAM_CL_COPY2D(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) Out+_P_Out), ((AT_HYPERRAM_INT_ADDR_TYPE) cnn_ssd_L2_Memory+7732+2880*((T0Ind_Total+-1)%2)), _SP_Out, 640, _LP_Out, 1, &UchanHR2);
 	AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR2); /* Wait current uDMA write Out */
 	/*============================ End Write Tiles Epilog ===============================*/
 }
@@ -1127,18 +1127,18 @@ void S20_Conv2d_24x32x3x3(
 	KerArg0->Out = (int * __restrict__) (cnn_ssd_L1_Memory+10480);
 	KerArg0->W = (unsigned short int) (20);
 	KerArg0->OutFeatures = (unsigned short int) (8);
-	KerArg0->NormBias = (signed char) (13);
+	KerArg0->NormBias = (signed char) (12);
 	KerArg1->W = (unsigned short int) (20);
 	KerArg1->UsedW = (unsigned short int) (20);
 	KerArg1->InFeatures = (unsigned short int) (4);
 	KerArg1->OutFeatures = (unsigned short int) (8);
 	KerArg1->Out = (int * __restrict__) (cnn_ssd_L1_Memory+10480);
-	KerArg1->Norm = (unsigned char) (16);
+	KerArg1->Norm = (unsigned char) (15);
 	KerArg1->TotalInFeatures = (short int) (4);
 	KerArg1->Orientation = (unsigned char) (1);
 	KerArg2->In = (int * __restrict__) (cnn_ssd_L1_Memory+10480);
 	KerArg2->W = (unsigned short int) (20);
-	KerArg2->Norm = (unsigned char) (16);
+	KerArg2->Norm = (unsigned char) (15);
 	KerArg2->InFeatures = (unsigned short int) (8);
 	KerArg2->LB = (int) (-32768);
 	KerArg2->UB = (int) (32767);
@@ -1147,10 +1147,10 @@ void S20_Conv2d_24x32x3x3(
 	_N_In=0;
 	AT_L2_COPY(0, ((AT_L2_EXT_ADDR_TYPE) Bias+0), ((AT_L2_INT_ADDR_TYPE) cnn_ssd_L1_Memory+3520), 48, 0, &DmaR_Evt2);
 	AT_L2_WAIT(0, &DmaR_Evt2); /* Wait previous DMA read Bias */
-	AT_HYPERFLASH_FS_CL_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) Filter+0), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) cnn_ssd_L2_Memory+9328+0), 576, 0, &UchanHF1);
+	AT_HYPERFLASH_FS_CL_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) Filter+0), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) cnn_ssd_L2_Memory+13492+0), 576, 0, &UchanHF1);
 	AT_HYPERFLASH_FS_CL_WAIT(&HyperFlash, &UchanHF1); /* Wait previous uDMA read Filter */
-	AT_HYPERFLASH_FS_CL_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) Filter+576), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) cnn_ssd_L2_Memory+9328+576), 576, 0, &UchanHF1);
-	AT_L2_COPY(0, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) cnn_ssd_L2_Memory+9328+0), ((AT_L2_INT_ADDR_TYPE) cnn_ssd_L1_Memory+3568+0), 576, 0, &DmaR_Evt3);
+	AT_HYPERFLASH_FS_CL_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) Filter+576), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) cnn_ssd_L2_Memory+13492+576), 576, 0, &UchanHF1);
+	AT_L2_COPY(0, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) cnn_ssd_L2_Memory+13492+0), ((AT_L2_INT_ADDR_TYPE) cnn_ssd_L1_Memory+3568+0), 576, 0, &DmaR_Evt3);
 	_NN_Filter=576; _SN_Filter=576;
 	_C_Out=0; _SC_Out=2880; _LC_Out=360;
 	_SPP_Out=0; _SP_Out=0;
@@ -1198,12 +1198,12 @@ void S20_Conv2d_24x32x3x3(
 				}
 				AT_HYPERFLASH_FS_CL_WAIT(&HyperFlash, &UchanHF1); /* Wait previous uDMA read Filter */
 				if (_SNN_Filter) {
-					AT_HYPERFLASH_FS_CL_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) Filter+_NN_Filter), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) cnn_ssd_L2_Memory+9328+576*((D0Ind_Total)%2)),
+					AT_HYPERFLASH_FS_CL_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) Filter+_NN_Filter), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) cnn_ssd_L2_Memory+13492+576*((D0Ind_Total)%2)),
 							_SNN_Filter, 0, &UchanHF1);
 				}
 				AT_L2_WAIT(0, &DmaR_Evt3); /* Wait previous DMA read Filter */
 				if (_SN_Filter) {
-					AT_L2_COPY(0, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) cnn_ssd_L2_Memory+9328+576*((D0Ind_Total+1)%2)), ((AT_L2_INT_ADDR_TYPE) cnn_ssd_L1_Memory+3568+576*((D0Ind_Total+1)%2)),
+					AT_L2_COPY(0, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) cnn_ssd_L2_Memory+13492+576*((D0Ind_Total+1)%2)), ((AT_L2_INT_ADDR_TYPE) cnn_ssd_L1_Memory+3568+576*((D0Ind_Total+1)%2)),
 							_SN_Filter, 0, &DmaR_Evt3);
 				}
 				/*============================= End Read Tiles ======================================*/
@@ -1227,9 +1227,9 @@ void S20_Conv2d_24x32x3x3(
 			/*================================= Write Tiles =====================================*/
 			if (_SP_Out) AT_L2_WAIT(0, &DmaW_Evt1); /* Wait previous DMA write Out */
 			if (_SPP_Out) AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR2); /* Wait previous uDMA write Out */
-			if (_SP_Out) AT_HYPERRAM_CL_COPY2D(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) Out+_P_Out), ((AT_HYPERRAM_INT_ADDR_TYPE) cnn_ssd_L2_Memory+3568+2880*((T0Ind_Total+-1)%2)),
+			if (_SP_Out) AT_HYPERRAM_CL_COPY2D(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) Out+_P_Out), ((AT_HYPERRAM_INT_ADDR_TYPE) cnn_ssd_L2_Memory+7732+2880*((T0Ind_Total+-1)%2)),
 						_SP_Out, 640, _LP_Out, 1, &UchanHR2);
-			AT_L2_COPY(0, ((AT_HYPERRAM_EXT_ADDR_TYPE) cnn_ssd_L2_Memory+3568+2880*((T0Ind_Total)%2)), ((AT_L2_INT_ADDR_TYPE) cnn_ssd_L1_Memory+4720+2880*((T0Ind_Total)%2)),
+			AT_L2_COPY(0, ((AT_HYPERRAM_EXT_ADDR_TYPE) cnn_ssd_L2_Memory+7732+2880*((T0Ind_Total)%2)), ((AT_L2_INT_ADDR_TYPE) cnn_ssd_L1_Memory+4720+2880*((T0Ind_Total)%2)),
 					_SC_Out, 1, &DmaW_Evt1);
 			/*============================= End Write Tiles =====================================*/
 			/*================================= Update Arg Pipeline =============================*/
@@ -1249,7 +1249,7 @@ void S20_Conv2d_24x32x3x3(
 	/*================================ Write Tiles Epilog ===============================*/
 	AT_L2_WAIT(0, &DmaW_Evt1); /* Wait previous DMA write Out */
 	if (_SPP_Out) AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR2); /* Wait previous uDMA write Out */
-	AT_HYPERRAM_CL_COPY2D(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) Out+_P_Out), ((AT_HYPERRAM_INT_ADDR_TYPE) cnn_ssd_L2_Memory+3568+2880*((T0Ind_Total+-1)%2)), _SP_Out, 640, _LP_Out, 1, &UchanHR2);
+	AT_HYPERRAM_CL_COPY2D(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) Out+_P_Out), ((AT_HYPERRAM_INT_ADDR_TYPE) cnn_ssd_L2_Memory+7732+2880*((T0Ind_Total+-1)%2)), _SP_Out, 640, _LP_Out, 1, &UchanHR2);
 	AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR2); /* Wait current uDMA write Out */
 	/*============================ End Write Tiles Epilog ===============================*/
 }
@@ -1329,7 +1329,7 @@ void S24_Conv2d_64x32x3x3_Relu(
 	KerArg0->W = (unsigned short int) (10);
 	KerArg0->H = (unsigned short int) (8);
 	KerArg0->OutFeatures = (unsigned short int) (16);
-	KerArg0->NormBias = (signed char) (15);
+	KerArg0->NormBias = (signed char) (14);
 	KerArg1->W = (unsigned short int) (10);
 	KerArg1->UsedW = (unsigned short int) (10);
 	KerArg1->OutFeatures = (unsigned short int) (16);
@@ -1349,10 +1349,10 @@ void S24_Conv2d_64x32x3x3_Relu(
 	_N_In=0;
 	AT_L2_COPY(0, ((AT_L2_EXT_ADDR_TYPE) Bias+0), ((AT_L2_INT_ADDR_TYPE) cnn_ssd_L1_Memory+1920), 128, 0, &DmaR_Evt2);
 	AT_L2_WAIT(0, &DmaR_Evt2); /* Wait previous DMA read Bias */
-	AT_HYPERFLASH_FS_CL_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) Filter+0), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) cnn_ssd_L2_Memory+34288+0), 1728, 0, &UchanHF1);
+	AT_HYPERFLASH_FS_CL_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) Filter+0), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) cnn_ssd_L2_Memory+38452+0), 1728, 0, &UchanHF1);
 	AT_HYPERFLASH_FS_CL_WAIT(&HyperFlash, &UchanHF1); /* Wait previous uDMA read Filter */
-	AT_HYPERFLASH_FS_CL_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) Filter+1728), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) cnn_ssd_L2_Memory+34288+1728), 1728, 0, &UchanHF1);
-	AT_L2_COPY(0, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) cnn_ssd_L2_Memory+34288+0), ((AT_L2_INT_ADDR_TYPE) cnn_ssd_L1_Memory+2048+0), 1728, 0, &DmaR_Evt3);
+	AT_HYPERFLASH_FS_CL_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) Filter+1728), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) cnn_ssd_L2_Memory+38452+1728), 1728, 0, &UchanHF1);
+	AT_L2_COPY(0, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) cnn_ssd_L2_Memory+38452+0), ((AT_L2_INT_ADDR_TYPE) cnn_ssd_L1_Memory+2048+0), 1728, 0, &DmaR_Evt3);
 	_NN_Filter=1728; _SN_Filter=1728;
 	_C_Out=0; _SC_Out=2560; _LC_Out=160;
 	_SPP_Out=0; _SP_Out=0;
@@ -1397,12 +1397,12 @@ void S24_Conv2d_64x32x3x3_Relu(
 				}
 				AT_HYPERFLASH_FS_CL_WAIT(&HyperFlash, &UchanHF1); /* Wait previous uDMA read Filter */
 				if (_SNN_Filter) {
-					AT_HYPERFLASH_FS_CL_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) Filter+_NN_Filter), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) cnn_ssd_L2_Memory+34288+1728*((D0Ind_Total)%2)),
+					AT_HYPERFLASH_FS_CL_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) Filter+_NN_Filter), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) cnn_ssd_L2_Memory+38452+1728*((D0Ind_Total)%2)),
 							_SNN_Filter, 0, &UchanHF1);
 				}
 				AT_L2_WAIT(0, &DmaR_Evt3); /* Wait previous DMA read Filter */
 				if (_SN_Filter) {
-					AT_L2_COPY(0, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) cnn_ssd_L2_Memory+34288+1728*((D0Ind_Total+1)%2)), ((AT_L2_INT_ADDR_TYPE) cnn_ssd_L1_Memory+2048+1728*((D0Ind_Total+1)%2)),
+					AT_L2_COPY(0, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) cnn_ssd_L2_Memory+38452+1728*((D0Ind_Total+1)%2)), ((AT_L2_INT_ADDR_TYPE) cnn_ssd_L1_Memory+2048+1728*((D0Ind_Total+1)%2)),
 							_SN_Filter, 0, &DmaR_Evt3);
 				}
 				/*============================= End Read Tiles ======================================*/
@@ -1426,9 +1426,9 @@ void S24_Conv2d_64x32x3x3_Relu(
 			/*================================= Write Tiles =====================================*/
 			if (_SP_Out) AT_L2_WAIT(0, &DmaW_Evt1); /* Wait previous DMA write Out */
 			if (_SPP_Out) AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR2); /* Wait previous uDMA write Out */
-			if (_SP_Out) AT_HYPERRAM_CL_COPY2D(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) Out+_P_Out), ((AT_HYPERRAM_INT_ADDR_TYPE) cnn_ssd_L2_Memory+8688+2560*((T0Ind_Total+-1)%2)),
+			if (_SP_Out) AT_HYPERRAM_CL_COPY2D(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) Out+_P_Out), ((AT_HYPERRAM_INT_ADDR_TYPE) cnn_ssd_L2_Memory+12852+2560*((T0Ind_Total+-1)%2)),
 						_SP_Out, 160, _LP_Out, 1, &UchanHR2);
-			AT_L2_COPY(0, ((AT_HYPERRAM_EXT_ADDR_TYPE) cnn_ssd_L2_Memory+8688+2560*((T0Ind_Total)%2)), ((AT_L2_INT_ADDR_TYPE) cnn_ssd_L1_Memory+5504+2560*((T0Ind_Total)%2)),
+			AT_L2_COPY(0, ((AT_HYPERRAM_EXT_ADDR_TYPE) cnn_ssd_L2_Memory+12852+2560*((T0Ind_Total)%2)), ((AT_L2_INT_ADDR_TYPE) cnn_ssd_L1_Memory+5504+2560*((T0Ind_Total)%2)),
 					_SC_Out, 1, &DmaW_Evt1);
 			/*============================= End Write Tiles =====================================*/
 			/*================================= Update Arg Pipeline =============================*/
@@ -1447,7 +1447,7 @@ void S24_Conv2d_64x32x3x3_Relu(
 	/*================================ Write Tiles Epilog ===============================*/
 	AT_L2_WAIT(0, &DmaW_Evt1); /* Wait previous DMA write Out */
 	if (_SPP_Out) AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR2); /* Wait previous uDMA write Out */
-	AT_HYPERRAM_CL_COPY2D(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) Out+_P_Out), ((AT_HYPERRAM_INT_ADDR_TYPE) cnn_ssd_L2_Memory+8688+2560*((T0Ind_Total+-1)%2)), _SP_Out, 160, _LP_Out, 1, &UchanHR2);
+	AT_HYPERRAM_CL_COPY2D(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) Out+_P_Out), ((AT_HYPERRAM_INT_ADDR_TYPE) cnn_ssd_L2_Memory+12852+2560*((T0Ind_Total+-1)%2)), _SP_Out, 160, _LP_Out, 1, &UchanHR2);
 	AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR2); /* Wait current uDMA write Out */
 	/*============================ End Write Tiles Epilog ===============================*/
 }
@@ -1498,9 +1498,9 @@ void S25_MaxPool_2x2(
 	KerArg0->LB = (int) (-32768);
 	KerArg0->UB = (int) (32767);
 	/*================================= Read Tiles Prolog ===============================*/
-	AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) In+0), ((AT_HYPERRAM_INT_ADDR_TYPE) cnn_ssd_L2_Memory+3568+0), 10240, 0, &UchanHR1);
+	AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) In+0), ((AT_HYPERRAM_INT_ADDR_TYPE) cnn_ssd_L2_Memory+7732+0), 10240, 0, &UchanHR1);
 	AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR1); /* Wait previous uDMA read In */
-	AT_L2_COPY(0, ((AT_HYPERRAM_EXT_ADDR_TYPE) cnn_ssd_L2_Memory+3568+0), ((AT_L2_INT_ADDR_TYPE) cnn_ssd_L1_Memory+0), 10240, 0, &DmaR_Evt1);
+	AT_L2_COPY(0, ((AT_HYPERRAM_EXT_ADDR_TYPE) cnn_ssd_L2_Memory+7732+0), ((AT_L2_INT_ADDR_TYPE) cnn_ssd_L1_Memory+0), 10240, 0, &DmaR_Evt1);
 	AT_L2_WAIT(0, &DmaR_Evt1); /* Wait previous DMA read In */
 	/*============================= End Read Tiles Prolog ===============================*/
 	{ /* Single iteration on D0 */
@@ -1533,7 +1533,8 @@ void S28_Conv2d_18x64x3x3(
 	AT_L2_EVENT DmaW_Evt1;
 	AT_HYPERRAM_CL_EVENT UchanHR1;
 	AT_HYPERFLASH_FS_CL_EVENT UchanHF2;
-	AT_HYPERRAM_CL_EVENT UchanHR3;
+	AT_HYPERFLASH_FS_CL_EVENT UchanHF3;
+	AT_HYPERRAM_CL_EVENT UchanHR4;
 	KerSetBias_fpd_fp_T S_KerArg0, *KerArg0 = &S_KerArg0;
 	KerConv_DP_fp_T S_KerArg1, *KerArg1 = &S_KerArg1;
 	KerDP_fp_T S_KerArg2, *KerArg2 = &S_KerArg2;
@@ -1594,31 +1595,33 @@ void S28_Conv2d_18x64x3x3(
 	KerArg0->Out = (int * __restrict__) (cnn_ssd_L1_Memory+10532);
 	KerArg0->W = (unsigned short int) (10);
 	KerArg0->H = (unsigned short int) (8);
-	KerArg0->NormBias = (signed char) (12);
+	KerArg0->NormBias = (signed char) (11);
 	KerArg1->W = (unsigned short int) (10);
 	KerArg1->UsedW = (unsigned short int) (10);
 	KerArg1->Out = (int * __restrict__) (cnn_ssd_L1_Memory+10532);
-	KerArg1->Norm = (unsigned char) (16);
+	KerArg1->Norm = (unsigned char) (15);
 	KerArg1->Pad = (v4s) ((v4s){1,1,1,1});
 	KerArg1->Orientation = (unsigned char) (1);
 	KerArg2->In = (int * __restrict__) (cnn_ssd_L1_Memory+10532);
 	KerArg2->W = (unsigned short int) (10);
 	KerArg2->H = (unsigned short int) (8);
-	KerArg2->Norm = (unsigned char) (16);
+	KerArg2->Norm = (unsigned char) (15);
 	KerArg2->LB = (int) (-32768);
 	KerArg2->UB = (int) (32767);
 	/*================================= Read Tiles Prolog ===============================*/
-	AT_HYPERRAM_CL_COPY2D(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) In+0), ((AT_HYPERRAM_INT_ADDR_TYPE) cnn_ssd_L2_Memory+3568+0), 960, 160, 160, 0, &UchanHR1);
+	AT_HYPERRAM_CL_COPY2D(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) In+0), ((AT_HYPERRAM_INT_ADDR_TYPE) cnn_ssd_L2_Memory+7732+0), 960, 160, 160, 0, &UchanHR1);
 	AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR1); /* Wait previous uDMA read In */
-	AT_HYPERRAM_CL_COPY2D(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) In+960), ((AT_HYPERRAM_INT_ADDR_TYPE) cnn_ssd_L2_Memory+3568+960), 960, 160, 160, 0, &UchanHR1);
-	AT_L2_COPY(0, ((AT_HYPERRAM_EXT_ADDR_TYPE) cnn_ssd_L2_Memory+3568+0), ((AT_L2_INT_ADDR_TYPE) cnn_ssd_L1_Memory+0+0), 960, 0, &DmaR_Evt1);
+	AT_HYPERRAM_CL_COPY2D(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) In+960), ((AT_HYPERRAM_INT_ADDR_TYPE) cnn_ssd_L2_Memory+7732+960), 960, 160, 160, 0, &UchanHR1);
+	AT_L2_COPY(0, ((AT_HYPERRAM_EXT_ADDR_TYPE) cnn_ssd_L2_Memory+7732+0), ((AT_L2_INT_ADDR_TYPE) cnn_ssd_L1_Memory+0+0), 960, 0, &DmaR_Evt1);
 	_NN_In=960; _SN_In=960;
-	AT_L2_COPY(0, ((AT_L2_EXT_ADDR_TYPE) Bias+0), ((AT_L2_INT_ADDR_TYPE) cnn_ssd_L1_Memory+1920), 36, 0, &DmaR_Evt2);
+	AT_HYPERFLASH_FS_CL_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) Bias+0), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) cnn_ssd_L2_Memory+14772+0), 36, 0, &UchanHF2);
+	AT_HYPERFLASH_FS_CL_WAIT(&HyperFlash, &UchanHF2); /* Wait previous uDMA read Bias */
+	AT_L2_COPY(0, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) cnn_ssd_L2_Memory+14772+0), ((AT_L2_INT_ADDR_TYPE) cnn_ssd_L1_Memory+1920), 36, 0, &DmaR_Evt2);
 	AT_L2_WAIT(0, &DmaR_Evt2); /* Wait previous DMA read Bias */
-	AT_HYPERFLASH_FS_CL_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) Filter+0), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) cnn_ssd_L2_Memory+34288+0), 1728, 0, &UchanHF2);
-	AT_HYPERFLASH_FS_CL_WAIT(&HyperFlash, &UchanHF2); /* Wait previous uDMA read Filter */
-	AT_HYPERFLASH_FS_CL_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) Filter+1728), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) cnn_ssd_L2_Memory+34288+1728), 1728, 0, &UchanHF2);
-	AT_L2_COPY(0, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) cnn_ssd_L2_Memory+34288+0), ((AT_L2_INT_ADDR_TYPE) cnn_ssd_L1_Memory+1956+0), 1728, 0, &DmaR_Evt3);
+	AT_HYPERFLASH_FS_CL_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) Filter+0), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) cnn_ssd_L2_Memory+38452+0), 1728, 0, &UchanHF3);
+	AT_HYPERFLASH_FS_CL_WAIT(&HyperFlash, &UchanHF3); /* Wait previous uDMA read Filter */
+	AT_HYPERFLASH_FS_CL_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) Filter+1728), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) cnn_ssd_L2_Memory+38452+1728), 1728, 0, &UchanHF3);
+	AT_L2_COPY(0, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) cnn_ssd_L2_Memory+38452+0), ((AT_L2_INT_ADDR_TYPE) cnn_ssd_L1_Memory+1956+0), 1728, 0, &DmaR_Evt3);
 	_NN_Filter=1728; _SN_Filter=1728;
 	_C_Out=0; _SC_Out=2560; _LC_Out=160;
 	_SPP_Out=0; _SP_Out=0;
@@ -1663,22 +1666,22 @@ void S28_Conv2d_18x64x3x3(
 				/*================================= Read Tiles ======================================*/
 				AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR1); /* Wait previous uDMA read In */
 				if (_SNN_In) {
-					AT_HYPERRAM_CL_COPY2D(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) In+_NN_In), ((AT_HYPERRAM_INT_ADDR_TYPE) cnn_ssd_L2_Memory+3568+960*((D0Ind_Total)%2)),
+					AT_HYPERRAM_CL_COPY2D(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) In+_NN_In), ((AT_HYPERRAM_INT_ADDR_TYPE) cnn_ssd_L2_Memory+7732+960*((D0Ind_Total)%2)),
 							_SNN_In, 160, _LNN_In, 0, &UchanHR1);
 				}
 				AT_L2_WAIT(0, &DmaR_Evt1); /* Wait previous DMA read In */
 				if (_SN_In) {
-					AT_L2_COPY(0, ((AT_HYPERRAM_EXT_ADDR_TYPE) cnn_ssd_L2_Memory+3568+960*((D0Ind_Total+1)%2)), ((AT_L2_INT_ADDR_TYPE) cnn_ssd_L1_Memory+0+960*((D0Ind_Total+1)%2)),
+					AT_L2_COPY(0, ((AT_HYPERRAM_EXT_ADDR_TYPE) cnn_ssd_L2_Memory+7732+960*((D0Ind_Total+1)%2)), ((AT_L2_INT_ADDR_TYPE) cnn_ssd_L1_Memory+0+960*((D0Ind_Total+1)%2)),
 							_SN_In, 0, &DmaR_Evt1);
 				}
-				AT_HYPERFLASH_FS_CL_WAIT(&HyperFlash, &UchanHF2); /* Wait previous uDMA read Filter */
+				AT_HYPERFLASH_FS_CL_WAIT(&HyperFlash, &UchanHF3); /* Wait previous uDMA read Filter */
 				if (_SNN_Filter) {
-					AT_HYPERFLASH_FS_CL_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) Filter+_NN_Filter), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) cnn_ssd_L2_Memory+34288+1728*((D0Ind_Total)%2)),
-							_SNN_Filter, 0, &UchanHF2);
+					AT_HYPERFLASH_FS_CL_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) Filter+_NN_Filter), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) cnn_ssd_L2_Memory+38452+1728*((D0Ind_Total)%2)),
+							_SNN_Filter, 0, &UchanHF3);
 				}
 				AT_L2_WAIT(0, &DmaR_Evt3); /* Wait previous DMA read Filter */
 				if (_SN_Filter) {
-					AT_L2_COPY(0, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) cnn_ssd_L2_Memory+34288+1728*((D0Ind_Total+1)%2)), ((AT_L2_INT_ADDR_TYPE) cnn_ssd_L1_Memory+1956+1728*((D0Ind_Total+1)%2)),
+					AT_L2_COPY(0, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) cnn_ssd_L2_Memory+38452+1728*((D0Ind_Total+1)%2)), ((AT_L2_INT_ADDR_TYPE) cnn_ssd_L1_Memory+1956+1728*((D0Ind_Total+1)%2)),
 							_SN_Filter, 0, &DmaR_Evt3);
 				}
 				/*============================= End Read Tiles ======================================*/
@@ -1704,10 +1707,10 @@ void S28_Conv2d_18x64x3x3(
 			__CALL(KerDP_fp, KerArg2);
 			/*================================= Write Tiles =====================================*/
 			if (_SP_Out) AT_L2_WAIT(0, &DmaW_Evt1); /* Wait previous DMA write Out */
-			if (_SPP_Out) AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR3); /* Wait previous uDMA write Out */
-			if (_SP_Out) AT_HYPERRAM_CL_COPY2D(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) Out+_P_Out), ((AT_HYPERRAM_INT_ADDR_TYPE) cnn_ssd_L2_Memory+5488+2560*((T0Ind_Total+-1)%2)),
-						_SP_Out, 160, _LP_Out, 1, &UchanHR3);
-			AT_L2_COPY(0, ((AT_HYPERRAM_EXT_ADDR_TYPE) cnn_ssd_L2_Memory+5488+2560*((T0Ind_Total)%2)), ((AT_L2_INT_ADDR_TYPE) cnn_ssd_L1_Memory+5412+2560*((T0Ind_Total)%2)),
+			if (_SPP_Out) AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR4); /* Wait previous uDMA write Out */
+			if (_SP_Out) AT_HYPERRAM_CL_COPY2D(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) Out+_P_Out), ((AT_HYPERRAM_INT_ADDR_TYPE) cnn_ssd_L2_Memory+9652+2560*((T0Ind_Total+-1)%2)),
+						_SP_Out, 160, _LP_Out, 1, &UchanHR4);
+			AT_L2_COPY(0, ((AT_HYPERRAM_EXT_ADDR_TYPE) cnn_ssd_L2_Memory+9652+2560*((T0Ind_Total)%2)), ((AT_L2_INT_ADDR_TYPE) cnn_ssd_L1_Memory+5412+2560*((T0Ind_Total)%2)),
 					_SC_Out, 1, &DmaW_Evt1);
 			/*============================= End Write Tiles =====================================*/
 			/*================================= Update Arg Pipeline =============================*/
@@ -1725,9 +1728,9 @@ void S28_Conv2d_18x64x3x3(
 	} /* End iteration on D1 */
 	/*================================ Write Tiles Epilog ===============================*/
 	AT_L2_WAIT(0, &DmaW_Evt1); /* Wait previous DMA write Out */
-	if (_SPP_Out) AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR3); /* Wait previous uDMA write Out */
-	AT_HYPERRAM_CL_COPY2D(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) Out+_P_Out), ((AT_HYPERRAM_INT_ADDR_TYPE) cnn_ssd_L2_Memory+5488+2560*((T0Ind_Total+-1)%2)), _SP_Out, 160, _LP_Out, 1, &UchanHR3);
-	AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR3); /* Wait current uDMA write Out */
+	if (_SPP_Out) AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR4); /* Wait previous uDMA write Out */
+	AT_HYPERRAM_CL_COPY2D(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) Out+_P_Out), ((AT_HYPERRAM_INT_ADDR_TYPE) cnn_ssd_L2_Memory+9652+2560*((T0Ind_Total+-1)%2)), _SP_Out, 160, _LP_Out, 1, &UchanHR4);
+	AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR4); /* Wait current uDMA write Out */
 	/*============================ End Write Tiles Epilog ===============================*/
 }
 void S32_Conv2d_24x64x3x3(
@@ -1806,31 +1809,31 @@ void S32_Conv2d_24x64x3x3(
 	KerArg0->Out = (int * __restrict__) (cnn_ssd_L1_Memory+10544);
 	KerArg0->W = (unsigned short int) (10);
 	KerArg0->H = (unsigned short int) (8);
-	KerArg0->NormBias = (signed char) (13);
+	KerArg0->NormBias = (signed char) (12);
 	KerArg1->W = (unsigned short int) (10);
 	KerArg1->UsedW = (unsigned short int) (10);
 	KerArg1->Out = (int * __restrict__) (cnn_ssd_L1_Memory+10544);
-	KerArg1->Norm = (unsigned char) (16);
+	KerArg1->Norm = (unsigned char) (15);
 	KerArg1->Pad = (v4s) ((v4s){1,1,1,1});
 	KerArg1->Orientation = (unsigned char) (1);
 	KerArg2->In = (int * __restrict__) (cnn_ssd_L1_Memory+10544);
 	KerArg2->W = (unsigned short int) (10);
 	KerArg2->H = (unsigned short int) (8);
-	KerArg2->Norm = (unsigned char) (16);
+	KerArg2->Norm = (unsigned char) (15);
 	KerArg2->LB = (int) (-32768);
 	KerArg2->UB = (int) (32767);
 	/*================================= Read Tiles Prolog ===============================*/
-	AT_HYPERRAM_CL_COPY2D(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) In+0), ((AT_HYPERRAM_INT_ADDR_TYPE) cnn_ssd_L2_Memory+3568+0), 960, 160, 160, 0, &UchanHR1);
+	AT_HYPERRAM_CL_COPY2D(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) In+0), ((AT_HYPERRAM_INT_ADDR_TYPE) cnn_ssd_L2_Memory+7732+0), 960, 160, 160, 0, &UchanHR1);
 	AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR1); /* Wait previous uDMA read In */
-	AT_HYPERRAM_CL_COPY2D(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) In+960), ((AT_HYPERRAM_INT_ADDR_TYPE) cnn_ssd_L2_Memory+3568+960), 960, 160, 160, 0, &UchanHR1);
-	AT_L2_COPY(0, ((AT_HYPERRAM_EXT_ADDR_TYPE) cnn_ssd_L2_Memory+3568+0), ((AT_L2_INT_ADDR_TYPE) cnn_ssd_L1_Memory+0+0), 960, 0, &DmaR_Evt1);
+	AT_HYPERRAM_CL_COPY2D(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) In+960), ((AT_HYPERRAM_INT_ADDR_TYPE) cnn_ssd_L2_Memory+7732+960), 960, 160, 160, 0, &UchanHR1);
+	AT_L2_COPY(0, ((AT_HYPERRAM_EXT_ADDR_TYPE) cnn_ssd_L2_Memory+7732+0), ((AT_L2_INT_ADDR_TYPE) cnn_ssd_L1_Memory+0+0), 960, 0, &DmaR_Evt1);
 	_NN_In=960; _SN_In=960;
 	AT_L2_COPY(0, ((AT_L2_EXT_ADDR_TYPE) Bias+0), ((AT_L2_INT_ADDR_TYPE) cnn_ssd_L1_Memory+1920), 48, 0, &DmaR_Evt2);
 	AT_L2_WAIT(0, &DmaR_Evt2); /* Wait previous DMA read Bias */
-	AT_HYPERFLASH_FS_CL_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) Filter+0), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) cnn_ssd_L2_Memory+34288+0), 1728, 0, &UchanHF2);
+	AT_HYPERFLASH_FS_CL_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) Filter+0), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) cnn_ssd_L2_Memory+38452+0), 1728, 0, &UchanHF2);
 	AT_HYPERFLASH_FS_CL_WAIT(&HyperFlash, &UchanHF2); /* Wait previous uDMA read Filter */
-	AT_HYPERFLASH_FS_CL_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) Filter+1728), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) cnn_ssd_L2_Memory+34288+1728), 1728, 0, &UchanHF2);
-	AT_L2_COPY(0, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) cnn_ssd_L2_Memory+34288+0), ((AT_L2_INT_ADDR_TYPE) cnn_ssd_L1_Memory+1968+0), 1728, 0, &DmaR_Evt3);
+	AT_HYPERFLASH_FS_CL_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) Filter+1728), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) cnn_ssd_L2_Memory+38452+1728), 1728, 0, &UchanHF2);
+	AT_L2_COPY(0, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) cnn_ssd_L2_Memory+38452+0), ((AT_L2_INT_ADDR_TYPE) cnn_ssd_L1_Memory+1968+0), 1728, 0, &DmaR_Evt3);
 	_NN_Filter=1728; _SN_Filter=1728;
 	_C_Out=0; _SC_Out=2560; _LC_Out=160;
 	_SPP_Out=0; _SP_Out=0;
@@ -1875,22 +1878,22 @@ void S32_Conv2d_24x64x3x3(
 				/*================================= Read Tiles ======================================*/
 				AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR1); /* Wait previous uDMA read In */
 				if (_SNN_In) {
-					AT_HYPERRAM_CL_COPY2D(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) In+_NN_In), ((AT_HYPERRAM_INT_ADDR_TYPE) cnn_ssd_L2_Memory+3568+960*((D0Ind_Total)%2)),
+					AT_HYPERRAM_CL_COPY2D(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) In+_NN_In), ((AT_HYPERRAM_INT_ADDR_TYPE) cnn_ssd_L2_Memory+7732+960*((D0Ind_Total)%2)),
 							_SNN_In, 160, _LNN_In, 0, &UchanHR1);
 				}
 				AT_L2_WAIT(0, &DmaR_Evt1); /* Wait previous DMA read In */
 				if (_SN_In) {
-					AT_L2_COPY(0, ((AT_HYPERRAM_EXT_ADDR_TYPE) cnn_ssd_L2_Memory+3568+960*((D0Ind_Total+1)%2)), ((AT_L2_INT_ADDR_TYPE) cnn_ssd_L1_Memory+0+960*((D0Ind_Total+1)%2)),
+					AT_L2_COPY(0, ((AT_HYPERRAM_EXT_ADDR_TYPE) cnn_ssd_L2_Memory+7732+960*((D0Ind_Total+1)%2)), ((AT_L2_INT_ADDR_TYPE) cnn_ssd_L1_Memory+0+960*((D0Ind_Total+1)%2)),
 							_SN_In, 0, &DmaR_Evt1);
 				}
 				AT_HYPERFLASH_FS_CL_WAIT(&HyperFlash, &UchanHF2); /* Wait previous uDMA read Filter */
 				if (_SNN_Filter) {
-					AT_HYPERFLASH_FS_CL_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) Filter+_NN_Filter), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) cnn_ssd_L2_Memory+34288+1728*((D0Ind_Total)%2)),
+					AT_HYPERFLASH_FS_CL_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) Filter+_NN_Filter), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) cnn_ssd_L2_Memory+38452+1728*((D0Ind_Total)%2)),
 							_SNN_Filter, 0, &UchanHF2);
 				}
 				AT_L2_WAIT(0, &DmaR_Evt3); /* Wait previous DMA read Filter */
 				if (_SN_Filter) {
-					AT_L2_COPY(0, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) cnn_ssd_L2_Memory+34288+1728*((D0Ind_Total+1)%2)), ((AT_L2_INT_ADDR_TYPE) cnn_ssd_L1_Memory+1968+1728*((D0Ind_Total+1)%2)),
+					AT_L2_COPY(0, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) cnn_ssd_L2_Memory+38452+1728*((D0Ind_Total+1)%2)), ((AT_L2_INT_ADDR_TYPE) cnn_ssd_L1_Memory+1968+1728*((D0Ind_Total+1)%2)),
 							_SN_Filter, 0, &DmaR_Evt3);
 				}
 				/*============================= End Read Tiles ======================================*/
@@ -1917,9 +1920,9 @@ void S32_Conv2d_24x64x3x3(
 			/*================================= Write Tiles =====================================*/
 			if (_SP_Out) AT_L2_WAIT(0, &DmaW_Evt1); /* Wait previous DMA write Out */
 			if (_SPP_Out) AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR3); /* Wait previous uDMA write Out */
-			if (_SP_Out) AT_HYPERRAM_CL_COPY2D(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) Out+_P_Out), ((AT_HYPERRAM_INT_ADDR_TYPE) cnn_ssd_L2_Memory+5488+2560*((T0Ind_Total+-1)%2)),
+			if (_SP_Out) AT_HYPERRAM_CL_COPY2D(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) Out+_P_Out), ((AT_HYPERRAM_INT_ADDR_TYPE) cnn_ssd_L2_Memory+9652+2560*((T0Ind_Total+-1)%2)),
 						_SP_Out, 160, _LP_Out, 1, &UchanHR3);
-			AT_L2_COPY(0, ((AT_HYPERRAM_EXT_ADDR_TYPE) cnn_ssd_L2_Memory+5488+2560*((T0Ind_Total)%2)), ((AT_L2_INT_ADDR_TYPE) cnn_ssd_L1_Memory+5424+2560*((T0Ind_Total)%2)),
+			AT_L2_COPY(0, ((AT_HYPERRAM_EXT_ADDR_TYPE) cnn_ssd_L2_Memory+9652+2560*((T0Ind_Total)%2)), ((AT_L2_INT_ADDR_TYPE) cnn_ssd_L1_Memory+5424+2560*((T0Ind_Total)%2)),
 					_SC_Out, 1, &DmaW_Evt1);
 			/*============================= End Write Tiles =====================================*/
 			/*================================= Update Arg Pipeline =============================*/
@@ -1938,7 +1941,7 @@ void S32_Conv2d_24x64x3x3(
 	/*================================ Write Tiles Epilog ===============================*/
 	AT_L2_WAIT(0, &DmaW_Evt1); /* Wait previous DMA write Out */
 	if (_SPP_Out) AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR3); /* Wait previous uDMA write Out */
-	AT_HYPERRAM_CL_COPY2D(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) Out+_P_Out), ((AT_HYPERRAM_INT_ADDR_TYPE) cnn_ssd_L2_Memory+5488+2560*((T0Ind_Total+-1)%2)), _SP_Out, 160, _LP_Out, 1, &UchanHR3);
+	AT_HYPERRAM_CL_COPY2D(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) Out+_P_Out), ((AT_HYPERRAM_INT_ADDR_TYPE) cnn_ssd_L2_Memory+9652+2560*((T0Ind_Total+-1)%2)), _SP_Out, 160, _LP_Out, 1, &UchanHR3);
 	AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR3); /* Wait current uDMA write Out */
 	/*============================ End Write Tiles Epilog ===============================*/
 }
@@ -2017,7 +2020,7 @@ void S36_Conv2d_128x64x3x3_Relu(
 	KerArg0->W = (unsigned short int) (5);
 	KerArg0->H = (unsigned short int) (4);
 	KerArg0->OutFeatures = (unsigned short int) (64);
-	KerArg0->NormBias = (signed char) (15);
+	KerArg0->NormBias = (signed char) (14);
 	KerArg1->W = (unsigned short int) (5);
 	KerArg1->UsedW = (unsigned short int) (5);
 	KerArg1->InFeatures = (unsigned short int) (2);
@@ -2039,10 +2042,10 @@ void S36_Conv2d_128x64x3x3_Relu(
 	_N_In=0;
 	AT_L2_COPY(0, ((AT_L2_EXT_ADDR_TYPE) Bias+0), ((AT_L2_INT_ADDR_TYPE) cnn_ssd_L1_Memory+160), 256, 0, &DmaR_Evt2);
 	AT_L2_WAIT(0, &DmaR_Evt2); /* Wait previous DMA read Bias */
-	AT_HYPERFLASH_FS_CL_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) Filter+0), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) cnn_ssd_L2_Memory+36848+0), 2304, 0, &UchanHF1);
+	AT_HYPERFLASH_FS_CL_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) Filter+0), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) cnn_ssd_L2_Memory+12852+0), 2304, 0, &UchanHF1);
 	AT_HYPERFLASH_FS_CL_WAIT(&HyperFlash, &UchanHF1); /* Wait previous uDMA read Filter */
-	AT_HYPERFLASH_FS_CL_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) Filter+2304), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) cnn_ssd_L2_Memory+36848+2304), 2304, 0, &UchanHF1);
-	AT_L2_COPY(0, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) cnn_ssd_L2_Memory+36848+0), ((AT_L2_INT_ADDR_TYPE) cnn_ssd_L1_Memory+416+0), 2304, 0, &DmaR_Evt3);
+	AT_HYPERFLASH_FS_CL_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) Filter+2304), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) cnn_ssd_L2_Memory+12852+2304), 2304, 0, &UchanHF1);
+	AT_L2_COPY(0, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) cnn_ssd_L2_Memory+12852+0), ((AT_L2_INT_ADDR_TYPE) cnn_ssd_L1_Memory+416+0), 2304, 0, &DmaR_Evt3);
 	_NN_Filter=2304; _SN_Filter=2304;
 	_C_Out=0; _SC_Out=2560; _LC_Out=40;
 	_SP_Out=0;
@@ -2087,12 +2090,12 @@ void S36_Conv2d_128x64x3x3_Relu(
 				}
 				AT_HYPERFLASH_FS_CL_WAIT(&HyperFlash, &UchanHF1); /* Wait previous uDMA read Filter */
 				if (_SNN_Filter) {
-					AT_HYPERFLASH_FS_CL_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) Filter+_NN_Filter), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) cnn_ssd_L2_Memory+36848+2304*((D0Ind_Total)%2)),
+					AT_HYPERFLASH_FS_CL_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) Filter+_NN_Filter), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) cnn_ssd_L2_Memory+12852+2304*((D0Ind_Total)%2)),
 							_SNN_Filter, 0, &UchanHF1);
 				}
 				AT_L2_WAIT(0, &DmaR_Evt3); /* Wait previous DMA read Filter */
 				if (_SN_Filter) {
-					AT_L2_COPY(0, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) cnn_ssd_L2_Memory+36848+2304*((D0Ind_Total+1)%2)), ((AT_L2_INT_ADDR_TYPE) cnn_ssd_L1_Memory+416+2304*((D0Ind_Total+1)%2)),
+					AT_L2_COPY(0, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) cnn_ssd_L2_Memory+12852+2304*((D0Ind_Total+1)%2)), ((AT_L2_INT_ADDR_TYPE) cnn_ssd_L1_Memory+416+2304*((D0Ind_Total+1)%2)),
 							_SN_Filter, 0, &DmaR_Evt3);
 				}
 				/*============================= End Read Tiles ======================================*/
@@ -2132,71 +2135,7 @@ void S36_Conv2d_128x64x3x3_Relu(
 	AT_L2_WAIT(0, &DmaW_Evt1); /* Wait previous DMA write Out */
 	/*============================ End Write Tiles Epilog ===============================*/
 }
-void S37_MaxPool_2x2(
-		short int * __restrict__ In,
-		short int * __restrict__ Out)
-
-{
-	/* Shared L1: 6144 bytes, L2 buffer: 6144 bytes */
-	/* Local variables used by this kernel */
-	AT_L2_EVENT DmaR_Evt1;
-	AT_L2_EVENT DmaW_Evt1;
-	KerReLUPool_fp_T S_KerArg0, *KerArg0 = &S_KerArg0;
-
-	/* Iteration space related variables */
-	int D0Ind, D0Ind_Last;
-	int T0Ind, T0Ind_Last;
-	/* User kernel arguments related variables */
-	/*============================= Ker Arg Iter Spaces =========================================
-	User Kernel Iteration Space:
-		[D0 Dim: Init: 128, Tiled: 1][Tile0 Dim: 1]
-	Ker Arg: In, Tiled Space: Buffer
-		Min Pipe Depth: 0, Max Pipe Depth: 0
-		KerArgItSpace: 1 logical tiles, 1 physical tiles
-			Total Size: 5120 [D0, [0 x 5120, 5120]][Tile0, 1:[5x4], 2]
-		KerArgItSpace (User Kernel Iter Order):
-			[D0, [0 x 5120, 5120]][Tile0, 1:[5x4], 2]
-		Tile0: [0, 5120, 5120], Tile1: [0, 5120, 5120], Tile2; [0, 5120, 5120]
-	Ker Arg: Out, Tiled Space: Buffer
-		Min Pipe Depth: 0, Max Pipe Depth: 0
-		KerArgItSpace: 1 logical tiles, 1 physical tiles
-			Total Size: 1024 [D0, [0 x 1024, 1024]][Tile0, 1:[2x2], 2]
-		KerArgItSpace (User Kernel Iter Order):
-			[D0, [0 x 1024, 1024]][Tile0, 1:[2x2], 2]
-		Tile0: [0, 1024, 1024], Tile1: [0, 1024, 1024], Tile2; [0, 1024, 1024]
-	======================== End Ker Arg Iter Spaces =========================================*/
-	/*=========================== Call Kernel, Invariant assignment =====================*/
-	KerArg0->In = (short int * __restrict__) (cnn_ssd_L1_Memory+0);
-	KerArg0->W = (unsigned short int) (5);
-	KerArg0->UsedW = (unsigned short int) (4);
-	KerArg0->H = (unsigned short int) (4);
-	KerArg0->OutFeatures = (unsigned short int) (128);
-	KerArg0->Out = (short int * __restrict__) (cnn_ssd_L1_Memory+5120);
-	KerArg0->Pad = (v4s) 0;
-	KerArg0->Orientation = (unsigned char) (1);
-	KerArg0->Oper = (unsigned char) (0);
-	KerArg0->LB = (int) (-32768);
-	KerArg0->UB = (int) (32767);
-	/*================================= Read Tiles Prolog ===============================*/
-	AT_L2_COPY(0, ((AT_L2_EXT_ADDR_TYPE) In+0), ((AT_L2_INT_ADDR_TYPE) cnn_ssd_L1_Memory+0), 5120, 0, &DmaR_Evt1);
-	AT_L2_WAIT(0, &DmaR_Evt1); /* Wait previous DMA read In */
-	/*============================= End Read Tiles Prolog ===============================*/
-	{ /* Single iteration on D0 */
-		int D0Ind_Last = 1;
-		{ /* Single iteration on Tile0 */
-			int T0Ind_Last = 1;
-			/*====================== Call Kernel LOC_LOOP =========================*/
-			KerArg0->UsedH = (unsigned short int) (4);
-			AT_FORK(gap_ncore(), (void *) KerParPool2x2Stride2_fp, (void *) KerArg0);
-			__CALL(KerParPool2x2Stride2_fp, KerArg0);
-		} /* End iteration on Tile0 */
-	} /* End iteration on D0 */
-	/*================================ Write Tiles Epilog ===============================*/
-	AT_L2_COPY(0, ((AT_L2_EXT_ADDR_TYPE) Out+0), ((AT_L2_INT_ADDR_TYPE) cnn_ssd_L1_Memory+5120), 1024, 1, &DmaW_Evt1);
-	AT_L2_WAIT(0, &DmaW_Evt1); /* Wait DMA write Out */
-	/*============================ End Write Tiles Epilog ===============================*/
-}
-void S40_Conv2d_18x128x3x3(
+void S39_Conv2d_18x128x3x3(
 		short int * __restrict__ In,
 		short int * __restrict__ Filter,
 		short int * __restrict__ Bias,
@@ -2210,7 +2149,8 @@ void S40_Conv2d_18x128x3x3(
 	AT_L2_EVENT DmaR_Evt3;
 	AT_L2_EVENT DmaW_Evt1;
 	AT_HYPERFLASH_FS_CL_EVENT UchanHF1;
-	AT_HYPERRAM_CL_EVENT UchanHR2;
+	AT_HYPERFLASH_FS_CL_EVENT UchanHF2;
+	AT_HYPERRAM_CL_EVENT UchanHR3;
 	KerSetBias_fpd_fp_T S_KerArg0, *KerArg0 = &S_KerArg0;
 	KerConv_DP_fp_T S_KerArg1, *KerArg1 = &S_KerArg1;
 	KerDP_fp_T S_KerArg2, *KerArg2 = &S_KerArg2;
@@ -2271,28 +2211,30 @@ void S40_Conv2d_18x128x3x3(
 	KerArg0->Out = (int * __restrict__) (cnn_ssd_L1_Memory+14436);
 	KerArg0->W = (unsigned short int) (5);
 	KerArg0->H = (unsigned short int) (4);
-	KerArg0->NormBias = (signed char) (13);
+	KerArg0->NormBias = (signed char) (11);
 	KerArg1->W = (unsigned short int) (5);
 	KerArg1->UsedW = (unsigned short int) (5);
 	KerArg1->Out = (int * __restrict__) (cnn_ssd_L1_Memory+14436);
-	KerArg1->Norm = (unsigned char) (16);
+	KerArg1->Norm = (unsigned char) (15);
 	KerArg1->Pad = (v4s) ((v4s){1,1,1,1});
 	KerArg1->Orientation = (unsigned char) (1);
 	KerArg2->In = (int * __restrict__) (cnn_ssd_L1_Memory+14436);
 	KerArg2->W = (unsigned short int) (5);
 	KerArg2->H = (unsigned short int) (4);
-	KerArg2->Norm = (unsigned char) (16);
+	KerArg2->Norm = (unsigned char) (15);
 	KerArg2->LB = (int) (-32768);
 	KerArg2->UB = (int) (32767);
 	/*================================= Read Tiles Prolog ===============================*/
 	AT_L2_COPY2D(0, ((AT_L2_EXT_ADDR_TYPE) In+0), ((AT_L2_INT_ADDR_TYPE) cnn_ssd_L1_Memory+0+0), 800, 40, 40, 0, &DmaR_Evt1);
 	_N_In=0;
-	AT_L2_COPY(0, ((AT_L2_EXT_ADDR_TYPE) Bias+0), ((AT_L2_INT_ADDR_TYPE) cnn_ssd_L1_Memory+1600), 36, 0, &DmaR_Evt2);
+	AT_HYPERFLASH_FS_CL_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) Bias+0), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) cnn_ssd_L2_Memory+14132+0), 36, 0, &UchanHF1);
+	AT_HYPERFLASH_FS_CL_WAIT(&HyperFlash, &UchanHF1); /* Wait previous uDMA read Bias */
+	AT_L2_COPY(0, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) cnn_ssd_L2_Memory+14132+0), ((AT_L2_INT_ADDR_TYPE) cnn_ssd_L1_Memory+1600), 36, 0, &DmaR_Evt2);
 	AT_L2_WAIT(0, &DmaR_Evt2); /* Wait previous DMA read Bias */
-	AT_HYPERFLASH_FS_CL_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) Filter+0), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) cnn_ssd_L2_Memory+34288+0), 5760, 0, &UchanHF1);
-	AT_HYPERFLASH_FS_CL_WAIT(&HyperFlash, &UchanHF1); /* Wait previous uDMA read Filter */
-	AT_HYPERFLASH_FS_CL_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) Filter+5760), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) cnn_ssd_L2_Memory+34288+5760), 5760, 0, &UchanHF1);
-	AT_L2_COPY(0, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) cnn_ssd_L2_Memory+34288+0), ((AT_L2_INT_ADDR_TYPE) cnn_ssd_L1_Memory+1636+0), 5760, 0, &DmaR_Evt3);
+	AT_HYPERFLASH_FS_CL_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) Filter+0), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) cnn_ssd_L2_Memory+38452+0), 5760, 0, &UchanHF2);
+	AT_HYPERFLASH_FS_CL_WAIT(&HyperFlash, &UchanHF2); /* Wait previous uDMA read Filter */
+	AT_HYPERFLASH_FS_CL_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) Filter+5760), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) cnn_ssd_L2_Memory+38452+5760), 5760, 0, &UchanHF2);
+	AT_L2_COPY(0, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) cnn_ssd_L2_Memory+38452+0), ((AT_L2_INT_ADDR_TYPE) cnn_ssd_L1_Memory+1636+0), 5760, 0, &DmaR_Evt3);
 	_NN_Filter=5760; _SN_Filter=5760;
 	_C_Out=0; _SC_Out=640; _LC_Out=40;
 	_SPP_Out=0; _SP_Out=0;
@@ -2336,14 +2278,14 @@ void S40_Conv2d_18x128x3x3(
 					AT_L2_COPY2D(0, ((AT_L2_EXT_ADDR_TYPE) In+_N_In), ((AT_L2_INT_ADDR_TYPE) cnn_ssd_L1_Memory+0+800*((D0Ind_Total+1)%2)),
 							_SN_In, 40, _LN_In, 0, &DmaR_Evt1);
 				}
-				AT_HYPERFLASH_FS_CL_WAIT(&HyperFlash, &UchanHF1); /* Wait previous uDMA read Filter */
+				AT_HYPERFLASH_FS_CL_WAIT(&HyperFlash, &UchanHF2); /* Wait previous uDMA read Filter */
 				if (_SNN_Filter) {
-					AT_HYPERFLASH_FS_CL_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) Filter+_NN_Filter), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) cnn_ssd_L2_Memory+34288+5760*((D0Ind_Total)%2)),
-							_SNN_Filter, 0, &UchanHF1);
+					AT_HYPERFLASH_FS_CL_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) Filter+_NN_Filter), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) cnn_ssd_L2_Memory+38452+5760*((D0Ind_Total)%2)),
+							_SNN_Filter, 0, &UchanHF2);
 				}
 				AT_L2_WAIT(0, &DmaR_Evt3); /* Wait previous DMA read Filter */
 				if (_SN_Filter) {
-					AT_L2_COPY(0, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) cnn_ssd_L2_Memory+34288+5760*((D0Ind_Total+1)%2)), ((AT_L2_INT_ADDR_TYPE) cnn_ssd_L1_Memory+1636+5760*((D0Ind_Total+1)%2)),
+					AT_L2_COPY(0, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) cnn_ssd_L2_Memory+38452+5760*((D0Ind_Total+1)%2)), ((AT_L2_INT_ADDR_TYPE) cnn_ssd_L1_Memory+1636+5760*((D0Ind_Total+1)%2)),
 							_SN_Filter, 0, &DmaR_Evt3);
 				}
 				/*============================= End Read Tiles ======================================*/
@@ -2368,10 +2310,10 @@ void S40_Conv2d_18x128x3x3(
 			__CALL(KerDP_fp, KerArg2);
 			/*================================= Write Tiles =====================================*/
 			if (_SP_Out) AT_L2_WAIT(0, &DmaW_Evt1); /* Wait previous DMA write Out */
-			if (_SPP_Out) AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR2); /* Wait previous uDMA write Out */
-			if (_SP_Out) AT_HYPERRAM_CL_COPY2D(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) Out+_P_Out), ((AT_HYPERRAM_INT_ADDR_TYPE) cnn_ssd_L2_Memory+9712+640*((T0Ind_Total+-1)%2)),
-						_SP_Out, 40, _LP_Out, 1, &UchanHR2);
-			AT_L2_COPY(0, ((AT_HYPERRAM_EXT_ADDR_TYPE) cnn_ssd_L2_Memory+9712+640*((T0Ind_Total)%2)), ((AT_L2_INT_ADDR_TYPE) cnn_ssd_L1_Memory+13156+640*((T0Ind_Total)%2)),
+			if (_SPP_Out) AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR3); /* Wait previous uDMA write Out */
+			if (_SP_Out) AT_HYPERRAM_CL_COPY2D(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) Out+_P_Out), ((AT_HYPERRAM_INT_ADDR_TYPE) cnn_ssd_L2_Memory+12852+640*((T0Ind_Total+-1)%2)),
+						_SP_Out, 40, _LP_Out, 1, &UchanHR3);
+			AT_L2_COPY(0, ((AT_HYPERRAM_EXT_ADDR_TYPE) cnn_ssd_L2_Memory+12852+640*((T0Ind_Total)%2)), ((AT_L2_INT_ADDR_TYPE) cnn_ssd_L1_Memory+13156+640*((T0Ind_Total)%2)),
 					_SC_Out, 1, &DmaW_Evt1);
 			/*============================= End Write Tiles =====================================*/
 			/*================================= Update Arg Pipeline =============================*/
@@ -2389,12 +2331,12 @@ void S40_Conv2d_18x128x3x3(
 	} /* End iteration on D1 */
 	/*================================ Write Tiles Epilog ===============================*/
 	AT_L2_WAIT(0, &DmaW_Evt1); /* Wait previous DMA write Out */
-	if (_SPP_Out) AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR2); /* Wait previous uDMA write Out */
-	AT_HYPERRAM_CL_COPY2D(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) Out+_P_Out), ((AT_HYPERRAM_INT_ADDR_TYPE) cnn_ssd_L2_Memory+9712+640*((T0Ind_Total+-1)%2)), _SP_Out, 40, _LP_Out, 1, &UchanHR2);
-	AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR2); /* Wait current uDMA write Out */
+	if (_SPP_Out) AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR3); /* Wait previous uDMA write Out */
+	AT_HYPERRAM_CL_COPY2D(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) Out+_P_Out), ((AT_HYPERRAM_INT_ADDR_TYPE) cnn_ssd_L2_Memory+12852+640*((T0Ind_Total+-1)%2)), _SP_Out, 40, _LP_Out, 1, &UchanHR3);
+	AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR3); /* Wait current uDMA write Out */
 	/*============================ End Write Tiles Epilog ===============================*/
 }
-void S44_Conv2d_24x128x3x3(
+void S43_Conv2d_24x128x3x3(
 		short int * __restrict__ In,
 		short int * __restrict__ Filter,
 		short int * __restrict__ Bias,
@@ -2468,19 +2410,19 @@ void S44_Conv2d_24x128x3x3(
 	KerArg0->H = (unsigned short int) (4);
 	KerArg0->OutFeatures = (unsigned short int) (24);
 	KerArg0->Bias = (short int * __restrict__) (cnn_ssd_L1_Memory+960);
-	KerArg0->NormBias = (signed char) (13);
+	KerArg0->NormBias = (signed char) (12);
 	KerArg1->W = (unsigned short int) (5);
 	KerArg1->UsedW = (unsigned short int) (5);
 	KerArg1->OutFeatures = (unsigned short int) (24);
 	KerArg1->Out = (int * __restrict__) (cnn_ssd_L1_Memory+12336);
-	KerArg1->Norm = (unsigned char) (16);
+	KerArg1->Norm = (unsigned char) (15);
 	KerArg1->Pad = (v4s) ((v4s){1,1,1,1});
 	KerArg1->Orientation = (unsigned char) (1);
 	KerArg2->In = (int * __restrict__) (cnn_ssd_L1_Memory+12336);
 	KerArg2->W = (unsigned short int) (5);
 	KerArg2->H = (unsigned short int) (4);
 	KerArg2->Out = (short int * __restrict__) (cnn_ssd_L1_Memory+11376);
-	KerArg2->Norm = (unsigned char) (16);
+	KerArg2->Norm = (unsigned char) (15);
 	KerArg2->InFeatures = (unsigned short int) (24);
 	KerArg2->LB = (int) (-32768);
 	KerArg2->UB = (int) (32767);
@@ -2489,10 +2431,10 @@ void S44_Conv2d_24x128x3x3(
 	_N_In=0;
 	AT_L2_COPY(0, ((AT_L2_EXT_ADDR_TYPE) Bias+0), ((AT_L2_INT_ADDR_TYPE) cnn_ssd_L1_Memory+960), 48, 0, &DmaR_Evt2);
 	AT_L2_WAIT(0, &DmaR_Evt2); /* Wait previous DMA read Bias */
-	AT_HYPERFLASH_FS_CL_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) Filter+0), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) cnn_ssd_L2_Memory+34288+0), 5184, 0, &UchanHF1);
+	AT_HYPERFLASH_FS_CL_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) Filter+0), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) cnn_ssd_L2_Memory+38452+0), 5184, 0, &UchanHF1);
 	AT_HYPERFLASH_FS_CL_WAIT(&HyperFlash, &UchanHF1); /* Wait previous uDMA read Filter */
-	AT_HYPERFLASH_FS_CL_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) Filter+5184), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) cnn_ssd_L2_Memory+34288+5184), 5184, 0, &UchanHF1);
-	AT_L2_COPY(0, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) cnn_ssd_L2_Memory+34288+0), ((AT_L2_INT_ADDR_TYPE) cnn_ssd_L1_Memory+1008+0), 5184, 0, &DmaR_Evt3);
+	AT_HYPERFLASH_FS_CL_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) Filter+5184), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) cnn_ssd_L2_Memory+38452+5184), 5184, 0, &UchanHF1);
+	AT_L2_COPY(0, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) cnn_ssd_L2_Memory+38452+0), ((AT_L2_INT_ADDR_TYPE) cnn_ssd_L1_Memory+1008+0), 5184, 0, &DmaR_Evt3);
 	_NN_Filter=5184; _SN_Filter=5184;
 	/*============================= End Read Tiles Prolog ===============================*/
 	{ /* Single iteration on D1 */
@@ -2530,12 +2472,12 @@ void S44_Conv2d_24x128x3x3(
 				}
 				AT_HYPERFLASH_FS_CL_WAIT(&HyperFlash, &UchanHF1); /* Wait previous uDMA read Filter */
 				if (_SNN_Filter) {
-					AT_HYPERFLASH_FS_CL_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) Filter+_NN_Filter), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) cnn_ssd_L2_Memory+34288+5184*((D0Ind_Total)%2)),
+					AT_HYPERFLASH_FS_CL_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) Filter+_NN_Filter), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) cnn_ssd_L2_Memory+38452+5184*((D0Ind_Total)%2)),
 							_SNN_Filter, 0, &UchanHF1);
 				}
 				AT_L2_WAIT(0, &DmaR_Evt3); /* Wait previous DMA read Filter */
 				if (_SN_Filter) {
-					AT_L2_COPY(0, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) cnn_ssd_L2_Memory+34288+5184*((D0Ind_Total+1)%2)), ((AT_L2_INT_ADDR_TYPE) cnn_ssd_L1_Memory+1008+5184*((D0Ind_Total+1)%2)),
+					AT_L2_COPY(0, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) cnn_ssd_L2_Memory+38452+5184*((D0Ind_Total+1)%2)), ((AT_L2_INT_ADDR_TYPE) cnn_ssd_L1_Memory+1008+5184*((D0Ind_Total+1)%2)),
 							_SN_Filter, 0, &DmaR_Evt3);
 				}
 				/*============================= End Read Tiles ======================================*/
@@ -2558,544 +2500,9 @@ void S44_Conv2d_24x128x3x3(
 		} /* End iteration on Tile0 */
 	} /* End iteration on D1 */
 	/*================================ Write Tiles Epilog ===============================*/
-	AT_L2_COPY(0, ((AT_HYPERRAM_EXT_ADDR_TYPE) cnn_ssd_L2_Memory+3568+0), ((AT_L2_INT_ADDR_TYPE) cnn_ssd_L1_Memory+11376), 960, 1, &DmaW_Evt1);
+	AT_L2_COPY(0, ((AT_HYPERRAM_EXT_ADDR_TYPE) cnn_ssd_L2_Memory+12852+0), ((AT_L2_INT_ADDR_TYPE) cnn_ssd_L1_Memory+11376), 960, 1, &DmaW_Evt1);
 	AT_L2_WAIT(0, &DmaW_Evt1); /* Wait DMA write Out */
-	AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) Out+0), ((AT_HYPERRAM_INT_ADDR_TYPE) cnn_ssd_L2_Memory+3568+0), 960, 1, &UchanHR2);
-	AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR2); /* Wait previous uDMA write Out */
-	/*============================ End Write Tiles Epilog ===============================*/
-}
-void S48_Conv2d_128x128x3x3_Relu(
-		short int * __restrict__ In,
-		short int * __restrict__ Filter,
-		short int * __restrict__ Bias,
-		short int * __restrict__ Out)
-
-{
-	/* Shared L1: 12576 bytes, L2 buffer: 10528 bytes */
-	/* Local variables used by this kernel */
-	AT_L2_EVENT DmaR_Evt1;
-	AT_L2_EVENT DmaR_Evt2;
-	AT_L2_EVENT DmaR_Evt3;
-	AT_L2_EVENT DmaW_Evt1;
-	AT_HYPERFLASH_FS_CL_EVENT UchanHF1;
-	KerSetBias_fpd_fp_T S_KerArg0, *KerArg0 = &S_KerArg0;
-	KerConv_DP_fp_T S_KerArg1, *KerArg1 = &S_KerArg1;
-	KerDP_fp_T S_KerArg2, *KerArg2 = &S_KerArg2;
-
-	/* Iteration space related variables */
-	int D1Ind, D1Ind_Last, D1Ind_NextLast, D1Ind_NextNextLast;
-	int T0Ind, T0Ind_Last, T0Ind_NextLast;
-	int D0Ind, D0Ind_Total=0, D0Ind_Last, D0Ind_NextLast, D0Ind_NextNextLast;
-	/* User kernel arguments related variables */
-	unsigned int _N_In;
-	unsigned int _SN_In;
-	unsigned int _LN_In;
-	unsigned int _NN_Filter;
-	unsigned int _SN_Filter, _SNN_Filter;
-	/*============================= Ker Arg Iter Spaces =========================================
-	User Kernel Iteration Space:
-		[D1 Dim: Init: 128, Tiled: 1][Tile0 Dim: 1][D0 Dim: Init: 128, Tiled: 64]
-	Ker Arg: In, Tiled Space: Tile0
-		Min Pipe Depth: 0, Max Pipe Depth: 1
-		KerArgItSpace: 64 logical tiles, 64 physical tiles
-			Total Size: 1024 [D0, [63 x 16, 16]][Tile0, 1:[2x2], 2]
-		KerArgItSpace (User Kernel Iter Order):
-			[Tile0, 1:[2x3, 62:2x4, 2x3], 2][D0, [63 x 16, 16]]
-		Tile0: [0, 16, 8], Tile1: [16, 16, 8], Tile2; [32, 16, 8]
-	Ker Arg: Bias, Tiled Space: Buffer
-		Min Pipe Depth: 0, Max Pipe Depth: 0
-		KerArgItSpace: 1 logical tiles, 1 physical tiles
-			Total Size: 256 [D1, [0 x 256, 256]]
-		KerArgItSpace (User Kernel Iter Order):
-			[D1, [0 x 256, 256]]
-		Tile0: [0, 256, 256], Tile1: [0, 256, 256], Tile2; [0, 256, 256]
-	Ker Arg: Filter, Tiled Space: D0
-		Min Pipe Depth: 0, Max Pipe Depth: 2
-		KerArgItSpace: 64 logical tiles, 64 physical tiles
-			Total Size: 294912 [D1, [0 x 294912, 294912]][D0, [63 x 4608, 4608]]
-		KerArgItSpace (User Kernel Iter Order):
-			[D1, [0 x 294912, 294912]][D0, [63 x 4608, 4608]]
-		Tile0: [0, 4608, 4608], Tile1: [4608, 4608, 4608], Tile2; [9216, 4608, 4608]
-	Ker Arg: Out, Tiled Space: Buffer
-		Min Pipe Depth: 0, Max Pipe Depth: 0
-		KerArgItSpace: 1 logical tiles, 1 physical tiles
-			Total Size: 1024 [D1, [0 x 1024, 1024]][Tile0, 1:[2x2], 2]
-		KerArgItSpace (User Kernel Iter Order):
-			[D1, [0 x 1024, 1024]][Tile0, 1:[2x2], 2]
-		Tile0: [0, 1024, 1024], Tile1: [0, 1024, 1024], Tile2; [0, 1024, 1024]
-	Ker Arg: ConvOut, Tiled Space: Buffer
-		Min Pipe Depth: 0, Max Pipe Depth: 0
-		KerArgItSpace: 1 logical tiles, 1 physical tiles
-			Total Size: 2048 [D1, [0 x 2048, 2048]][Tile0, 1:[2x2], 4]
-		KerArgItSpace (User Kernel Iter Order):
-			[D1, [0 x 2048, 2048]][Tile0, 1:[2x2], 4]
-		Tile0: [0, 2048, 16], Tile1: [0, 2048, 16], Tile2; [0, 2048, 16]
-	======================== End Ker Arg Iter Spaces =========================================*/
-	/*=========================== Call Kernel, Invariant assignment =====================*/
-	KerArg0->Out = (int * __restrict__) (cnn_ssd_L1_Memory+10528);
-	KerArg0->W = (unsigned short int) (2);
-	KerArg0->H = (unsigned short int) (2);
-	KerArg0->OutFeatures = (unsigned short int) (128);
-	KerArg0->Bias = (short int * __restrict__) (cnn_ssd_L1_Memory+32);
-	KerArg0->NormBias = (signed char) (15);
-	KerArg1->W = (unsigned short int) (2);
-	KerArg1->UsedW = (unsigned short int) (2);
-	KerArg1->InFeatures = (unsigned short int) (2);
-	KerArg1->OutFeatures = (unsigned short int) (128);
-	KerArg1->Out = (int * __restrict__) (cnn_ssd_L1_Memory+10528);
-	KerArg1->Norm = (unsigned char) (15);
-	KerArg1->TotalInFeatures = (short int) (2);
-	KerArg1->Pad = (v4s) ((v4s){1,1,1,1});
-	KerArg1->Orientation = (unsigned char) (1);
-	KerArg2->In = (int * __restrict__) (cnn_ssd_L1_Memory+10528);
-	KerArg2->W = (unsigned short int) (2);
-	KerArg2->H = (unsigned short int) (2);
-	KerArg2->Out = (short int * __restrict__) (cnn_ssd_L1_Memory+9504);
-	KerArg2->Norm = (unsigned char) (15);
-	KerArg2->InFeatures = (unsigned short int) (128);
-	KerArg2->LB = (int) (0);
-	KerArg2->UB = (int) (32767);
-	/*================================= Read Tiles Prolog ===============================*/
-	AT_L2_COPY2D(0, ((AT_L2_EXT_ADDR_TYPE) In+0), ((AT_L2_INT_ADDR_TYPE) cnn_ssd_L1_Memory+0+0), 16, 8, 8, 0, &DmaR_Evt1);
-	_N_In=0;
-	AT_L2_COPY(0, ((AT_L2_EXT_ADDR_TYPE) Bias+0), ((AT_L2_INT_ADDR_TYPE) cnn_ssd_L1_Memory+32), 256, 0, &DmaR_Evt2);
-	AT_L2_WAIT(0, &DmaR_Evt2); /* Wait previous DMA read Bias */
-	AT_HYPERFLASH_FS_CL_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) Filter+0), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) cnn_ssd_L2_Memory+34288+0), 4608, 0, &UchanHF1);
-	AT_HYPERFLASH_FS_CL_WAIT(&HyperFlash, &UchanHF1); /* Wait previous uDMA read Filter */
-	AT_HYPERFLASH_FS_CL_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) Filter+4608), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) cnn_ssd_L2_Memory+34288+4608), 4608, 0, &UchanHF1);
-	AT_L2_COPY(0, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) cnn_ssd_L2_Memory+34288+0), ((AT_L2_INT_ADDR_TYPE) cnn_ssd_L1_Memory+288+0), 4608, 0, &DmaR_Evt3);
-	_NN_Filter=4608; _SN_Filter=4608;
-	/*============================= End Read Tiles Prolog ===============================*/
-	{ /* Single iteration on D1 */
-		int D1Ind_Last = 1, D1Ind_NextLast = 1, D1Ind_NextNextLast = 1;
-		{ /* Single iteration on Tile0 */
-			int T0Ind_Last = 1, T0Ind_NextLast = 1;
-			/*====================== Call Kernel LOC_D0_PROLOG =========================*/
-			AT_FORK(gap_ncore(), (void *) KerParSetBias_DP_fp, (void *) KerArg0);
-			__CALL(KerParSetBias_DP_fp, KerArg0);
-			for (D0Ind=0; D0Ind<64; D0Ind++, D0Ind_Total++) { /* Iteration on D0 */
-				int D0Ind_Last = (D0Ind==63), D0Ind_NextLast = ((D0Ind+1)==63), D0Ind_NextNextLast = ((D0Ind+2)==63);
-				/*================================= Prepare Tiles ===================================*/
-				_SN_In = 0;
-				if (!(D0Ind_Last)) {
-					_N_In = _N_In + (16); _LN_In = (8); _SN_In = (2*_LN_In); 
-				} else if (!(1)) {
-					_N_In = _N_In + (-1008); _LN_In = (8); _SN_In = (2*_LN_In); 
-				}
-				_SNN_Filter = 0;
-				if (!(D0Ind_Last)) {
-					if (!(D0Ind_NextLast)) {
-						_NN_Filter = _NN_Filter + ((4608)); _SNN_Filter = (((1)?(4608):(4608))); 
-					} else if (!((1))) {
-						_NN_Filter = _NN_Filter + ((-290304)); _SNN_Filter = (((1)?(4608):(4608))); 
-					}
-				} else if (!((1))) {
-					_NN_Filter = _NN_Filter + ((4608)); _SNN_Filter = (((1)?(4608):(4608))); 
-				}
-				/*============================= End Prepare Tiles ===================================*/
-				/*================================= Read Tiles ======================================*/
-				AT_L2_WAIT(0, &DmaR_Evt1); /* Wait previous DMA read In */
-				if (_SN_In) {
-					AT_L2_COPY2D(0, ((AT_L2_EXT_ADDR_TYPE) In+_N_In), ((AT_L2_INT_ADDR_TYPE) cnn_ssd_L1_Memory+0+16*((D0Ind_Total+1)%2)),
-							_SN_In, 8, _LN_In, 0, &DmaR_Evt1);
-				}
-				AT_HYPERFLASH_FS_CL_WAIT(&HyperFlash, &UchanHF1); /* Wait previous uDMA read Filter */
-				if (_SNN_Filter) {
-					AT_HYPERFLASH_FS_CL_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) Filter+_NN_Filter), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) cnn_ssd_L2_Memory+34288+4608*((D0Ind_Total)%2)),
-							_SNN_Filter, 0, &UchanHF1);
-				}
-				AT_L2_WAIT(0, &DmaR_Evt3); /* Wait previous DMA read Filter */
-				if (_SN_Filter) {
-					AT_L2_COPY(0, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) cnn_ssd_L2_Memory+34288+4608*((D0Ind_Total+1)%2)), ((AT_L2_INT_ADDR_TYPE) cnn_ssd_L1_Memory+288+4608*((D0Ind_Total+1)%2)),
-							_SN_Filter, 0, &DmaR_Evt3);
-				}
-				/*============================= End Read Tiles ======================================*/
-				/*====================== Call Kernel LOC_D0 =========================*/
-				KerArg1->In = (short int * __restrict__) (cnn_ssd_L1_Memory+0+16*((D0Ind_Total)%2));
-				KerArg1->H = (unsigned short int) (4-1*(1)-1*(1));
-				KerArg1->UsedH = (unsigned short int) (4-1*(1)-1*(1));
-				KerArg1->Filter = (short int * __restrict__) (cnn_ssd_L1_Memory+288+4608*((D0Ind_Total)%2));
-				AT_FORK(gap_ncore(), (void *) KerParConv3x3Stride1_DP_fp, (void *) KerArg1);
-				__CALL(KerParConv3x3Stride1_DP_fp, KerArg1);
-				/*================================= Update Arg Pipeline =============================*/
-				_SN_Filter = _SNN_Filter;
-				/*============================= End Update Arg Pipeline =============================*/
-			} /* End iteration on D0 */
-			/*====================== Call Kernel LOC_D0_EPILOG =========================*/
-			AT_FORK(gap_ncore(), (void *) KerDP_fp, (void *) KerArg2);
-			__CALL(KerDP_fp, KerArg2);
-		} /* End iteration on Tile0 */
-	} /* End iteration on D1 */
-	/*================================ Write Tiles Epilog ===============================*/
-	AT_L2_COPY(0, ((AT_L2_EXT_ADDR_TYPE) Out+0), ((AT_L2_INT_ADDR_TYPE) cnn_ssd_L1_Memory+9504), 1024, 1, &DmaW_Evt1);
-	AT_L2_WAIT(0, &DmaW_Evt1); /* Wait DMA write Out */
-	/*============================ End Write Tiles Epilog ===============================*/
-}
-void S51_Conv2d_18x128x3x3(
-		short int * __restrict__ In,
-		short int * __restrict__ Filter,
-		short int * __restrict__ Bias,
-		short int * __restrict__ Out)
-
-{
-	/* Shared L1: 15940 bytes, L2 buffer: 15684 bytes */
-	/* Local variables used by this kernel */
-	AT_L2_EVENT DmaR_Evt1;
-	AT_L2_EVENT DmaR_Evt2;
-	AT_L2_EVENT DmaR_Evt3;
-	AT_L2_EVENT DmaW_Evt1;
-	AT_HYPERFLASH_FS_CL_EVENT UchanHF1;
-	AT_HYPERRAM_CL_EVENT UchanHR2;
-	KerSetBias_fpd_fp_T S_KerArg0, *KerArg0 = &S_KerArg0;
-	KerConv_DP_fp_T S_KerArg1, *KerArg1 = &S_KerArg1;
-	KerDP_fp_T S_KerArg2, *KerArg2 = &S_KerArg2;
-
-	/* Iteration space related variables */
-	int D1Ind, D1Ind_Last, D1Ind_NextLast, D1Ind_NextNextLast;
-	int T0Ind, T0Ind_Total=0, T0Ind_Last, T0Ind_NextLast;
-	int D0Ind, D0Ind_Total=0, D0Ind_Last, D0Ind_NextLast, D0Ind_NextNextLast;
-	/* User kernel arguments related variables */
-	unsigned int _N_In;
-	unsigned int _SN_In;
-	unsigned int _LN_In;
-	unsigned int _NN_Filter;
-	unsigned int _SN_Filter, _SNN_Filter;
-	unsigned int _P_Out, _C_Out;
-	unsigned int _SPP_Out, _SP_Out, _SC_Out;
-	unsigned int _LPP_Out, _LP_Out, _LC_Out;
-	/*============================= Ker Arg Iter Spaces =========================================
-	User Kernel Iteration Space:
-		[D1 Dim: Init: 18, Tiled: 2][Tile0 Dim: 1][D0 Dim: Init: 128, Tiled: 5]
-	Ker Arg: In, Tiled Space: Tile0
-		Min Pipe Depth: 0, Max Pipe Depth: 1
-		KerArgItSpace: 5 logical tiles, 5 physical tiles
-			Total Size: 1024 [D0, [4 x 208, 192]][Tile0, 1:[2x2], 2]
-		KerArgItSpace (User Kernel Iter Order):
-			[Tile0, 1:[2x3, 3:2x4, 2x3], 2][D0, [4 x 208, 192]]
-		Tile0: [0, 208, 8], Tile1: [208, 208, 8], Tile2; [416, 208, 8]
-	Ker Arg: Bias, Tiled Space: Buffer
-		Min Pipe Depth: 0, Max Pipe Depth: 0
-		KerArgItSpace: 2 logical tiles, 1 physical tiles
-			Total Size: 36 [D1, [1 x 32, 4]]
-		KerArgItSpace (User Kernel Iter Order):
-			[D1, [1 x 32, 4]]
-		Tile0: [0, 36, 36], Tile1: [0, 36, 36], Tile2; [0, 36, 36]
-	Ker Arg: Filter, Tiled Space: D0
-		Min Pipe Depth: 0, Max Pipe Depth: 2
-		KerArgItSpace: 10 logical tiles, 10 physical tiles
-			Total Size: 41472 [D1, [1 x 36864, 4608]][D0, [4 x 7488, 6912]]
-		KerArgItSpace (User Kernel Iter Order):
-			[D1, [1 x 36864, 4608]][D0, [4 x 7488, 6912]]
-		Tile0: [0, 7488, 7488], Tile1: [7488, 7488, 7488], Tile2; [14976, 7488, 7488]
-	Ker Arg: Out, Tiled Space: Tile0
-		Min Pipe Depth: -2, Max Pipe Depth: 0
-		KerArgItSpace: 2 logical tiles, 2 physical tiles
-			Total Size: 144 [D1, [1 x 128, 16]][Tile0, 1:[2x2], 2]
-		KerArgItSpace (User Kernel Iter Order):
-			[D1, [1 x 128, 16]][Tile0, 1:[2x2], 2]
-		Tile0: [0, 128, 8], Tile1: [128, 16, 8], Tile2; [0, 128, 8]
-	Ker Arg: ConvOut, Tiled Space: Buffer
-		Min Pipe Depth: 0, Max Pipe Depth: 0
-		KerArgItSpace: 2 logical tiles, 1 physical tiles
-			Total Size: 288 [D1, [1 x 256, 32]][Tile0, 1:[2x2], 4]
-		KerArgItSpace (User Kernel Iter Order):
-			[D1, [1 x 256, 32]][Tile0, 1:[2x2], 4]
-		Tile0: [0, 256, 16], Tile1: [0, 256, 16], Tile2; [0, 256, 16]
-	======================== End Ker Arg Iter Spaces =========================================*/
-	/*=========================== Call Kernel, Invariant assignment =====================*/
-	KerArg0->Out = (int * __restrict__) (cnn_ssd_L1_Memory+15684);
-	KerArg0->W = (unsigned short int) (2);
-	KerArg0->H = (unsigned short int) (2);
-	KerArg0->NormBias = (signed char) (13);
-	KerArg1->W = (unsigned short int) (2);
-	KerArg1->UsedW = (unsigned short int) (2);
-	KerArg1->Out = (int * __restrict__) (cnn_ssd_L1_Memory+15684);
-	KerArg1->Norm = (unsigned char) (16);
-	KerArg1->Pad = (v4s) ((v4s){1,1,1,1});
-	KerArg1->Orientation = (unsigned char) (1);
-	KerArg2->In = (int * __restrict__) (cnn_ssd_L1_Memory+15684);
-	KerArg2->W = (unsigned short int) (2);
-	KerArg2->H = (unsigned short int) (2);
-	KerArg2->Norm = (unsigned char) (16);
-	KerArg2->LB = (int) (-32768);
-	KerArg2->UB = (int) (32767);
-	/*================================= Read Tiles Prolog ===============================*/
-	AT_L2_COPY2D(0, ((AT_L2_EXT_ADDR_TYPE) In+0), ((AT_L2_INT_ADDR_TYPE) cnn_ssd_L1_Memory+0+0), 208, 8, 8, 0, &DmaR_Evt1);
-	_N_In=0;
-	AT_L2_COPY(0, ((AT_L2_EXT_ADDR_TYPE) Bias+0), ((AT_L2_INT_ADDR_TYPE) cnn_ssd_L1_Memory+416), 36, 0, &DmaR_Evt2);
-	AT_L2_WAIT(0, &DmaR_Evt2); /* Wait previous DMA read Bias */
-	AT_HYPERFLASH_FS_CL_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) Filter+0), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) cnn_ssd_L2_Memory+34288+0), 7488, 0, &UchanHF1);
-	AT_HYPERFLASH_FS_CL_WAIT(&HyperFlash, &UchanHF1); /* Wait previous uDMA read Filter */
-	AT_HYPERFLASH_FS_CL_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) Filter+7488), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) cnn_ssd_L2_Memory+34288+7488), 7488, 0, &UchanHF1);
-	AT_L2_COPY(0, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) cnn_ssd_L2_Memory+34288+0), ((AT_L2_INT_ADDR_TYPE) cnn_ssd_L1_Memory+452+0), 7488, 0, &DmaR_Evt3);
-	_NN_Filter=7488; _SN_Filter=7488;
-	_C_Out=0; _SC_Out=128; _LC_Out=8;
-	_SPP_Out=0; _SP_Out=0;
-	/*============================= End Read Tiles Prolog ===============================*/
-	for (D1Ind=0; D1Ind<2; D1Ind++) { /* Iteration on D1 */
-		int D1Ind_Last = (D1Ind==1), D1Ind_NextLast = ((D1Ind+1)==1), D1Ind_NextNextLast = ((D1Ind+2)==1);
-		{ /* Single iteration on Tile0 */
-			int T0Ind_Last = 1, T0Ind_NextLast = 1;
-			/*====================== Call Kernel LOC_D0_PROLOG =========================*/
-			KerArg0->OutFeatures = (unsigned short int) (D1Ind_Last?2:16);
-			KerArg0->Bias = (short int * __restrict__) (cnn_ssd_L1_Memory+416+((D1Ind)*32));
-			AT_FORK(gap_ncore(), (void *) KerParSetBias_DP_fp, (void *) KerArg0);
-			__CALL(KerParSetBias_DP_fp, KerArg0);
-			for (D0Ind=0; D0Ind<5; D0Ind++, D0Ind_Total++) { /* Iteration on D0 */
-				int D0Ind_Last = (D0Ind==4), D0Ind_NextLast = ((D0Ind+1)==4), D0Ind_NextNextLast = ((D0Ind+2)==4);
-				/*================================= Prepare Tiles ===================================*/
-				_SN_In = 0;
-				if (!(D0Ind_Last)) {
-					_N_In = _N_In + (208); _LN_In = (8); _SN_In = (((D0Ind_NextLast)?24:26)*_LN_In); 
-				} else if (!(D1Ind_Last)) {
-					_N_In = _N_In + (-832); _LN_In = (8); _SN_In = (26*_LN_In); 
-				}
-				_SNN_Filter = 0;
-				if (!(D0Ind_Last)) {
-					if (!(D0Ind_NextLast)) {
-						_NN_Filter = _NN_Filter + (((D1Ind_Last)?(936):(7488))); _SNN_Filter = (((D1Ind_Last)?(((D0Ind_NextNextLast)?864:936)):(((D0Ind_NextNextLast)?6912:7488)))); 
-					} else if (!((1))) {
-						_NN_Filter = _NN_Filter + (((D1Ind_Last)?(-3744):(-29952))); _SNN_Filter = (((D1Ind_Last)?(936):(7488))); 
-					} else if (!(D1Ind_Last)) {
-						_NN_Filter = _NN_Filter + (36864)+(((D1Ind_Last)?(-3744):(-29952))); _SNN_Filter = (((1)?(936):(7488))); 
-					}
-				} else if (!((1))) {
-					_NN_Filter = _NN_Filter + (((D1Ind_Last)?(936):(7488))); _SNN_Filter = (((D1Ind_Last)?(936):(7488))); 
-				} else if (!(D1Ind_Last)) {
-					_NN_Filter = _NN_Filter + (((1)?(936):(7488))); _SNN_Filter = (((1)?(936):(7488))); 
-				}
-				/*============================= End Prepare Tiles ===================================*/
-				/*================================= Read Tiles ======================================*/
-				AT_L2_WAIT(0, &DmaR_Evt1); /* Wait previous DMA read In */
-				if (_SN_In) {
-					AT_L2_COPY2D(0, ((AT_L2_EXT_ADDR_TYPE) In+_N_In), ((AT_L2_INT_ADDR_TYPE) cnn_ssd_L1_Memory+0+208*((D0Ind_Total+1)%2)),
-							_SN_In, 8, _LN_In, 0, &DmaR_Evt1);
-				}
-				AT_HYPERFLASH_FS_CL_WAIT(&HyperFlash, &UchanHF1); /* Wait previous uDMA read Filter */
-				if (_SNN_Filter) {
-					AT_HYPERFLASH_FS_CL_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) Filter+_NN_Filter), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) cnn_ssd_L2_Memory+34288+7488*((D0Ind_Total)%2)),
-							_SNN_Filter, 0, &UchanHF1);
-				}
-				AT_L2_WAIT(0, &DmaR_Evt3); /* Wait previous DMA read Filter */
-				if (_SN_Filter) {
-					AT_L2_COPY(0, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) cnn_ssd_L2_Memory+34288+7488*((D0Ind_Total+1)%2)), ((AT_L2_INT_ADDR_TYPE) cnn_ssd_L1_Memory+452+7488*((D0Ind_Total+1)%2)),
-							_SN_Filter, 0, &DmaR_Evt3);
-				}
-				/*============================= End Read Tiles ======================================*/
-				/*====================== Call Kernel LOC_D0 =========================*/
-				KerArg1->In = (short int * __restrict__) (cnn_ssd_L1_Memory+0+208*((D0Ind_Total)%2));
-				KerArg1->H = (unsigned short int) (4-1*(1)-1*(1));
-				KerArg1->UsedH = (unsigned short int) (4-1*(1)-1*(1));
-				KerArg1->InFeatures = (unsigned short int) (D0Ind_Last?24:26);
-				KerArg1->OutFeatures = (unsigned short int) (D1Ind_Last?2:16);
-				KerArg1->Filter = (short int * __restrict__) (cnn_ssd_L1_Memory+452+7488*((D0Ind_Total)%2));
-				KerArg1->TotalInFeatures = (short int) (D0Ind_Last?24:26);
-				AT_FORK(gap_ncore(), (void *) KerParConv3x3Stride1_DP_fp, (void *) KerArg1);
-				__CALL(KerParConv3x3Stride1_DP_fp, KerArg1);
-				/*================================= Update Arg Pipeline =============================*/
-				_SN_Filter = _SNN_Filter;
-				/*============================= End Update Arg Pipeline =============================*/
-			} /* End iteration on D0 */
-			/*====================== Call Kernel LOC_D0_EPILOG =========================*/
-			KerArg2->Out = (short int * __restrict__) (cnn_ssd_L1_Memory+15428+128*((T0Ind_Total)%2));
-			KerArg2->InFeatures = (unsigned short int) (D1Ind_Last?2:16);
-			AT_FORK(gap_ncore(), (void *) KerDP_fp, (void *) KerArg2);
-			__CALL(KerDP_fp, KerArg2);
-			/*================================= Write Tiles =====================================*/
-			if (_SP_Out) AT_L2_WAIT(0, &DmaW_Evt1); /* Wait previous DMA write Out */
-			if (_SPP_Out) AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR2); /* Wait previous uDMA write Out */
-			if (_SP_Out) AT_HYPERRAM_CL_COPY2D(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) Out+_P_Out), ((AT_HYPERRAM_INT_ADDR_TYPE) cnn_ssd_L2_Memory+3568+128*((T0Ind_Total+-1)%2)),
-						_SP_Out, 8, _LP_Out, 1, &UchanHR2);
-			AT_L2_COPY(0, ((AT_HYPERRAM_EXT_ADDR_TYPE) cnn_ssd_L2_Memory+3568+128*((T0Ind_Total)%2)), ((AT_L2_INT_ADDR_TYPE) cnn_ssd_L1_Memory+15428+128*((T0Ind_Total)%2)),
-					_SC_Out, 1, &DmaW_Evt1);
-			/*============================= End Write Tiles =====================================*/
-			/*================================= Update Arg Pipeline =============================*/
-			_SPP_Out = _SP_Out;_LPP_Out = _LP_Out;
-			_P_Out = _C_Out;_SP_Out = _SC_Out;_LP_Out = _LC_Out;
-			/*============================= End Update Arg Pipeline =============================*/
-			/*================================= Prepare Tiles ===================================*/
-			_SC_Out = 0;
-			if (!(D1Ind_Last)) {
-				_C_Out = _C_Out + (128); _LC_Out = (8); _SC_Out = (((1)?2:16)*_LC_Out); 
-			}
-			/*============================= End Prepare Tiles ===================================*/
-			T0Ind_Total++;
-		} /* End iteration on Tile0 */
-	} /* End iteration on D1 */
-	/*================================ Write Tiles Epilog ===============================*/
-	AT_L2_WAIT(0, &DmaW_Evt1); /* Wait previous DMA write Out */
-	if (_SPP_Out) AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR2); /* Wait previous uDMA write Out */
-	AT_HYPERRAM_CL_COPY2D(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) Out+_P_Out), ((AT_HYPERRAM_INT_ADDR_TYPE) cnn_ssd_L2_Memory+3568+128*((T0Ind_Total+-1)%2)), _SP_Out, 8, _LP_Out, 1, &UchanHR2);
-	AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR2); /* Wait current uDMA write Out */
-	/*============================ End Write Tiles Epilog ===============================*/
-}
-void S55_Conv2d_24x128x3x3(
-		short int * __restrict__ In,
-		short int * __restrict__ Filter,
-		short int * __restrict__ Bias,
-		short int * __restrict__ Out)
-
-{
-	/* Shared L1: 14704 bytes, L2 buffer: 14320 bytes */
-	/* Local variables used by this kernel */
-	AT_L2_EVENT DmaR_Evt1;
-	AT_L2_EVENT DmaR_Evt2;
-	AT_L2_EVENT DmaR_Evt3;
-	AT_L2_EVENT DmaW_Evt1;
-	AT_HYPERFLASH_FS_CL_EVENT UchanHF1;
-	AT_HYPERRAM_CL_EVENT UchanHR2;
-	KerSetBias_fpd_fp_T S_KerArg0, *KerArg0 = &S_KerArg0;
-	KerConv_DP_fp_T S_KerArg1, *KerArg1 = &S_KerArg1;
-	KerDP_fp_T S_KerArg2, *KerArg2 = &S_KerArg2;
-
-	/* Iteration space related variables */
-	int D1Ind, D1Ind_Last, D1Ind_NextLast, D1Ind_NextNextLast;
-	int T0Ind, T0Ind_Last, T0Ind_NextLast;
-	int D0Ind, D0Ind_Total=0, D0Ind_Last, D0Ind_NextLast, D0Ind_NextNextLast;
-	/* User kernel arguments related variables */
-	unsigned int _N_In;
-	unsigned int _SN_In;
-	unsigned int _LN_In;
-	unsigned int _NN_Filter;
-	unsigned int _SN_Filter, _SNN_Filter;
-	/*============================= Ker Arg Iter Spaces =========================================
-	User Kernel Iteration Space:
-		[D1 Dim: Init: 24, Tiled: 1][Tile0 Dim: 1][D0 Dim: Init: 128, Tiled: 8]
-	Ker Arg: In, Tiled Space: Tile0
-		Min Pipe Depth: 0, Max Pipe Depth: 1
-		KerArgItSpace: 8 logical tiles, 8 physical tiles
-			Total Size: 1024 [D0, [7 x 128, 128]][Tile0, 1:[2x2], 2]
-		KerArgItSpace (User Kernel Iter Order):
-			[Tile0, 1:[2x3, 6:2x4, 2x3], 2][D0, [7 x 128, 128]]
-		Tile0: [0, 128, 8], Tile1: [128, 128, 8], Tile2; [256, 128, 8]
-	Ker Arg: Bias, Tiled Space: Buffer
-		Min Pipe Depth: 0, Max Pipe Depth: 0
-		KerArgItSpace: 1 logical tiles, 1 physical tiles
-			Total Size: 48 [D1, [0 x 48, 48]]
-		KerArgItSpace (User Kernel Iter Order):
-			[D1, [0 x 48, 48]]
-		Tile0: [0, 48, 48], Tile1: [0, 48, 48], Tile2; [0, 48, 48]
-	Ker Arg: Filter, Tiled Space: D0
-		Min Pipe Depth: 0, Max Pipe Depth: 2
-		KerArgItSpace: 8 logical tiles, 8 physical tiles
-			Total Size: 55296 [D1, [0 x 55296, 55296]][D0, [7 x 6912, 6912]]
-		KerArgItSpace (User Kernel Iter Order):
-			[D1, [0 x 55296, 55296]][D0, [7 x 6912, 6912]]
-		Tile0: [0, 6912, 6912], Tile1: [6912, 6912, 6912], Tile2; [13824, 6912, 6912]
-	Ker Arg: Out, Tiled Space: Buffer
-		Min Pipe Depth: 0, Max Pipe Depth: 0
-		KerArgItSpace: 1 logical tiles, 1 physical tiles
-			Total Size: 192 [D1, [0 x 192, 192]][Tile0, 1:[2x2], 2]
-		KerArgItSpace (User Kernel Iter Order):
-			[D1, [0 x 192, 192]][Tile0, 1:[2x2], 2]
-		Tile0: [0, 192, 192], Tile1: [0, 192, 192], Tile2; [0, 192, 192]
-	Ker Arg: ConvOut, Tiled Space: Buffer
-		Min Pipe Depth: 0, Max Pipe Depth: 0
-		KerArgItSpace: 1 logical tiles, 1 physical tiles
-			Total Size: 384 [D1, [0 x 384, 384]][Tile0, 1:[2x2], 4]
-		KerArgItSpace (User Kernel Iter Order):
-			[D1, [0 x 384, 384]][Tile0, 1:[2x2], 4]
-		Tile0: [0, 384, 16], Tile1: [0, 384, 16], Tile2; [0, 384, 16]
-	======================== End Ker Arg Iter Spaces =========================================*/
-	/*=========================== Call Kernel, Invariant assignment =====================*/
-	KerArg0->Out = (int * __restrict__) (cnn_ssd_L1_Memory+14320);
-	KerArg0->W = (unsigned short int) (2);
-	KerArg0->H = (unsigned short int) (2);
-	KerArg0->OutFeatures = (unsigned short int) (24);
-	KerArg0->Bias = (short int * __restrict__) (cnn_ssd_L1_Memory+256);
-	KerArg0->NormBias = (signed char) (13);
-	KerArg1->W = (unsigned short int) (2);
-	KerArg1->UsedW = (unsigned short int) (2);
-	KerArg1->InFeatures = (unsigned short int) (16);
-	KerArg1->OutFeatures = (unsigned short int) (24);
-	KerArg1->Out = (int * __restrict__) (cnn_ssd_L1_Memory+14320);
-	KerArg1->Norm = (unsigned char) (16);
-	KerArg1->TotalInFeatures = (short int) (16);
-	KerArg1->Pad = (v4s) ((v4s){1,1,1,1});
-	KerArg1->Orientation = (unsigned char) (1);
-	KerArg2->In = (int * __restrict__) (cnn_ssd_L1_Memory+14320);
-	KerArg2->W = (unsigned short int) (2);
-	KerArg2->H = (unsigned short int) (2);
-	KerArg2->Out = (short int * __restrict__) (cnn_ssd_L1_Memory+14128);
-	KerArg2->Norm = (unsigned char) (16);
-	KerArg2->InFeatures = (unsigned short int) (24);
-	KerArg2->LB = (int) (-32768);
-	KerArg2->UB = (int) (32767);
-	/*================================= Read Tiles Prolog ===============================*/
-	AT_L2_COPY2D(0, ((AT_L2_EXT_ADDR_TYPE) In+0), ((AT_L2_INT_ADDR_TYPE) cnn_ssd_L1_Memory+0+0), 128, 8, 8, 0, &DmaR_Evt1);
-	_N_In=0;
-	AT_L2_COPY(0, ((AT_L2_EXT_ADDR_TYPE) Bias+0), ((AT_L2_INT_ADDR_TYPE) cnn_ssd_L1_Memory+256), 48, 0, &DmaR_Evt2);
-	AT_L2_WAIT(0, &DmaR_Evt2); /* Wait previous DMA read Bias */
-	AT_HYPERFLASH_FS_CL_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) Filter+0), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) cnn_ssd_L2_Memory+34288+0), 6912, 0, &UchanHF1);
-	AT_HYPERFLASH_FS_CL_WAIT(&HyperFlash, &UchanHF1); /* Wait previous uDMA read Filter */
-	AT_HYPERFLASH_FS_CL_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) Filter+6912), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) cnn_ssd_L2_Memory+34288+6912), 6912, 0, &UchanHF1);
-	AT_L2_COPY(0, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) cnn_ssd_L2_Memory+34288+0), ((AT_L2_INT_ADDR_TYPE) cnn_ssd_L1_Memory+304+0), 6912, 0, &DmaR_Evt3);
-	_NN_Filter=6912; _SN_Filter=6912;
-	/*============================= End Read Tiles Prolog ===============================*/
-	{ /* Single iteration on D1 */
-		int D1Ind_Last = 1, D1Ind_NextLast = 1, D1Ind_NextNextLast = 1;
-		{ /* Single iteration on Tile0 */
-			int T0Ind_Last = 1, T0Ind_NextLast = 1;
-			/*====================== Call Kernel LOC_D0_PROLOG =========================*/
-			AT_FORK(gap_ncore(), (void *) KerParSetBias_DP_fp, (void *) KerArg0);
-			__CALL(KerParSetBias_DP_fp, KerArg0);
-			for (D0Ind=0; D0Ind<8; D0Ind++, D0Ind_Total++) { /* Iteration on D0 */
-				int D0Ind_Last = (D0Ind==7), D0Ind_NextLast = ((D0Ind+1)==7), D0Ind_NextNextLast = ((D0Ind+2)==7);
-				/*================================= Prepare Tiles ===================================*/
-				_SN_In = 0;
-				if (!(D0Ind_Last)) {
-					_N_In = _N_In + (128); _LN_In = (8); _SN_In = (16*_LN_In); 
-				} else if (!(1)) {
-					_N_In = _N_In + (-896); _LN_In = (8); _SN_In = (16*_LN_In); 
-				}
-				_SNN_Filter = 0;
-				if (!(D0Ind_Last)) {
-					if (!(D0Ind_NextLast)) {
-						_NN_Filter = _NN_Filter + ((6912)); _SNN_Filter = (((1)?(6912):(6912))); 
-					} else if (!((1))) {
-						_NN_Filter = _NN_Filter + ((-48384)); _SNN_Filter = (((1)?(6912):(6912))); 
-					}
-				} else if (!((1))) {
-					_NN_Filter = _NN_Filter + ((6912)); _SNN_Filter = (((1)?(6912):(6912))); 
-				}
-				/*============================= End Prepare Tiles ===================================*/
-				/*================================= Read Tiles ======================================*/
-				AT_L2_WAIT(0, &DmaR_Evt1); /* Wait previous DMA read In */
-				if (_SN_In) {
-					AT_L2_COPY2D(0, ((AT_L2_EXT_ADDR_TYPE) In+_N_In), ((AT_L2_INT_ADDR_TYPE) cnn_ssd_L1_Memory+0+128*((D0Ind_Total+1)%2)),
-							_SN_In, 8, _LN_In, 0, &DmaR_Evt1);
-				}
-				AT_HYPERFLASH_FS_CL_WAIT(&HyperFlash, &UchanHF1); /* Wait previous uDMA read Filter */
-				if (_SNN_Filter) {
-					AT_HYPERFLASH_FS_CL_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) Filter+_NN_Filter), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) cnn_ssd_L2_Memory+34288+6912*((D0Ind_Total)%2)),
-							_SNN_Filter, 0, &UchanHF1);
-				}
-				AT_L2_WAIT(0, &DmaR_Evt3); /* Wait previous DMA read Filter */
-				if (_SN_Filter) {
-					AT_L2_COPY(0, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) cnn_ssd_L2_Memory+34288+6912*((D0Ind_Total+1)%2)), ((AT_L2_INT_ADDR_TYPE) cnn_ssd_L1_Memory+304+6912*((D0Ind_Total+1)%2)),
-							_SN_Filter, 0, &DmaR_Evt3);
-				}
-				/*============================= End Read Tiles ======================================*/
-				/*====================== Call Kernel LOC_D0 =========================*/
-				KerArg1->In = (short int * __restrict__) (cnn_ssd_L1_Memory+0+128*((D0Ind_Total)%2));
-				KerArg1->H = (unsigned short int) (4-1*(1)-1*(1));
-				KerArg1->UsedH = (unsigned short int) (4-1*(1)-1*(1));
-				KerArg1->Filter = (short int * __restrict__) (cnn_ssd_L1_Memory+304+6912*((D0Ind_Total)%2));
-				AT_FORK(gap_ncore(), (void *) KerParConv3x3Stride1_DP_fp, (void *) KerArg1);
-				__CALL(KerParConv3x3Stride1_DP_fp, KerArg1);
-				/*================================= Update Arg Pipeline =============================*/
-				_SN_Filter = _SNN_Filter;
-				/*============================= End Update Arg Pipeline =============================*/
-			} /* End iteration on D0 */
-			/*====================== Call Kernel LOC_D0_EPILOG =========================*/
-			AT_FORK(gap_ncore(), (void *) KerDP_fp, (void *) KerArg2);
-			__CALL(KerDP_fp, KerArg2);
-		} /* End iteration on Tile0 */
-	} /* End iteration on D1 */
-	/*================================ Write Tiles Epilog ===============================*/
-	AT_L2_COPY(0, ((AT_HYPERRAM_EXT_ADDR_TYPE) cnn_ssd_L2_Memory+3568+0), ((AT_L2_INT_ADDR_TYPE) cnn_ssd_L1_Memory+14128), 192, 1, &DmaW_Evt1);
-	AT_L2_WAIT(0, &DmaW_Evt1); /* Wait DMA write Out */
-	AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) Out+0), ((AT_HYPERRAM_INT_ADDR_TYPE) cnn_ssd_L2_Memory+3568+0), 192, 1, &UchanHR2);
+	AT_HYPERRAM_CL_COPY(&HyperRam, ((AT_HYPERRAM_EXT_ADDR_TYPE) Out+0), ((AT_HYPERRAM_INT_ADDR_TYPE) cnn_ssd_L2_Memory+12852+0), 960, 1, &UchanHR2);
 	AT_HYPERRAM_CL_WAIT(&HyperRam, &UchanHR2); /* Wait previous uDMA write Out */
 	/*============================ End Write Tiles Epilog ===============================*/
 }
@@ -3110,60 +2517,45 @@ int cnn_ssdCNN_Construct()
 	if (Error) return 1;
 	cnn_ssd_L3_Memory = (AT_HYPERRAM_POINTER) AT_HYPERRAM_ALLOC(&HyperRam, 122880);
 	if (cnn_ssd_L3_Memory == 0) return 2;
-	cnn_ssd_L2_Memory = (AT_L2_POINTER) AT_L2_ALLOC(0, 49264);
+	cnn_ssd_L2_Memory = (AT_L2_POINTER) AT_L2_ALLOC(0, 49972);
 	if (cnn_ssd_L2_Memory == 0) return 3;
 	cnn_ssd_L1_Memory = (AT_L1_POINTER) AT_L1_ALLOC(0, 16544);
 	if (cnn_ssd_L1_Memory == 0) return 4;
-	/* Moving Conv_0_weights, size 144 from HyperFlash at 761984 to (size 144) L2 at 0..143 */
-	AT_HYPERFLASH_FS_FC_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) cnn_ssd_L3_Flash + 761984), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) cnn_ssd_L2_Memory + 0), 144, 0, &UchanHF1);
+	/* Moving Conv_0_weights, size 144 from HyperFlash at 370048 to (size 144) L2 at 2304..2447 */
+	AT_HYPERFLASH_FS_FC_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) cnn_ssd_L3_Flash + 370048), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) cnn_ssd_L2_Memory + 2304), 144, 0, &UchanHF1);
 	AT_HYPERFLASH_FS_FC_WAIT(&HyperFlash, &UchanHF1);
-	/* Moving Constant_103, size 16 from HyperFlash at 762720 to (size 16) L2 at 176..191 */
-	AT_HYPERFLASH_FS_FC_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) cnn_ssd_L3_Flash + 762720), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) cnn_ssd_L2_Memory + 176), 16, 0, &UchanHF1);
+	/* Moving Constant_86, size 16 from HyperFlash at 370700 to (size 16) L2 at 2480..2495 */
+	AT_HYPERFLASH_FS_FC_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) cnn_ssd_L3_Flash + 370700), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) cnn_ssd_L2_Memory + 2480), 16, 0, &UchanHF1);
 	AT_HYPERFLASH_FS_FC_WAIT(&HyperFlash, &UchanHF1);
-	/* Moving Conv_3_weights, size 2304 from HyperFlash at 759168 to (size 2304) L2 at 192..2495 */
-	AT_HYPERFLASH_FS_FC_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) cnn_ssd_L3_Flash + 759168), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) cnn_ssd_L2_Memory + 192), 2304, 0, &UchanHF1);
+	/* Moving Conv_3_weights, size 2304 from HyperFlash at 367488 to (size 2304) L2 at 0..2303 */
+	AT_HYPERFLASH_FS_FC_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) cnn_ssd_L3_Flash + 367488), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) cnn_ssd_L2_Memory + 0), 2304, 0, &UchanHF1);
 	AT_HYPERFLASH_FS_FC_WAIT(&HyperFlash, &UchanHF1);
-	/* Moving Constant_106, size 32 from HyperFlash at 762656 to (size 32) L2 at 144..175 */
-	AT_HYPERFLASH_FS_FC_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) cnn_ssd_L3_Flash + 762656), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) cnn_ssd_L2_Memory + 144), 32, 0, &UchanHF1);
+	/* Moving Constant_89, size 32 from HyperFlash at 370636 to (size 32) L2 at 2448..2479 */
+	AT_HYPERFLASH_FS_FC_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) cnn_ssd_L3_Flash + 370636), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) cnn_ssd_L2_Memory + 2448), 32, 0, &UchanHF1);
 	AT_HYPERFLASH_FS_FC_WAIT(&HyperFlash, &UchanHF1);
-	/* Moving Constant_109, size 32 from HyperFlash at 762688 to (size 32) L2 at 3536..3567 */
-	AT_HYPERFLASH_FS_FC_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) cnn_ssd_L3_Flash + 762688), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) cnn_ssd_L2_Memory + 3536), 32, 0, &UchanHF1);
+	/* Moving Conv_6_weights, size 4608 from HyperFlash at 362880 to (size 4608) L2 at 2496..7103 */
+	AT_HYPERFLASH_FS_FC_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) cnn_ssd_L3_Flash + 362880), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) cnn_ssd_L2_Memory + 2496), 4608, 0, &UchanHF1);
 	AT_HYPERFLASH_FS_FC_WAIT(&HyperFlash, &UchanHF1);
-	/* Moving Constant_112, size 64 from HyperFlash at 762256 to (size 64) L2 at 3136..3199 */
-	AT_HYPERFLASH_FS_FC_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) cnn_ssd_L3_Flash + 762256), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) cnn_ssd_L2_Memory + 3136), 64, 0, &UchanHF1);
+	/* Moving Constant_95, size 64 from HyperFlash at 370320 to (size 64) L2 at 7488..7551 */
+	AT_HYPERFLASH_FS_FC_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) cnn_ssd_L3_Flash + 370320), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) cnn_ssd_L2_Memory + 7488), 64, 0, &UchanHF1);
 	AT_HYPERFLASH_FS_FC_WAIT(&HyperFlash, &UchanHF1);
-	/* Moving Constant_classification_headers.0.bias, size 36 from HyperFlash at 762512 to (size 36) L2 at 3392..3427 */
-	AT_HYPERFLASH_FS_FC_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) cnn_ssd_L3_Flash + 762512), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) cnn_ssd_L2_Memory + 3392), 36, 0, &UchanHF1);
+	/* Moving Constant_classification_headers.0.bias, size 36 from HyperFlash at 370528 to (size 36) L2 at 7696..7731 */
+	AT_HYPERFLASH_FS_FC_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) cnn_ssd_L3_Flash + 370528), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) cnn_ssd_L2_Memory + 7696), 36, 0, &UchanHF1);
 	AT_HYPERFLASH_FS_FC_WAIT(&HyperFlash, &UchanHF1);
-	/* Moving Constant_regression_headers.0.bias, size 48 from HyperFlash at 762320 to (size 48) L2 at 3200..3247 */
-	AT_HYPERFLASH_FS_FC_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) cnn_ssd_L3_Flash + 762320), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) cnn_ssd_L2_Memory + 3200), 48, 0, &UchanHF1);
+	/* Moving Constant_regression_headers.0.bias, size 48 from HyperFlash at 370384 to (size 48) L2 at 7552..7599 */
+	AT_HYPERFLASH_FS_FC_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) cnn_ssd_L3_Flash + 370384), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) cnn_ssd_L2_Memory + 7552), 48, 0, &UchanHF1);
 	AT_HYPERFLASH_FS_FC_WAIT(&HyperFlash, &UchanHF1);
-	/* Moving Constant_115, size 128 from HyperFlash at 762128 to (size 128) L2 at 3008..3135 */
-	AT_HYPERFLASH_FS_FC_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) cnn_ssd_L3_Flash + 762128), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) cnn_ssd_L2_Memory + 3008), 128, 0, &UchanHF1);
+	/* Moving Constant_98, size 128 from HyperFlash at 370192 to (size 128) L2 at 7360..7487 */
+	AT_HYPERFLASH_FS_FC_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) cnn_ssd_L3_Flash + 370192), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) cnn_ssd_L2_Memory + 7360), 128, 0, &UchanHF1);
 	AT_HYPERFLASH_FS_FC_WAIT(&HyperFlash, &UchanHF1);
-	/* Moving Constant_classification_headers.1.bias, size 36 from HyperFlash at 762548 to (size 36) L2 at 3428..3463 */
-	AT_HYPERFLASH_FS_FC_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) cnn_ssd_L3_Flash + 762548), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) cnn_ssd_L2_Memory + 3428), 36, 0, &UchanHF1);
+	/* Moving Constant_regression_headers.1.bias, size 48 from HyperFlash at 370432 to (size 48) L2 at 7600..7647 */
+	AT_HYPERFLASH_FS_FC_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) cnn_ssd_L3_Flash + 370432), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) cnn_ssd_L2_Memory + 7600), 48, 0, &UchanHF1);
 	AT_HYPERFLASH_FS_FC_WAIT(&HyperFlash, &UchanHF1);
-	/* Moving Constant_regression_headers.1.bias, size 48 from HyperFlash at 762368 to (size 48) L2 at 3248..3295 */
-	AT_HYPERFLASH_FS_FC_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) cnn_ssd_L3_Flash + 762368), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) cnn_ssd_L2_Memory + 3248), 48, 0, &UchanHF1);
+	/* Moving Constant_101, size 256 from HyperFlash at 369792 to (size 256) L2 at 7104..7359 */
+	AT_HYPERFLASH_FS_FC_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) cnn_ssd_L3_Flash + 369792), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) cnn_ssd_L2_Memory + 7104), 256, 0, &UchanHF1);
 	AT_HYPERFLASH_FS_FC_WAIT(&HyperFlash, &UchanHF1);
-	/* Moving Constant_118, size 256 from HyperFlash at 761472 to (size 256) L2 at 2496..2751 */
-	AT_HYPERFLASH_FS_FC_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) cnn_ssd_L3_Flash + 761472), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) cnn_ssd_L2_Memory + 2496), 256, 0, &UchanHF1);
-	AT_HYPERFLASH_FS_FC_WAIT(&HyperFlash, &UchanHF1);
-	/* Moving Constant_classification_headers.2.bias, size 36 from HyperFlash at 762584 to (size 36) L2 at 3464..3499 */
-	AT_HYPERFLASH_FS_FC_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) cnn_ssd_L3_Flash + 762584), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) cnn_ssd_L2_Memory + 3464), 36, 0, &UchanHF1);
-	AT_HYPERFLASH_FS_FC_WAIT(&HyperFlash, &UchanHF1);
-	/* Moving Constant_regression_headers.2.bias, size 48 from HyperFlash at 762416 to (size 48) L2 at 3296..3343 */
-	AT_HYPERFLASH_FS_FC_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) cnn_ssd_L3_Flash + 762416), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) cnn_ssd_L2_Memory + 3296), 48, 0, &UchanHF1);
-	AT_HYPERFLASH_FS_FC_WAIT(&HyperFlash, &UchanHF1);
-	/* Moving Constant_121, size 256 from HyperFlash at 761728 to (size 256) L2 at 2752..3007 */
-	AT_HYPERFLASH_FS_FC_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) cnn_ssd_L3_Flash + 761728), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) cnn_ssd_L2_Memory + 2752), 256, 0, &UchanHF1);
-	AT_HYPERFLASH_FS_FC_WAIT(&HyperFlash, &UchanHF1);
-	/* Moving Constant_classification_headers.3.bias, size 36 from HyperFlash at 762620 to (size 36) L2 at 3500..3535 */
-	AT_HYPERFLASH_FS_FC_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) cnn_ssd_L3_Flash + 762620), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) cnn_ssd_L2_Memory + 3500), 36, 0, &UchanHF1);
-	AT_HYPERFLASH_FS_FC_WAIT(&HyperFlash, &UchanHF1);
-	/* Moving Constant_regression_headers.3.bias, size 48 from HyperFlash at 762464 to (size 48) L2 at 3344..3391 */
-	AT_HYPERFLASH_FS_FC_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) cnn_ssd_L3_Flash + 762464), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) cnn_ssd_L2_Memory + 3344), 48, 0, &UchanHF1);
+	/* Moving Constant_regression_headers.2.bias, size 48 from HyperFlash at 370480 to (size 48) L2 at 7648..7695 */
+	AT_HYPERFLASH_FS_FC_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) cnn_ssd_L3_Flash + 370480), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) cnn_ssd_L2_Memory + 7648), 48, 0, &UchanHF1);
 	AT_HYPERFLASH_FS_FC_WAIT(&HyperFlash, &UchanHF1);
 	return 0;
 }
@@ -3171,13 +2563,13 @@ int cnn_ssdCNN_Destruct()
 
 {
 	AT_HYPERRAM_FREE(&HyperRam, cnn_ssd_L3_Memory, 122880);
-	AT_L2_FREE(0, cnn_ssd_L2_Memory, 49264);
+	AT_L2_FREE(0, cnn_ssd_L2_Memory, 49972);
 	AT_L1_FREE(0, cnn_ssd_L1_Memory, 16544);
 	AT_HYPERFLASH_FS_CLOSE(&HyperFlash);
 	return 0;
 }
-unsigned int AT_GraphPerf[18];
-unsigned int AT_GraphOperInfosNames[18] = {
+unsigned int AT_GraphPerf[14];
+unsigned int AT_GraphOperInfosNames[14] = {
 	1679360,
 	6000640,
 	2974720,
@@ -3188,16 +2580,12 @@ unsigned int AT_GraphOperInfosNames[18] = {
 	1477120,
 	414720,
 	552960,
-	2048,
-	590336,
-	82944,
-	110592,
 	829440,
 	1105920,
 	1658880,
 	2211840,
 };
-char *AT_GraphNodeNames[18] = {
+char *AT_GraphNodeNames[14] = {
 	"S3_Conv2d_8x1x3x3_MaxPool_2x2_Relu",
 	"S6_Conv2d_16x8x3x3_MaxPool_2x2_Relu",
 	"S9_Conv2d_16x16x3x3_MaxPool_2x2_Relu",
@@ -3206,12 +2594,8 @@ char *AT_GraphNodeNames[18] = {
 	"S24_Conv2d_64x32x3x3_Relu",
 	"S25_MaxPool_2x2",
 	"S36_Conv2d_128x64x3x3_Relu",
-	"S40_Conv2d_18x128x3x3",
-	"S44_Conv2d_24x128x3x3",
-	"S37_MaxPool_2x2",
-	"S48_Conv2d_128x128x3x3_Relu",
-	"S51_Conv2d_18x128x3x3",
-	"S55_Conv2d_24x128x3x3",
+	"S39_Conv2d_18x128x3x3",
+	"S43_Conv2d_24x128x3x3",
 	"S28_Conv2d_18x64x3x3",
 	"S32_Conv2d_24x64x3x3",
 	"S16_Conv2d_18x32x3x3",
@@ -3224,153 +2608,121 @@ int cnn_ssdCNN(
 		signed short * __restrict__ Output_3,
 		signed short * __restrict__ Output_4,
 		signed short * __restrict__ Output_5,
-		signed short * __restrict__ Output_6,
-		signed short * __restrict__ Output_7,
-		signed short * __restrict__ Output_8)
+		signed short * __restrict__ Output_6)
 
 {
 	AT_HYPERFLASH_FS_CL_EVENT UchanHF0;
-	/* Moving Conv_6_weights, size 4608 from HyperFlash at 754560 to (size 4608) L2 at 18928 using event 0 */
-	AT_HYPERFLASH_FS_CL_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) cnn_ssd_L3_Flash + 754560), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) cnn_ssd_L2_Memory + 18928), 4608, 0, &UchanHF0);
+	/* Moving Constant_92, size 32 from HyperFlash at 370668 to (size 32) L2 at 27700 using event 0 */
+	AT_HYPERFLASH_FS_CL_COPY(&HyperFlash, ((AT_HYPERFLASH_FS_EXT_ADDR_TYPE) cnn_ssd_L3_Flash + 370668), ((AT_HYPERFLASH_FS_INT_ADDR_TYPE) cnn_ssd_L2_Memory + 27700), 32, 0, &UchanHF0);
 	AT_GraphPerf[0] = gap_cl_readhwtimer();
 	S3_Conv2d_8x1x3x3_MaxPool_2x2_Relu(
 		((signed short * __restrict__) Input_1), /* In */
-		((signed short * __restrict__) (cnn_ssd_L2_Memory+0)), /* Filter */
-		((signed short * __restrict__) (cnn_ssd_L2_Memory+176)), /* Bias */
+		((signed short * __restrict__) (cnn_ssd_L2_Memory+2304)), /* Filter */
+		((signed short * __restrict__) (cnn_ssd_L2_Memory+2480)), /* Bias */
 		((signed short * __restrict__) (cnn_ssd_L3_Memory+0)) /* Out */
 	);
 	AT_GraphPerf[0] = gap_cl_readhwtimer() - AT_GraphPerf[0];
 	AT_GraphPerf[1] = gap_cl_readhwtimer();
 	S6_Conv2d_16x8x3x3_MaxPool_2x2_Relu(
 		((signed short * __restrict__) (cnn_ssd_L3_Memory+0)), /* In */
-		((signed short * __restrict__) (cnn_ssd_L2_Memory+192)), /* Filter */
-		((signed short * __restrict__) (cnn_ssd_L2_Memory+144)), /* Bias */
+		((signed short * __restrict__) (cnn_ssd_L2_Memory+0)), /* Filter */
+		((signed short * __restrict__) (cnn_ssd_L2_Memory+2448)), /* Bias */
 		((signed short * __restrict__) (cnn_ssd_L3_Memory+81920)) /* Out */
 	);
 	AT_GraphPerf[1] = gap_cl_readhwtimer() - AT_GraphPerf[1];
-	/* Waiting completion of transfer of Conv_6_weights using event 0 */
+	/* Waiting completion of transfer of Constant_92 using event 0 */
 	AT_HYPERFLASH_FS_CL_WAIT(&HyperFlash, &UchanHF0);
 	AT_GraphPerf[2] = gap_cl_readhwtimer();
 	S9_Conv2d_16x16x3x3_MaxPool_2x2_Relu(
 		((signed short * __restrict__) (cnn_ssd_L3_Memory+81920)), /* In */
-		((signed short * __restrict__) (cnn_ssd_L2_Memory+18928)), /* Filter */
-		((signed short * __restrict__) (cnn_ssd_L2_Memory+3536)), /* Bias */
-		((signed short * __restrict__) (cnn_ssd_L2_Memory+3568)) /* Out */
+		((signed short * __restrict__) (cnn_ssd_L2_Memory+2496)), /* Filter */
+		((signed short * __restrict__) (cnn_ssd_L2_Memory+27700)), /* Bias */
+		((signed short * __restrict__) (cnn_ssd_L2_Memory+7732)) /* Out */
 	);
 	AT_GraphPerf[2] = gap_cl_readhwtimer() - AT_GraphPerf[2];
 	AT_GraphPerf[3] = gap_cl_readhwtimer();
 	S12_Conv2d_32x16x3x3_Relu(
-		((signed short * __restrict__) (cnn_ssd_L2_Memory+3568)), /* In */
-		((signed short * __restrict__) (cnn_ssd_L3_Flash+745344)), /* Filter */
-		((signed short * __restrict__) (cnn_ssd_L2_Memory+3136)), /* Bias */
-		((signed short * __restrict__) (cnn_ssd_L2_Memory+13808)) /* Out */
+		((signed short * __restrict__) (cnn_ssd_L2_Memory+7732)), /* In */
+		((signed short * __restrict__) (cnn_ssd_L3_Flash+353664)), /* Filter */
+		((signed short * __restrict__) (cnn_ssd_L2_Memory+7488)), /* Bias */
+		((signed short * __restrict__) (cnn_ssd_L2_Memory+17972)) /* Out */
 	);
 	AT_GraphPerf[3] = gap_cl_readhwtimer() - AT_GraphPerf[3];
 	AT_GraphPerf[4] = gap_cl_readhwtimer();
 	S13_MaxPool_2x2(
-		((signed short * __restrict__) (cnn_ssd_L2_Memory+13808)), /* In */
-		((signed short * __restrict__) (cnn_ssd_L2_Memory+3568)) /* Out */
+		((signed short * __restrict__) (cnn_ssd_L2_Memory+17972)), /* In */
+		((signed short * __restrict__) (cnn_ssd_L2_Memory+7732)) /* Out */
 	);
 	AT_GraphPerf[4] = gap_cl_readhwtimer() - AT_GraphPerf[4];
 	AT_GraphPerf[5] = gap_cl_readhwtimer();
 	S24_Conv2d_64x32x3x3_Relu(
-		((signed short * __restrict__) (cnn_ssd_L2_Memory+3568)), /* In */
+		((signed short * __restrict__) (cnn_ssd_L2_Memory+7732)), /* In */
 		((signed short * __restrict__) (cnn_ssd_L3_Flash+0)), /* Filter */
-		((signed short * __restrict__) (cnn_ssd_L2_Memory+3008)), /* Bias */
+		((signed short * __restrict__) (cnn_ssd_L2_Memory+7360)), /* Bias */
 		((signed short * __restrict__) (cnn_ssd_L3_Memory+0)) /* Out */
 	);
 	AT_GraphPerf[5] = gap_cl_readhwtimer() - AT_GraphPerf[5];
 	AT_GraphPerf[6] = gap_cl_readhwtimer();
 	S25_MaxPool_2x2(
 		((signed short * __restrict__) (cnn_ssd_L3_Memory+0)), /* In */
-		((signed short * __restrict__) (cnn_ssd_L2_Memory+34288)) /* Out */
+		((signed short * __restrict__) (cnn_ssd_L2_Memory+38452)) /* Out */
 	);
 	AT_GraphPerf[6] = gap_cl_readhwtimer() - AT_GraphPerf[6];
 	AT_GraphPerf[7] = gap_cl_readhwtimer();
 	S36_Conv2d_128x64x3x3_Relu(
-		((signed short * __restrict__) (cnn_ssd_L2_Memory+34288)), /* In */
+		((signed short * __restrict__) (cnn_ssd_L2_Memory+38452)), /* In */
 		((signed short * __restrict__) (cnn_ssd_L3_Flash+85248)), /* Filter */
-		((signed short * __restrict__) (cnn_ssd_L2_Memory+2496)), /* Bias */
-		((signed short * __restrict__) (cnn_ssd_L2_Memory+4592)) /* Out */
+		((signed short * __restrict__) (cnn_ssd_L2_Memory+7104)), /* Bias */
+		((signed short * __restrict__) (cnn_ssd_L2_Memory+7732)) /* Out */
 	);
 	AT_GraphPerf[7] = gap_cl_readhwtimer() - AT_GraphPerf[7];
 	AT_GraphPerf[8] = gap_cl_readhwtimer();
-	S40_Conv2d_18x128x3x3(
-		((signed short * __restrict__) (cnn_ssd_L2_Memory+4592)), /* In */
+	S39_Conv2d_18x128x3x3(
+		((signed short * __restrict__) (cnn_ssd_L2_Memory+7732)), /* In */
 		((signed short * __restrict__) (cnn_ssd_L3_Flash+232704)), /* Filter */
-		((signed short * __restrict__) (cnn_ssd_L2_Memory+3464)), /* Bias */
+		((signed short * __restrict__) (cnn_ssd_L3_Flash+370600)), /* Bias */
 		((signed short * __restrict__) Output_5) /* Out */
 	);
 	AT_GraphPerf[8] = gap_cl_readhwtimer() - AT_GraphPerf[8];
 	AT_GraphPerf[9] = gap_cl_readhwtimer();
-	S44_Conv2d_24x128x3x3(
-		((signed short * __restrict__) (cnn_ssd_L2_Memory+4592)), /* In */
+	S43_Conv2d_24x128x3x3(
+		((signed short * __restrict__) (cnn_ssd_L2_Memory+7732)), /* In */
 		((signed short * __restrict__) (cnn_ssd_L3_Flash+274176)), /* Filter */
-		((signed short * __restrict__) (cnn_ssd_L2_Memory+3296)), /* Bias */
+		((signed short * __restrict__) (cnn_ssd_L2_Memory+7648)), /* Bias */
 		((signed short * __restrict__) Output_6) /* Out */
 	);
 	AT_GraphPerf[9] = gap_cl_readhwtimer() - AT_GraphPerf[9];
 	AT_GraphPerf[10] = gap_cl_readhwtimer();
-	S37_MaxPool_2x2(
-		((signed short * __restrict__) (cnn_ssd_L2_Memory+4592)), /* In */
-		((signed short * __restrict__) (cnn_ssd_L2_Memory+3568)) /* Out */
-	);
-	AT_GraphPerf[10] = gap_cl_readhwtimer() - AT_GraphPerf[10];
-	AT_GraphPerf[11] = gap_cl_readhwtimer();
-	S48_Conv2d_128x128x3x3_Relu(
-		((signed short * __restrict__) (cnn_ssd_L2_Memory+3568)), /* In */
-		((signed short * __restrict__) (cnn_ssd_L3_Flash+329472)), /* Filter */
-		((signed short * __restrict__) (cnn_ssd_L2_Memory+2752)), /* Bias */
-		((signed short * __restrict__) (cnn_ssd_L2_Memory+4592)) /* Out */
-	);
-	AT_GraphPerf[11] = gap_cl_readhwtimer() - AT_GraphPerf[11];
-	AT_GraphPerf[12] = gap_cl_readhwtimer();
-	S51_Conv2d_18x128x3x3(
-		((signed short * __restrict__) (cnn_ssd_L2_Memory+4592)), /* In */
-		((signed short * __restrict__) (cnn_ssd_L3_Flash+624384)), /* Filter */
-		((signed short * __restrict__) (cnn_ssd_L2_Memory+3500)), /* Bias */
-		((signed short * __restrict__) Output_7) /* Out */
-	);
-	AT_GraphPerf[12] = gap_cl_readhwtimer() - AT_GraphPerf[12];
-	AT_GraphPerf[13] = gap_cl_readhwtimer();
-	S55_Conv2d_24x128x3x3(
-		((signed short * __restrict__) (cnn_ssd_L2_Memory+4592)), /* In */
-		((signed short * __restrict__) (cnn_ssd_L3_Flash+665856)), /* Filter */
-		((signed short * __restrict__) (cnn_ssd_L2_Memory+3344)), /* Bias */
-		((signed short * __restrict__) Output_8) /* Out */
-	);
-	AT_GraphPerf[13] = gap_cl_readhwtimer() - AT_GraphPerf[13];
-	AT_GraphPerf[14] = gap_cl_readhwtimer();
 	S28_Conv2d_18x64x3x3(
 		((signed short * __restrict__) (cnn_ssd_L3_Memory+0)), /* In */
 		((signed short * __restrict__) (cnn_ssd_L3_Flash+36864)), /* Filter */
-		((signed short * __restrict__) (cnn_ssd_L2_Memory+3428)), /* Bias */
+		((signed short * __restrict__) (cnn_ssd_L3_Flash+370564)), /* Bias */
 		((signed short * __restrict__) Output_3) /* Out */
 	);
-	AT_GraphPerf[14] = gap_cl_readhwtimer() - AT_GraphPerf[14];
-	AT_GraphPerf[15] = gap_cl_readhwtimer();
+	AT_GraphPerf[10] = gap_cl_readhwtimer() - AT_GraphPerf[10];
+	AT_GraphPerf[11] = gap_cl_readhwtimer();
 	S32_Conv2d_24x64x3x3(
 		((signed short * __restrict__) (cnn_ssd_L3_Memory+0)), /* In */
 		((signed short * __restrict__) (cnn_ssd_L3_Flash+57600)), /* Filter */
-		((signed short * __restrict__) (cnn_ssd_L2_Memory+3248)), /* Bias */
+		((signed short * __restrict__) (cnn_ssd_L2_Memory+7600)), /* Bias */
 		((signed short * __restrict__) Output_4) /* Out */
 	);
-	AT_GraphPerf[15] = gap_cl_readhwtimer() - AT_GraphPerf[15];
-	AT_GraphPerf[16] = gap_cl_readhwtimer();
+	AT_GraphPerf[11] = gap_cl_readhwtimer() - AT_GraphPerf[11];
+	AT_GraphPerf[12] = gap_cl_readhwtimer();
 	S16_Conv2d_18x32x3x3(
-		((signed short * __restrict__) (cnn_ssd_L2_Memory+13808)), /* In */
-		((signed short * __restrict__) (cnn_ssd_L3_Flash+734976)), /* Filter */
-		((signed short * __restrict__) (cnn_ssd_L2_Memory+3392)), /* Bias */
+		((signed short * __restrict__) (cnn_ssd_L2_Memory+17972)), /* In */
+		((signed short * __restrict__) (cnn_ssd_L3_Flash+343296)), /* Filter */
+		((signed short * __restrict__) (cnn_ssd_L2_Memory+7696)), /* Bias */
 		((signed short * __restrict__) Output_1) /* Out */
 	);
-	AT_GraphPerf[16] = gap_cl_readhwtimer() - AT_GraphPerf[16];
-	AT_GraphPerf[17] = gap_cl_readhwtimer();
+	AT_GraphPerf[12] = gap_cl_readhwtimer() - AT_GraphPerf[12];
+	AT_GraphPerf[13] = gap_cl_readhwtimer();
 	S20_Conv2d_24x32x3x3(
-		((signed short * __restrict__) (cnn_ssd_L2_Memory+13808)), /* In */
-		((signed short * __restrict__) (cnn_ssd_L3_Flash+721152)), /* Filter */
-		((signed short * __restrict__) (cnn_ssd_L2_Memory+3200)), /* Bias */
+		((signed short * __restrict__) (cnn_ssd_L2_Memory+17972)), /* In */
+		((signed short * __restrict__) (cnn_ssd_L3_Flash+329472)), /* Filter */
+		((signed short * __restrict__) (cnn_ssd_L2_Memory+7552)), /* Bias */
 		((signed short * __restrict__) Output_2) /* Out */
 	);
-	AT_GraphPerf[17] = gap_cl_readhwtimer() - AT_GraphPerf[17];
+	AT_GraphPerf[13] = gap_cl_readhwtimer() - AT_GraphPerf[13];
 	return 0;
 }
